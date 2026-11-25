@@ -14,6 +14,7 @@ import (
 	"time"
 
 	"github.com/crmf/crmf/internal/server/auth"
+	"github.com/crmf/crmf/internal/server/tenancy"
 	"github.com/google/uuid"
 )
 
@@ -24,9 +25,10 @@ type cli struct {
 	out        io.Writer
 	readSecret func(context.Context, string) ([]byte, error)
 	create     func(context.Context, string, string, string, string) (uuid.UUID, error)
+	provision  func(context.Context, func(string) string, tenancy.ProvisionInput) (tenancy.ProvisionResult, error)
 }
 
-const usage = "usage: crmfctl version | user create-admin --email <email> --name <name>"
+const usage = "usage: crmfctl version | user create-admin --email <email> --name <name> | tenant provision --slug <slug> --legal-name <name> --cnpj <cnpj> --plan-id <uuid>"
 
 func main() {
 	os.Exit(execute())
@@ -49,6 +51,9 @@ func (c cli) run(ctx context.Context, args []string) error {
 	if len(args) == 1 && (args[0] == "help" || args[0] == "--help") {
 		_, err := fmt.Fprintln(c.out, usage)
 		return err
+	}
+	if len(args) >= 2 && args[0] == "tenant" && args[1] == "provision" {
+		return c.provisionTenant(ctx, args[2:])
 	}
 	if len(args) < 2 || args[0] != "user" || args[1] != "create-admin" {
 		return errors.New(usage)
