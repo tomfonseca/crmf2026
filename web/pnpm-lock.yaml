@@ -68,6 +68,9 @@ importers:
       '@crmf/api-client':
         specifier: workspace:*
         version: link:../../packages/api-client
+      '@crmf/auth':
+        specifier: workspace:*
+        version: link:../../packages/auth
       '@crmf/charts':
         specifier: workspace:*
         version: link:../../packages/charts
@@ -92,6 +95,9 @@ importers:
       '@crmf/api-client':
         specifier: workspace:*
         version: link:../../packages/api-client
+      '@crmf/auth':
+        specifier: workspace:*
+        version: link:../../packages/auth
       '@crmf/ui':
         specifier: workspace:*
         version: link:../../packages/ui
@@ -114,7 +120,17 @@ importers:
         specifier: ^0.15.0
         version: 0.15.2
 
-  packages/auth: {}
+  packages/auth:
+    dependencies:
+      '@crmf/api-client':
+        specifier: workspace:*
+        version: link:../api-client
+      '@crmf/ui':
+        specifier: workspace:*
+        version: link:../ui
+      react:
+        specifier: 18.3.1
+        version: 18.3.1
 
   packages/charts:
     dependencies:

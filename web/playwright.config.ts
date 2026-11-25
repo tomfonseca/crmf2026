@@ -10,11 +10,20 @@ export default defineConfig({
     channel: process.env.PLAYWRIGHT_CHANNEL,
   },
   projects: [{ name: "chromium", use: { ...devices["Desktop Chrome"] } }],
-  webServer: {
-    command:
-      "pnpm --filter @crmf/dash dev --host 127.0.0.1 --port 5175 --strictPort",
-    url: "http://127.0.0.1:5175",
-    reuseExistingServer: !process.env.CI,
-    timeout: 60000,
-  },
+  webServer: [
+    {
+      command:
+        "pnpm --filter @crmf/dash dev --host 127.0.0.1 --port 5175 --strictPort",
+      url: "http://127.0.0.1:5175",
+      reuseExistingServer: !process.env.CI,
+      timeout: 60000,
+    },
+    {
+      command:
+        "pnpm --filter @crmf/hq dev --host 127.0.0.1 --port 5177 --strictPort",
+      url: "http://127.0.0.1:5177",
+      reuseExistingServer: !process.env.CI,
+      timeout: 60000,
+    },
+  ],
 });
