@@ -8,6 +8,7 @@ import (
 	"crypto/sha256"
 	"encoding/base64"
 	"errors"
+	"path/filepath"
 	"strings"
 	"sync"
 	"testing"
@@ -63,7 +64,7 @@ func TestTenantProvisioningAndDatabaseIsolation(t *testing.T) {
 		t.Fatal(err)
 	}
 	defer core.Close()
-	files, err := tenancy.NewDevelopmentFiles(t.TempDir(), true)
+	files, err := tenancy.NewDevelopmentFiles(filepath.Join(t.TempDir(), "private-credentials"), true)
 	if err != nil {
 		t.Fatal(err)
 	}

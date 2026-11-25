@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"testing"
 	"time"
@@ -18,7 +19,7 @@ import (
 
 func TestDevelopmentCredentialCustody(t *testing.T) {
 	ctx := context.Background()
-	directory := t.TempDir()
+	directory := filepath.Join(t.TempDir(), "private-credentials")
 	store, err := NewDevelopmentFiles(directory, true)
 	if err != nil {
 		t.Fatal(err)
@@ -86,6 +87,21 @@ func TestDevelopmentCredentialCustody(t *testing.T) {
 	stop()
 	if _, err := store.Get(canceled, id, slug, ""); !errors.Is(err, context.Canceled) {
 		t.Fatal("ignored cancellation")
+	}
+}
+func TestDevelopmentFilesRejectBroadPermissions(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("Windows custody relies on workstation ACLs, not POSIX mode bits")
+	}
+	directory := filepath.Join(t.TempDir(), "unsafe")
+	if err := os.Mkdir(directory, 0700); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.Chmod(directory, 0755); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := NewDevelopmentFiles(directory, true); !errors.Is(err, ErrUnavailable) {
+		t.Fatal("broad directory permissions accepted")
 	}
 }
 func TestProvisionInputAndSecretNames(t *testing.T) {
