@@ -9,7 +9,8 @@ if (!root) throw new Error("Root element missing");
 ReactDOM.createRoot(root).render(
   <React.StrictMode>
     <QueryClientProvider client={queryClient}>
-      {window.location.pathname.replace(/\/+$/, "") === "/login" ? (
+      {window.location.pathname === "/login" ||
+      window.location.pathname.startsWith("/login/") ? (
         <LoginPage />
       ) : (
         <App />

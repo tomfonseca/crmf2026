@@ -31,11 +31,13 @@ test("focus rechecks expiration without background idle keepalive", async () => 
   expect(focusListener).toHaveBeenCalledWith("focus", expect.any(Function));
   fireEvent.focus(window);
   expect(client.identity).toHaveBeenCalledTimes(2);
-  await screen.findByLabelText("Senha");
+  await screen.findByRole("heading", { name: "Sua sessão expirou" });
   expect(screen.queryByText("Private data")).not.toBeInTheDocument();
   expect(screen.getByRole("alert")).toHaveTextContent("Sua sessão expirou");
   fireEvent.focus(window);
   expect(client.identity).toHaveBeenCalledTimes(2);
+  fireEvent.click(screen.getByRole("button", { name: "Entrar novamente" }));
+  await screen.findByLabelText("Senha");
 });
 
 test("duplicate submit is blocked and unmount cancels pending transport", async () => {

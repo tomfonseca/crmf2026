@@ -37,7 +37,10 @@ Credenciais **exclusivas de desenvolvimento** estão em `.env.example` e nos
 scripts de inicialização locais. Keycloak: `admin` / `crmf_local_admin_only`.
 Não há usuários finais pré-cadastrados. O QG e `/login` do Dash têm telas
 M1 de login/MFA; habilite a API com `python scripts/tasks.py auth-dev`.
-Veja [fluxos e limites da autenticação web](docs/implementation/authentication-web.md).
+Veja [fluxos e limites da autenticação web](docs/implementation/authentication-web.md)
+e [novo layout de autenticação](docs/implementation/authentication-layout.md): login,
+passkey, recuperação, Minha conta e telas previstas de senha/convite. No QG de
+**desenvolvimento**, `/__auth-design` permite conferir as 94 variações visuais.
 
 ## Prévia do dashboard (sem backend)
 
