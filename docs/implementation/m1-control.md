@@ -154,6 +154,18 @@ authentication screens remain **pending**. No final user was provisioned by
 the agent; only disposable synthetic identities were used in tests. The
 dashboard remains mocked, and no business/ERP endpoint has been exposed.
 
+## Delivered in the sixth increment: effective plan limits
+
+- `app.EffectiveLimits` resolves the tenant exclusively from the authenticated
+  context and loads its subscription/plan with the restricted control role.
+- Strict override handling distinguishes absent quotas, explicit unlimited
+  quotas and invalid zero/null values; modules replace rather than extend
+  the base plan. Suspended/cancelled tenants/subscriptions fail closed.
+- Unit and real-Postgres tests cover overrides, isolation, stale status,
+  retired plans and invalid configuration. No identity SQL leaves auth.
+- This is the internal policy module, not enforcement on still-pending
+  business/admin routes. See [scope and remaining integration](effective-limits.md).
+
 ## Verify locally
 
 ```sh
@@ -193,8 +205,9 @@ and idles; giving it its future role does not implement ingestion.
 4. Invites/reset emails via Mailpit locally and ACS in Azure. Retire the unused
    Keycloak dependency, stale OIDC descriptions and local readiness check at
    that cutover, rather than presenting it as the new auth implementation.
-5. Tenant provisioner, schema-bound pools, tenant migrations, `EffectiveLimits`
-   and cross-tenant/store authorization tests.
+5. Tenant provisioner, schema-bound pools, tenant migrations, integration of
+   `EffectiveLimits` into authenticated routes/creation quotas, and additional
+   cross-tenant/store authorization tests.
 6. `/v1/me`, audited administrative endpoints and minimal QG, with generated
    OpenAPI clients. No unauthenticated provisioning route will be introduced.
 
