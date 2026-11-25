@@ -82,7 +82,10 @@ Isso evita misturar dependências nativas Windows e Linux nos containers.
   segredo versionado do Key Vault via identidade gerenciada (ainda sem validação
   em Azure). O primeiro administrador é criado manualmente por
   `crmfctl user create-admin`, com senha no terminal e MFA no primeiro login;
-  telas de login, convites e redefinição de senha ainda pendem. Veja [estado e próximos incrementos](docs/implementation/m1-control.md).
+  telas de login, convites e redefinição de senha ainda pendem. O motor interno
+  de [limites efetivos](docs/implementation/effective-limits.md) já resolve plano
+  e overrides pelo contexto autenticado, ainda sem integração nas futuras rotas
+  de negócio. Veja [estado e próximos incrementos](docs/implementation/m1-control.md).
 - Ainda não implementado: fluxos complementares de autenticação, provisionamento e isolamento
   por tenant completos (M1),
   conector real (M2), coleta/ingestão/MSI (M3), jobs River e agregados (M4),
