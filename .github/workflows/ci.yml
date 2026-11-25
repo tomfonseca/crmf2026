@@ -57,7 +57,7 @@ jobs:
       - run: make integration
       - run: make security
       - run: docker build -f deploy/Dockerfile -t crmf-server:ci .
-      - uses: aquasecurity/trivy-action@0.34.0
+      - uses: aquasecurity/trivy-action@c1824fd6edce30d7ab345a9989de00bbd46ef284 # v0.34.0
         with:
           image-ref: crmf-server:ci
           severity: HIGH,CRITICAL
