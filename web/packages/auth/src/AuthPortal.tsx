@@ -65,6 +65,7 @@ export function AuthPortal({
   theme: controlledTheme,
   onThemeChange,
   realm: configuredRealm,
+  renderWorkspace,
 }: {
   client: AuthClient;
   title: string;
@@ -72,6 +73,11 @@ export function AuthPortal({
   theme?: Theme;
   onThemeChange?: () => void;
   realm?: Realm;
+  renderWorkspace?: (controls: {
+    onAccount: () => void;
+    onLogout: () => void;
+    busy: boolean;
+  }) => ReactNode;
 }) {
   const realm = configuredRealm ?? client.realm ?? "tenant";
   const base = realm === "platform" ? "/" : "/login";
@@ -312,6 +318,23 @@ export function AuthPortal({
           onRetry={() => {}}
         />
       </AuthFrame>
+    );
+  if (
+    state.kind === "ready" &&
+    renderWorkspace &&
+    !path.endsWith("/minha-conta")
+  )
+    return (
+      <ScopeContext.Provider value={state.identity}>
+        <div className="dashboard auth-app" data-theme={theme}>
+          {error && <Banner tone="danger">{error}</Banner>}
+          {renderWorkspace({
+            onAccount: () => navigate("minha-conta"),
+            onLogout: signOut,
+            busy,
+          })}
+        </div>
+      </ScopeContext.Provider>
     );
   if (state.kind === "ready")
     return (

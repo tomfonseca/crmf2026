@@ -306,6 +306,22 @@ See [scope, deployment, permissions and evidence](hq-networks.md).
 
 See [layouts, entry points and security boundaries](authentication-layout.md).
 
+## Delivered in the thirteenth increment: QG layouts
+
+- Responsive authenticated sidebar/topbar, role-aware account/logout and current
+  real Planos/Redes services. Plan tables/cards, filtering, minute display,
+  quota checkboxes, typed deletion, revision conflict and draft protection.
+- Operational panel, network details/subscription, stores/pairing/reinstallation,
+  devices/commands and batches/monitoring are implemented as planned UI surfaces,
+  **not** completed backend operations. Unavailable values stay unavailable;
+  destructive or not-yet-authorized actions remain disabled.
+- Development-only 125-board reference catalogue; no API calls or authenticated
+  scope. Native modal, timeline table alternative, desktop/mobile/theme checks.
+- No migrations, new ERP queries, pairing codes, installs, device commands,
+  reprocessing or production analytics are introduced by this visual increment.
+
+See [screen inventory, live/pending boundaries and verification](hq-layout.md).
+
 ## Not delivered / next increments
 
 This is **M1 started, not M1 complete**. Authentication endpoints are available

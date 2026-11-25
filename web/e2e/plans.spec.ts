@@ -108,7 +108,7 @@ for (const support of [false, true]) {
           page.getByText("Acesso de suporte: somente leitura."),
         ).toBeVisible();
         await expect(
-          page.getByRole("button", { name: "Novo plano" }),
+          page.getByRole("button", { name: "Cadastrar plano" }),
         ).toHaveCount(0);
         await expect(
           page.getByRole("button", { name: /Editar Plano/ }),
@@ -128,14 +128,13 @@ for (const support of [false, true]) {
         return;
       }
       await expect(page.getByText("Nenhum plano nesta página.")).toBeVisible();
-      await page.getByRole("button", { name: "Novo plano" }).click();
+      await page.getByRole("button", { name: "Cadastrar plano" }).click();
       await page.getByLabel(/^Código/).fill("synthetic");
       await page.getByLabel("Nome", { exact: true }).fill("Plano sintético");
       await page.getByLabel("Preço (R$)", { exact: true }).fill("29,90");
-      await page
-        .getByLabel("Intervalo de sincronização (segundos)")
-        .fill("180");
+      await page.getByLabel("Intervalo de sincronização (minutos)").fill("3");
       await page.getByLabel("Histórico (meses)").fill("12");
+      await page.getByLabel("Ilimitado — usuários", { exact: true }).uncheck();
       await page
         .getByLabel("Máximo de usuários (vazio = ilimitado)")
         .fill("10");
@@ -147,7 +146,7 @@ for (const support of [false, true]) {
       await page
         .getByRole("button", { name: "Editar Plano sintético", exact: true })
         .click();
-      await expect(page.getByLabel(/^Código/)).toBeDisabled();
+      await expect(page.getByLabel(/^Código/)).toHaveAttribute("readonly", "");
       await page.getByLabel("Plano ativo", { exact: true }).uncheck();
       await page
         .getByRole("button", { name: "Salvar plano", exact: true })

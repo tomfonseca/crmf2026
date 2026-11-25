@@ -174,6 +174,8 @@ for (const realm of ["platform", "tenant"] as const) {
     });
     expect(credentials).toHaveLength(1);
     expect(credentials[0].isResidentCredential).toBe(true);
+    if (realm === "platform")
+      await page.getByRole("button", { name: "Menu do usuário" }).click();
     await page.getByRole("button", { name: "Sair", exact: true }).click();
     await login();
     await expect(
@@ -186,6 +188,8 @@ for (const realm of ["platform", "tenant"] as const) {
     expect(
       await page.evaluate(() => [localStorage.length, sessionStorage.length]),
     ).toEqual([0, 0]);
+    if (realm === "platform")
+      await page.getByRole("button", { name: "Menu do usuário" }).click();
     await page.getByRole("button", { name: "Sair", exact: true }).click();
     await expect(page.getByLabel("Senha", { exact: true })).toBeVisible();
     expect(actions).toEqual([

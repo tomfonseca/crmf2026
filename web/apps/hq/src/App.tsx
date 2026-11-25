@@ -8,6 +8,7 @@ import {
 import { CatalogHost } from "./Plans";
 import { createPlanClient } from "./plans-client";
 import { createNetworkClient } from "./networks-client";
+import { QGPreview } from "./QGPreview";
 
 function configuredClients() {
   try {
@@ -28,6 +29,8 @@ export function App() {
   const expire = useCallback(() => setEpoch((value) => value + 1), []);
   if (import.meta.env.DEV && window.location.pathname === "/__auth-design")
     return <AuthDesignPreview />;
+  if (import.meta.env.DEV && window.location.pathname === "/__qg-design")
+    return <QGPreview />;
   return clients ? (
     <AuthPortal
       key={epoch}
@@ -36,15 +39,17 @@ export function App() {
       title="QG CRMF"
       theme={theme}
       onThemeChange={toggleTheme}
-    >
-      <CatalogHost
-        client={clients.plans}
-        networks={clients.networks}
-        onExpired={expire}
-        theme={theme}
-        toggleTheme={toggleTheme}
-      />
-    </AuthPortal>
+      renderWorkspace={(actions) => (
+        <CatalogHost
+          client={clients.plans}
+          networks={clients.networks}
+          onExpired={expire}
+          theme={theme}
+          toggleTheme={toggleTheme}
+          actions={actions}
+        />
+      )}
+    />
   ) : (
     <main>
       <h1>QG CRMF</h1>
