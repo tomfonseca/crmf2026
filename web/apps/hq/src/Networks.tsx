@@ -165,9 +165,14 @@ export function Networks({
                   <td>
                     {network.plan_name}
                     <small>
-                      {network.status === "trial"
-                        ? "Em avaliação"
-                        : network.status}
+                      {
+                        {
+                          trial: "Em avaliação",
+                          active: "Ativa",
+                          suspended: "Suspensa",
+                          cancelled: "Cancelada",
+                        }[network.status]
+                      }
                     </small>
                   </td>
                   <td>
@@ -188,6 +193,8 @@ export function Networks({
                   <td>
                     {canWrite &&
                     network.provision_status === "failed" &&
+                    (network.status === "trial" ||
+                      network.status === "active") &&
                     network.generation > 0 ? (
                       <RetryNetwork
                         network={network}

@@ -9,6 +9,7 @@ for (const support of [false, true]) {
     async ({ page }) => {
       if (support) await page.setViewportSize({ width: 360, height: 780 });
       let state = "failed";
+      let status = "trial";
       let created = support;
       let generation = 1;
       let writes = 0;
@@ -64,7 +65,7 @@ for (const support of [false, true]) {
           cnpj: "ABCDEFGHIJKL00",
           plan_id: id,
           plan_name: "Plano sintético",
-          status: "trial",
+          status,
           provision_status: state,
           schema_version: state === "ready" ? 1 : 0,
           generation,
@@ -151,6 +152,18 @@ for (const support of [false, true]) {
       await expect(
         page.getByText("Banco isolado confirmado · versão 1", { exact: true }),
       ).toBeVisible();
+      status = "suspended";
+      state = "failed";
+      await page
+        .getByRole("button", { name: "Atualizar redes", exact: true })
+        .click();
+      await expect(page.getByText("Suspensa", { exact: true })).toBeVisible();
+      await expect(
+        page.getByRole("button", {
+          name: "Tentar preparar novamente",
+          exact: true,
+        }),
+      ).toHaveCount(0);
       expect(writes).toBe(2);
       expect(
         await page.evaluate(() => ({
