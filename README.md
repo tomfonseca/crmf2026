@@ -74,7 +74,7 @@ Isso evita misturar dependências nativas Windows e Linux nos containers.
 
 - Implementado: monorepo, processos buildáveis, contratos e clientes gerados,
   health/readiness reais, migrações base independentes, ambiente Docker local,
-  shell do QG, prévia mockada do Dash, tokens/componentes visuais iniciais,
+  shell autenticado do QG com catálogo de planos, prévia mockada do Dash, tokens/componentes visuais iniciais,
   verificações locais e workflows de CI/Terraform.
 - M1 parcial: schemas `auth`/`core`, cadastros-base, roles restritos, auditoria
   append-only para os roles de aplicação; motor interno de login, MFA por passkeys/WebAuthn (sem TOTP),
@@ -84,7 +84,8 @@ Isso evita misturar dependências nativas Windows e Linux nos containers.
   segredo versionado do Key Vault via identidade gerenciada (ainda sem validação
   em Azure). O primeiro administrador é criado manualmente por
   `crmfctl user create-admin`, com senha no terminal e MFA no primeiro login;
-  as telas iniciais de login/MFA já estão disponíveis, mas convites e
+  o QG autenticado já tem [gestão real de planos](docs/implementation/hq-plans.md),
+  com limites, módulos, revisões e auditoria; convites e
   redefinição de senha ainda pendem. O motor interno
   de [limites efetivos](docs/implementation/effective-limits.md) já resolve plano
   e overrides pelo contexto autenticado, ainda sem integração nas futuras rotas

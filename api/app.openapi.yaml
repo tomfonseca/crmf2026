@@ -242,7 +242,84 @@ paths:
           content:
             application/problem+json:
               schema: {$ref: '#/components/schemas/Problem'}
+  /v1/hq/plans:
+    get:
+      operationId: listPlans
+      security: [{PlatformSession: []}]
+      parameters:
+        - {in: query, name: after, schema: {type: string, maxLength: 64}}
+      responses:
+        '200':
+          description: Up to 100 plans in stable code order; support is read-only
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items]
+                properties:
+                  items: {type: array, items: {$ref: '#/components/schemas/Plan'}}
+                  next_cursor: {type: string}
+        default: {$ref: '#/components/responses/CatalogError'}
+    post:
+      operationId: createPlan
+      security: [{PlatformSession: []}]
+      parameters: [{$ref: '#/components/parameters/CRMFRequest'}]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/PlanInput'}
+      responses:
+        '201':
+          description: Plan persisted and audited; platform_admin only
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Plan'}
+        default: {$ref: '#/components/responses/CatalogError'}
+  /v1/hq/plans/{id}:
+    parameters:
+      - {in: path, name: id, required: true, schema: {type: string, format: uuid}}
+    put:
+      operationId: updatePlan
+      security: [{PlatformSession: []}]
+      parameters: [{$ref: '#/components/parameters/CRMFRequest'}]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/PlanUpdate'}
+      responses:
+        '200':
+          description: Plan updated and audited; stale version is rejected with 409
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Plan'}
+        default: {$ref: '#/components/responses/CatalogError'}
+    delete:
+      operationId: deletePlan
+      security: [{PlatformSession: []}]
+      parameters: [{$ref: '#/components/parameters/CRMFRequest'}]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [version, confirmation]
+              properties:
+                version: {type: integer, format: int32, minimum: 1}
+                confirmation: {type: string, description: Exact plan code}
+      responses:
+        '204': {description: Unsubscribed plan deleted and audited}
+        default: {$ref: '#/components/responses/CatalogError'}
 components:
+  responses:
+    CatalogError:
+      description: Invalid input (400), unauthenticated (401), forbidden (403), missing (404), stale/duplicate/in-use (409) or unavailable (503)
+      content:
+        application/problem+json:
+          schema: {$ref: '#/components/schemas/Problem'}
   parameters:
     CRMFRequest:
       in: header
@@ -255,6 +332,43 @@ components:
     TenantChallenge: {type: apiKey, in: cookie, name: __Host-crmf_tenant_challenge}
     PlatformChallenge: {type: apiKey, in: cookie, name: __Host-crmf_platform_challenge}
   schemas:
+    PlanFields:
+      type: object
+      required: [name, price_cents, active, sync_interval_seconds, history_months, max_stores, max_users, modules]
+      properties:
+        name: {type: string, minLength: 1, maxLength: 120}
+        price_cents: {type: integer, format: int32, minimum: 0}
+        active: {type: boolean}
+        sync_interval_seconds: {type: integer, format: int32, minimum: 1}
+        history_months: {type: integer, format: int32, minimum: 1}
+        max_stores: {type: [integer, 'null'], format: int32, minimum: 1}
+        max_users: {type: [integer, 'null'], format: int32, minimum: 1}
+        modules:
+          type: array
+          uniqueItems: true
+          items: {type: string, enum: [core, realtime, export, pulse]}
+    PlanInput:
+      allOf:
+        - {$ref: '#/components/schemas/PlanFields'}
+        - type: object
+          required: [code]
+          properties:
+            code: {type: string, pattern: '^[a-z0-9][a-z0-9_-]{0,63}$'}
+    PlanUpdate:
+      allOf:
+        - {$ref: '#/components/schemas/PlanFields'}
+        - type: object
+          required: [version]
+          properties:
+            version: {type: integer, format: int32, minimum: 1}
+    Plan:
+      allOf:
+        - {$ref: '#/components/schemas/PlanInput'}
+        - type: object
+          required: [id, version]
+          properties:
+            id: {type: string, format: uuid}
+            version: {type: integer, format: int32, minimum: 1}
     LoginInput:
       type: object
       additionalProperties: false

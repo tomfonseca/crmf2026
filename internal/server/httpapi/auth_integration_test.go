@@ -16,15 +16,18 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/crmf/crmf/internal/server/app"
 	"github.com/crmf/crmf/internal/server/auth"
 	"github.com/crmf/crmf/internal/server/httpapi/appcontract"
 	"github.com/crmf/crmf/internal/server/migrate"
 	"github.com/crmf/crmf/internal/testpasskey"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 type httpFixture struct {
+	engine              *auth.Engine
 	admin               *pgx.Conn
 	server              *httptest.Server
 	client              *http.Client
@@ -100,10 +103,20 @@ func newHTTPFixture(t *testing.T, required bool) *httpFixture {
 	if err != nil {
 		t.Fatal(err)
 	}
-	router, err := NewAuthenticated(nil, slog.New(slog.NewTextHandler(io.Discard, nil)), AuthOptions{Backend: engine, Development: true, TenantOrigin: "http://localhost:5174", PlatformOrigin: "http://localhost:5173", TrustedProxies: []netip.Prefix{netip.MustParsePrefix("127.0.0.1/32")}})
+	core, err := pgxpool.New(ctx, "postgres://crmf_core:crmf_local_core_only@localhost:55432/crmf_control?sslmode=disable")
 	if err != nil {
 		t.Fatal(err)
 	}
+	t.Cleanup(core.Close)
+	catalog, err := app.NewPlanCatalog(ctx, core)
+	if err != nil {
+		t.Fatal(err)
+	}
+	router, err := NewAuthenticated(nil, slog.New(slog.NewTextHandler(io.Discard, nil)), AuthOptions{Backend: engine, Plans: catalog, Development: true, TenantOrigin: "http://localhost:5174", PlatformOrigin: "http://localhost:5173", TrustedProxies: []netip.Prefix{netip.MustParsePrefix("127.0.0.1/32")}})
+	if err != nil {
+		t.Fatal(err)
+	}
+	f.engine = engine
 	f.server = httptest.NewTLSServer(router)
 	t.Cleanup(f.server.Close)
 	f.client = f.server.Client()

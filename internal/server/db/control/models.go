@@ -3,3 +3,23 @@
 //   sqlc v1.31.1
 
 package control
+
+import (
+	"github.com/jackc/pgx/v5/pgtype"
+)
+
+type CorePlan struct {
+	ID                  pgtype.UUID
+	Code                string
+	Name                string
+	PriceCents          int32
+	Active              bool
+	SyncIntervalSeconds int32
+	MaxStores           pgtype.Int4
+	MaxUsers            pgtype.Int4
+	HistoryMonths       int32
+	Modules             []string
+	CreatedAt           pgtype.Timestamptz
+	UpdatedAt           pgtype.Timestamptz
+	Version             int32
+}

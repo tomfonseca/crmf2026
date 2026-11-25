@@ -69,6 +69,12 @@ for (const realm of ["platform", "tenant"] as const) {
           headers,
           body: authenticated ? JSON.stringify(identity) : "{}",
         });
+      if (path === prefix + "/plans")
+        return route.fulfill({
+          status: 200,
+          headers,
+          body: JSON.stringify({ items: [] }),
+        });
       actions.push(path);
       if (path === prefix + "/auth/login") {
         const options = credentialID

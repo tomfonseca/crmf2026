@@ -1,0 +1,115 @@
+.auth-page:has(.hq-catalog) {
+  place-items: start center;
+  grid-template-columns: minmax(0, 1fr);
+}
+.auth-card:has(.hq-catalog) {
+  width: min(100%, 1240px);
+  min-width: 0;
+  max-width: 100%;
+}
+.hq-catalog {
+  min-width: 0;
+}
+.hq-heading,
+.hq-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+  justify-content: space-between;
+}
+.hq-heading h2 {
+  font-size: 28px;
+  margin: 0;
+}
+.hq-eyebrow {
+  color: var(--ds-accent-text);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  margin-bottom: 4px;
+}
+.hq-muted,
+.hq-catalog small {
+  color: var(--ds-muted);
+}
+.hq-catalog small {
+  display: block;
+  font-size: 12px;
+  font-weight: normal;
+  overflow-wrap: anywhere;
+}
+.hq-table-wrap {
+  overflow: auto;
+  max-width: 100%;
+  margin: 24px 0 16px;
+  border: 1px solid var(--ds-border);
+  border-radius: var(--ds-radius);
+}
+.hq-table-wrap table {
+  border-collapse: collapse;
+  min-width: 750px;
+  width: 100%;
+  text-align: left;
+}
+.hq-table-wrap caption {
+  padding: 12px;
+  text-align: left;
+  color: var(--ds-muted);
+}
+.hq-table-wrap td,
+.hq-table-wrap th {
+  padding: 14px 12px;
+  border-top: 1px solid var(--ds-border);
+  vertical-align: top;
+  overflow-wrap: anywhere;
+  max-width: 260px;
+}
+.hq-actions {
+  justify-content: flex-start;
+}
+.hq-catalog .auth-secondary {
+  margin-top: 0;
+}
+.hq-editor {
+  padding: 20px;
+  margin-top: 20px;
+  background: var(--ds-page);
+  border: 1px solid var(--ds-border);
+  border-radius: var(--ds-radius);
+}
+.hq-form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+.hq-catalog .hq-check {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.hq-check input {
+  width: 18px;
+  min-height: 18px;
+  height: 18px;
+  flex: 0 0 18px;
+}
+.hq-catalog fieldset {
+  min-width: 0;
+  padding: 16px;
+  border: 1px solid var(--ds-border);
+  border-radius: var(--ds-radius);
+  display: grid;
+  gap: 12px;
+}
+@media (max-width: 600px) {
+  .hq-form-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .hq-editor {
+    padding: 12px;
+  }
+  .auth-card:has(.hq-catalog) {
+    padding: 16px;
+  }
+}

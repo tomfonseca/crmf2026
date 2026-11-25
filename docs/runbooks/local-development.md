@@ -45,7 +45,9 @@ when auth is enabled, and 404 when disabled. Equivalent QG routes live under
 `/v1/hq`. No final users are automatically provisioned; use the operator-only
 procedure below to create the first administrator. QG login is at
 http://localhost:5173/; customer login is at http://localhost:5174/login.
-The existing Dash demo routes stay synthetic and separate.
+The authenticated QG opens the real [plan catalog](../implementation/hq-plans.md).
+No commercial plans/prices are pre-created. Admins can mutate plans; support
+can only read. The existing Dash demo routes stay synthetic and separate.
 
 The helper provisions an ignored persistent development key only when no
 encrypted legacy or passkey state exists. Back up `.tools/local-secrets/mfa.key` securely;
