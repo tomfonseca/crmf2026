@@ -1,0 +1,28 @@
+version: "2"
+sql:
+  - engine: postgresql
+    schema: migrations/control
+    queries: internal/server/db/control/queries
+    gen:
+      go:
+        package: control
+        omit_unused_structs: true
+        out: internal/server/db/control
+        sql_package: pgx/v5
+  - engine: postgresql
+    schema: migrations/control
+    queries: internal/server/db/auth/queries
+    gen:
+      go:
+        package: auth
+        omit_unused_structs: true
+        out: internal/server/db/auth
+        sql_package: pgx/v5
+  - engine: postgresql
+    schema: migrations/platform
+    queries: internal/server/db/analytics/queries
+    gen:
+      go:
+        package: analytics
+        out: internal/server/db/analytics
+        sql_package: pgx/v5

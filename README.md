@@ -1,1 +1,114 @@
-# crmf2026
+# CRMF
+
+Fundação M0 do dashboard multitenant para redes de farmácias, com M1 iniciado
+pela separação de identidade/controle e prévia visual mockada de **Meu
+desempenho** e **Minhas metas**, solicitada antes do M1.
+A especificação de fase 1 na raiz continua sendo a referência de escopo.
+
+## Requisitos
+
+- Go 1.27.4 (ou toolchain compatível com go.mod), Node 22.12+ ou 24, pnpm 10.29.3.
+- Python 3.12+, GNU Make, Docker com Compose v2+, Terraform 1.14+.
+- Windows: execute pelo Git Bash com as ferramentas no PATH. O Go portátil
+  em `.tools/go/bin`, quando presente, é detectado pelo executor de tarefas.
+- Opcional: `python scripts/bootstrap_tools.py` baixa sqlc e golangci-lint
+  oficiais para `.tools/bin`, verificando SHA-256; sem eles, os alvos usam `go run`.
+
+```sh
+pnpm --dir web install --frozen-lockfile
+make dev
+```
+
+O comando constrói a API e as duas SPAs, aplica as migrações de controle e
+plataforma e sobe Postgres 16, MariaDB 10.6 sintético, Azurite e Keycloak.
+Aguarda os endpoints responderem antes de indicar sucesso.
+
+| Serviço | Endereço |
+| --- | --- |
+| API / liveness / readiness | http://localhost:8080/healthz e /readyz |
+| QG | http://localhost:5173 |
+| Dash | http://localhost:5174 |
+| OIDC Keycloak | http://localhost:18080/realms/crmf |
+| Postgres | localhost:55432 |
+| MariaDB sintético | localhost:53306 |
+| Azurite Blob | localhost:51000 |
+
+Credenciais **exclusivas de desenvolvimento** estão em `.env.example` e nos
+scripts de inicialização locais. Keycloak: `admin` / `crmf_local_admin_only`.
+Não há usuários finais pré-cadastrados nem login nas SPAs em M0.
+
+## Prévia do dashboard (sem backend)
+
+```sh
+pnpm --dir web --filter @crmf/dash dev
+```
+
+Abra http://localhost:5174/meu-desempenho ou http://localhost:5174/minhas-metas.
+Não é necessário iniciar Docker, API, Keycloak ou ERP. Se o Dash do Compose
+já estiver ocupando 5174, pare somente esse serviço ou use `dev --port 5176`.
+O seletor **Cenário** permite avaliar dados fictícios, ausência de vendas/base,
+carregamento e erro. Veja [escopo, referências e testes da prévia](docs/design/dashboard-demo.md).
+
+## Comandos
+
+```sh
+make gen          # sqlc, oapi-codegen, clientes TypeScript
+make test         # Go, Python e Vitest
+make integration  # bancos locais, migrações idempotentes e leitor ERP sem escrita
+make lint         # Go, ESLint, Prettier, TypeScript, privacidade e Terraform fmt
+make build        # binários Go e SPAs
+make agent        # agent/updater Windows amd64 e 386 (ainda shells)
+make security     # govulncheck e pnpm audit
+make stop         # para apenas o projeto crmf-dev, sem apagar volumes
+```
+
+Todos os alvos têm equivalente `python scripts/tasks.py <alvo>` para Windows
+sem Make. Após alterar fontes, `make dev` reconstrói as imagens; para front-end
+com HMR no host, use `pnpm --dir web dev`. A prévia mockada do Dash não depende
+dos serviços Docker; estes só são necessários para testar a fundação da API.
+Isso evita misturar dependências nativas Windows e Linux nos containers.
+
+## Limites desta entrega
+
+- Implementado: monorepo, processos buildáveis, contratos e clientes gerados,
+  health/readiness reais, migrações base independentes, ambiente Docker local,
+  shell do QG, prévia mockada do Dash, tokens/componentes visuais iniciais,
+  verificações locais e workflows de CI/Terraform.
+- M1 parcial: schemas `auth`/`core`, cadastros-base, roles restritos, auditoria
+  append-only para os roles de aplicação; motor interno de login, MFA/TOTP,
+  recuperação de uso único, bloqueios e limite de tentativas por IP no Postgres,
+  além de sessões opacas, grants e revogação. Rotas HTTP de autenticação e
+  identidade são opt-in com `python scripts/tasks.py auth-dev`; produção exige
+  segredo versionado do Key Vault via identidade gerenciada (ainda sem validação
+  em Azure). O primeiro administrador é criado manualmente por
+  `crmfctl user create-admin`, com senha no terminal e MFA no primeiro login;
+  telas de login, convites e redefinição de senha ainda pendem. Veja [estado e próximos incrementos](docs/implementation/m1-control.md).
+- Ainda não implementado: fluxos complementares de autenticação, provisionamento e isolamento
+  por tenant completos (M1),
+  conector real (M2), coleta/ingestão/MSI (M3), jobs River e agregados (M4),
+  interfaces finais, design system completo e permissões integradas (M5/M6),
+  OTA (M7), produção e piloto (M8). A prévia visual não conclui M1 nem M5.
+- `worker` M0 verifica dependências e aguarda encerramento; não consome lotes.
+- `api` M0 não expõe dados de negócio nem simula autenticação.
+- Terraform M0 prepara bootstrap do estado e resource group de hml; nenhum
+  recurso de nuvem é criado pelos comandos locais.
+- Verificações locais não substituem o aceite remoto: acompanhe as execuções
+  em [GitHub Actions](https://github.com/tomfonseca/crmf2026/actions).
+
+## Base Linx Big restaurada
+
+A instância em `E:\\crmf\\db` é independente: nenhum comando deste projeto a
+monta, reinicia ou modifica. Não copie seus registros para código, fixtures,
+logs ou CI. A inspeção para o conector será somente leitura no M2. Relações
+inferidas no schema extraído não são chaves estrangeiras comprovadas.
+Dumps, relatórios de conferência, metadata extraída e referências locais de
+HTML ficam fora deste repositório público. Consulte os limites de acesso em
+[docs/data/README.md](docs/data/README.md).
+
+## Documentação de referência
+
+- [M1 — controle e identidade](docs/implementation/m1-control.md): incrementos entregues, verificações e próximos passos.
+- [Spec de implementação — fase 1](<CRMF — Spec de implementação (fase 1).md>): arquitetura, escopo e marcos.
+- [Evidências ERP e limites de publicação](docs/data/README.md): artefatos privados necessários para trabalhos de mapeamento e análise.
+- [Prévia mockada do dashboard](docs/design/dashboard-demo.md): referências HTML, limites e testes de navegador.
+- [Desenvolvimento local](docs/runbooks/local-development.md), [Terraform](infra/README.md) e [decisões de arquitetura](docs/adr/).

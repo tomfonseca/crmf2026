@@ -1,0 +1,20 @@
+{
+  "name": "@crmf/dash",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite --port 5174",
+    "build": "tsc --noEmit && vite build",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@crmf/api-client": "workspace:*",
+    "@crmf/charts": "workspace:*",
+    "@crmf/ui": "workspace:*",
+    "@tanstack/react-query": "^5.90.10",
+    "@tanstack/react-router": "^1.139.12",
+    "react": "18.3.1",
+    "react-dom": "18.3.1"
+  }
+}

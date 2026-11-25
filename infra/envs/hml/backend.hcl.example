@@ -1,0 +1,6 @@
+resource_group_name  = "rg-crmf-tfstate"
+storage_account_name = "REPLACE_WITH_GLOBALLY_UNIQUE_ACCOUNT"
+container_name       = "tfstate"
+key                  = "hml.tfstate"
+use_azuread_auth     = true
+use_oidc             = true

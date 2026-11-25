@@ -1,0 +1,320 @@
+openapi: 3.1.0
+info:
+  title: CRMF Application API
+  version: 0.0.0
+  description: M0 health probes and M1 own authentication. Authentication requires explicit secure configuration; no public registration or ERP queries.
+servers:
+  - url: http://localhost:8080
+paths:
+  /healthz:
+    get:
+      operationId: healthz
+      responses:
+        '200':
+          description: Process is alive
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Health'
+  /readyz:
+    get:
+      operationId: readyz
+      responses:
+        '200':
+          description: Control database, analytics database and Blob Storage are reachable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Health'
+        '503':
+          description: A required dependency is unavailable
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+  /v1/auth/login:
+    post:
+      operationId: loginTenant
+      security: []
+      parameters:
+        - $ref: '#/components/parameters/CRMFRequest'
+      description: Realm-bound authentication; mutations require the allowed Origin and X-CRMF-Request header.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/LoginInput'}
+      responses:
+        '200':
+          description: Authentication result; opaque tokens are only returned as secure HttpOnly cookies
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/AuthOutcome'}
+        default:
+          description: Request rejected or authentication unavailable
+          content:
+            application/problem+json:
+              schema: {$ref: '#/components/schemas/Problem'}
+  /v1/auth/mfa:
+    post:
+      operationId: mfaTenant
+      security:
+        - TenantChallenge: []
+      parameters:
+        - $ref: '#/components/parameters/CRMFRequest'
+      description: Realm-bound authentication; mutations require the allowed Origin and X-CRMF-Request header.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/MFAInput'}
+      responses:
+        '200':
+          description: Authentication result; opaque tokens are only returned as secure HttpOnly cookies
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/AuthOutcome'}
+        default:
+          description: Request rejected or authentication unavailable
+          content:
+            application/problem+json:
+              schema: {$ref: '#/components/schemas/Problem'}
+  /v1/auth/logout:
+    post:
+      operationId: logoutTenant
+      security:
+        - TenantSession: []
+        - {}
+      parameters:
+        - $ref: '#/components/parameters/CRMFRequest'
+      description: Realm-bound authentication; mutations require the allowed Origin and X-CRMF-Request header.
+      responses:
+        '204':
+          description: Cookies cleared and presented session/challenge revoked
+        default:
+          description: Request rejected or authentication unavailable
+          content:
+            application/problem+json:
+              schema: {$ref: '#/components/schemas/Problem'}
+  /v1/me/mfa:
+    post:
+      operationId: enrollTenant
+      security:
+        - TenantSession: []
+      parameters:
+        - $ref: '#/components/parameters/CRMFRequest'
+      description: Realm-bound authentication; mutations require the allowed Origin and X-CRMF-Request header.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/EnrollmentInput'}
+      responses:
+        '200':
+          description: Authentication result; opaque tokens are only returned as secure HttpOnly cookies
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/AuthOutcome'}
+        default:
+          description: Request rejected or authentication unavailable
+          content:
+            application/problem+json:
+              schema: {$ref: '#/components/schemas/Problem'}
+  /v1/me:
+    get:
+      operationId: meTenant
+      security:
+        - TenantSession: []
+      description: Realm-bound authentication; mutations require the allowed Origin and X-CRMF-Request header.
+      responses:
+        '200':
+          description: Authentication result; opaque tokens are only returned as secure HttpOnly cookies
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Identity'}
+        default:
+          description: Request rejected or authentication unavailable
+          content:
+            application/problem+json:
+              schema: {$ref: '#/components/schemas/Problem'}
+  /v1/hq/auth/login:
+    post:
+      operationId: loginPlatform
+      security: []
+      parameters:
+        - $ref: '#/components/parameters/CRMFRequest'
+      description: Realm-bound authentication; mutations require the allowed Origin and X-CRMF-Request header.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/LoginInput'}
+      responses:
+        '200':
+          description: Authentication result; opaque tokens are only returned as secure HttpOnly cookies
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/AuthOutcome'}
+        default:
+          description: Request rejected or authentication unavailable
+          content:
+            application/problem+json:
+              schema: {$ref: '#/components/schemas/Problem'}
+  /v1/hq/auth/mfa:
+    post:
+      operationId: mfaPlatform
+      security:
+        - PlatformChallenge: []
+      parameters:
+        - $ref: '#/components/parameters/CRMFRequest'
+      description: Realm-bound authentication; mutations require the allowed Origin and X-CRMF-Request header.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/MFAInput'}
+      responses:
+        '200':
+          description: Authentication result; opaque tokens are only returned as secure HttpOnly cookies
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/AuthOutcome'}
+        default:
+          description: Request rejected or authentication unavailable
+          content:
+            application/problem+json:
+              schema: {$ref: '#/components/schemas/Problem'}
+  /v1/hq/auth/logout:
+    post:
+      operationId: logoutPlatform
+      security:
+        - PlatformSession: []
+        - {}
+      parameters:
+        - $ref: '#/components/parameters/CRMFRequest'
+      description: Realm-bound authentication; mutations require the allowed Origin and X-CRMF-Request header.
+      responses:
+        '204':
+          description: Cookies cleared and presented session/challenge revoked
+        default:
+          description: Request rejected or authentication unavailable
+          content:
+            application/problem+json:
+              schema: {$ref: '#/components/schemas/Problem'}
+  /v1/hq/me/mfa:
+    post:
+      operationId: enrollPlatform
+      security:
+        - PlatformSession: []
+      parameters:
+        - $ref: '#/components/parameters/CRMFRequest'
+      description: Realm-bound authentication; mutations require the allowed Origin and X-CRMF-Request header.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/EnrollmentInput'}
+      responses:
+        '200':
+          description: Authentication result; opaque tokens are only returned as secure HttpOnly cookies
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/AuthOutcome'}
+        default:
+          description: Request rejected or authentication unavailable
+          content:
+            application/problem+json:
+              schema: {$ref: '#/components/schemas/Problem'}
+  /v1/hq/me:
+    get:
+      operationId: mePlatform
+      security:
+        - PlatformSession: []
+      description: Realm-bound authentication; mutations require the allowed Origin and X-CRMF-Request header.
+      responses:
+        '200':
+          description: Authentication result; opaque tokens are only returned as secure HttpOnly cookies
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Identity'}
+        default:
+          description: Request rejected or authentication unavailable
+          content:
+            application/problem+json:
+              schema: {$ref: '#/components/schemas/Problem'}
+components:
+  parameters:
+    CRMFRequest:
+      in: header
+      name: X-CRMF-Request
+      required: true
+      schema: {type: string, enum: ['1']}
+  securitySchemes:
+    TenantSession: {type: apiKey, in: cookie, name: __Host-crmf_tenant}
+    PlatformSession: {type: apiKey, in: cookie, name: __Host-crmf_platform}
+    TenantChallenge: {type: apiKey, in: cookie, name: __Host-crmf_tenant_challenge}
+    PlatformChallenge: {type: apiKey, in: cookie, name: __Host-crmf_platform_challenge}
+  schemas:
+    LoginInput:
+      type: object
+      additionalProperties: false
+      required: [email, password]
+      properties:
+        email: {type: string, minLength: 1, maxLength: 320}
+        password: {type: string, minLength: 1, maxLength: 1024}
+    MFAInput:
+      type: object
+      additionalProperties: false
+      required: [code]
+      properties:
+        code: {type: string, minLength: 6, maxLength: 32}
+    EnrollmentInput:
+      type: object
+      additionalProperties: false
+      required: [password]
+      properties:
+        password: {type: string, minLength: 1, maxLength: 1024}
+    AuthOutcome:
+      type: object
+      required: [status]
+      properties:
+        status: {type: string, enum: [authenticated, mfa_required, enrollment_required]}
+        enrollment_uri: {type: string, description: Secret provisioning URI; show once, never persist in browser storage or logs}
+        recovery_codes:
+          type: array
+          items: {type: string}
+          description: One-time enrollment response only
+    Identity:
+      type: object
+      required: [user_id, realm, store_ids, grants]
+      properties:
+        user_id: {type: string, format: uuid}
+        realm: {type: string, enum: [platform, tenant]}
+        tenant_id: {type: string, format: uuid}
+        store_ids:
+          type: array
+          items: {type: string, format: uuid}
+        grants:
+          type: array
+          items: {$ref: '#/components/schemas/IdentityGrant'}
+    IdentityGrant:
+      type: object
+      required: [role]
+      properties:
+        role: {type: string}
+        store_id: {type: string, format: uuid}
+        seller_code: {type: string}
+    Health:
+      type: object
+      required: [status]
+      properties:
+        status:
+          type: string
+          enum: [ok]
+    Problem:
+      type: object
+      required: [type, title, status]
+      properties:
+        type: {type: string}
+        title: {type: string}
+        status: {type: integer}

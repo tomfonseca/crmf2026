@@ -1,0 +1,6 @@
+package: ingestcontract
+output: internal/shared/apiclient/ingestcontract/generated.go
+generate:
+  models: true
+  client: true
+  embedded-spec: true

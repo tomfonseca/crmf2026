@@ -1,0 +1,132 @@
+name: crmf-dev
+x-backend: &backend
+  image: crmf-server:dev
+  build:
+    context: .
+    dockerfile: deploy/Dockerfile
+  environment: &backend-env
+    CONTROL_DATABASE_URL: postgres://crmf_core:crmf_local_core_only@postgres:5432/crmf_control?sslmode=disable
+    ANALYTICS_DATABASE_URL: postgres://crmf_platform_reader:crmf_local_platform_reader_only@postgres:5432/crmf_analytics?sslmode=disable
+    BLOB_CONNECTION_STRING: DefaultEndpointsProtocol=http;AccountName=crmf;AccountKey=MDEyMzQ1Njc4OTAxMjM0NTY3ODkwMTIzNDU2Nzg5MDE=;BlobEndpoint=http://azurite:10000/crmf;
+services:
+  postgres:
+    image: postgres:16-bookworm
+    environment:
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-crmf_local_only}
+    ports: ["127.0.0.1:55432:5432"]
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./deploy/postgres/00-init.sql:/docker-entrypoint-initdb.d/00-init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+  postgres-bootstrap:
+    image: postgres:16-bookworm
+    environment:
+      PGHOST: postgres
+      PGUSER: postgres
+      PGPASSWORD: ${POSTGRES_PASSWORD:-crmf_local_only}
+    command: ["psql", "--no-psqlrc", "--set", "ON_ERROR_STOP=1", "--file", "/bootstrap/roles.sql"]
+    volumes:
+      - ./deploy/postgres/10-app-roles.sql:/bootstrap/roles.sql:ro
+    depends_on:
+      postgres: {condition: service_healthy}
+  mariadb:
+    image: mariadb:10.6
+    environment:
+      MARIADB_ROOT_PASSWORD: ${MARIADB_ROOT_PASSWORD:-crmf_local_root_only}
+      MARIADB_DATABASE: gerente
+    ports: ["127.0.0.1:53306:3306"]
+    volumes:
+      - mariadb-data:/var/lib/mysql
+      - ./deploy/mariadb/00-synthetic.sql:/docker-entrypoint-initdb.d/00-synthetic.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "mariadb-admin ping -uroot -p\"$$MARIADB_ROOT_PASSWORD\" --silent"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+  azurite:
+    image: mcr.microsoft.com/azure-storage/azurite:3.35.0
+    command: azurite-blob --blobHost 0.0.0.0 --skipApiVersionCheck --location /data
+    environment:
+      AZURITE_ACCOUNTS: crmf:MDEyMzQ1Njc4OTAxMjM0NTY3ODkwMTIzNDU2Nzg5MDE=
+    ports: ["127.0.0.1:51000:10000"]
+    volumes: [azurite-data:/data]
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('net').connect(10000,'127.0.0.1').on('connect',function(){this.end();process.exit(0)}).on('error',()=>process.exit(1))"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.2.5
+    command: start-dev --import-realm --http-port=8080
+    environment:
+      KC_BOOTSTRAP_ADMIN_USERNAME: admin
+      KC_BOOTSTRAP_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD:-crmf_local_admin_only}
+      KC_HEALTH_ENABLED: "true"
+    ports: ["127.0.0.1:18080:8080"]
+    volumes:
+      - keycloak-data:/opt/keycloak/data
+      - ./deploy/keycloak/crmf-realm.json:/opt/keycloak/data/import/crmf-realm.json:ro
+    healthcheck:
+      test: ["CMD", "bash", "-c", "exec 3<>/dev/tcp/localhost/9000; printf 'GET /health/ready HTTP/1.0\r\n\r\n' >&3; grep -q '200 OK' <&3"]
+      interval: 10s
+      timeout: 5s
+      retries: 40
+      start_period: 30s
+  migrate-control:
+    <<: *backend
+    command: ["migrate", "--scope", "control"]
+    environment:
+      <<: *backend-env
+      CONTROL_DATABASE_URL: postgres://crmf_migrator:crmf_local_migrator_only@postgres:5432/crmf_control?sslmode=disable
+    depends_on:
+      postgres-bootstrap: {condition: service_completed_successfully}
+  migrate-platform:
+    <<: *backend
+    command: ["migrate", "--scope", "platform"]
+    environment:
+      <<: *backend-env
+      ANALYTICS_DATABASE_URL: postgres://crmf_migrator:crmf_local_migrator_only@postgres:5432/crmf_analytics?sslmode=disable
+    depends_on:
+      postgres-bootstrap: {condition: service_completed_successfully}
+  api:
+    <<: *backend
+    command: ["api"]
+    ports: ["127.0.0.1:8080:8080"]
+    depends_on:
+      migrate-control: {condition: service_completed_successfully}
+      migrate-platform: {condition: service_completed_successfully}
+      azurite: {condition: service_healthy}
+  worker:
+    <<: *backend
+    command: ["worker"]
+    environment:
+      <<: *backend-env
+      ANALYTICS_DATABASE_URL: postgres://crmf_platform_writer:crmf_local_platform_writer_only@postgres:5432/crmf_analytics?sslmode=disable
+    depends_on:
+      api: {condition: service_started}
+      azurite: {condition: service_healthy}
+      migrate-control: {condition: service_completed_successfully}
+      migrate-platform: {condition: service_completed_successfully}
+  hq:
+    image: crmf-web:dev
+    build:
+      context: .
+      dockerfile: web/Dockerfile
+    command: ["pnpm", "--filter", "@crmf/hq", "dev", "--host", "0.0.0.0"]
+    ports: ["127.0.0.1:5173:5173"]
+  dash:
+    image: crmf-web:dev
+    build:
+      context: .
+      dockerfile: web/Dockerfile
+    command: ["pnpm", "--filter", "@crmf/dash", "dev", "--host", "0.0.0.0"]
+    ports: ["127.0.0.1:5174:5174"]
+volumes:
+  postgres-data:
+  mariadb-data:
+  azurite-data:
+  keycloak-data:

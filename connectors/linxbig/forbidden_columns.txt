@@ -1,0 +1,17 @@
+# End-customer identifiers and secrets must never be extracted.
+clientes
+cpf
+cgc
+docto_rg
+nome_cliente_receita
+tel_paciente
+nome_medico
+num_receita
+orgao_rg_cliente
+uf_rg_cliente
+senha
+senhasupervisor
+impressao_digital
+atrib_impressao_digtal
+xml_objeto
+numero_cartao

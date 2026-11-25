@@ -1,0 +1,10 @@
+.git
+.tools
+schema_relacionamentos.txt
+*.md
+**/node_modules
+**/__pycache__
+bin
+.env
+.env.*
+infra

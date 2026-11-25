@@ -1,0 +1,35 @@
+name: Windows foundation
+on:
+  pull_request:
+    paths:
+      - cmd/agent/**
+      - cmd/updater/**
+      - internal/shared/**
+      - internal/agent/**
+      - internal/updater/**
+      - installer/**
+      - scripts/tasks.py
+      - go.mod
+      - go.sum
+      - .github/workflows/agent-ci.yml
+permissions:
+  contents: read
+jobs:
+  windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: go test ./...
+      - run: python scripts/tasks.py agent
+      - shell: pwsh
+        run: |
+          ./bin/windows-amd64/agent.exe version
+          ./bin/windows-amd64/updater.exe version
+          ./bin/windows-386/agent.exe version
+          ./bin/windows-386/updater.exe version

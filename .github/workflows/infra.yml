@@ -1,0 +1,54 @@
+name: Infrastructure validation
+on:
+  pull_request:
+    paths: ["infra/**", ".github/workflows/infra.yml"]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "1.14.8"
+      - run: terraform fmt -check -recursive infra
+      - run: terraform -chdir=infra/bootstrap init -backend=false
+      - run: terraform -chdir=infra/bootstrap validate
+      - run: terraform -chdir=infra/envs/hml init -backend=false
+      - run: terraform -chdir=infra/envs/hml validate
+  plan:
+    if: ${{ vars.AZURE_CLIENT_ID != '' && vars.TFSTATE_ACCOUNT != '' }}
+    needs: validate
+    runs-on: ubuntu-latest
+    environment: hml
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "1.14.8"
+      - uses: azure/login@v2
+        with:
+          client-id: ${{ vars.AZURE_CLIENT_ID }}
+          tenant-id: ${{ vars.AZURE_TENANT_ID }}
+          subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+      - name: Initialize remote backend
+        env:
+          ARM_USE_OIDC: "true"
+          ARM_CLIENT_ID: ${{ vars.AZURE_CLIENT_ID }}
+          ARM_TENANT_ID: ${{ vars.AZURE_TENANT_ID }}
+          ARM_SUBSCRIPTION_ID: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+          STATE_ACCOUNT: ${{ vars.TFSTATE_ACCOUNT }}
+        run: terraform -chdir=infra/envs/hml init -backend-config=resource_group_name=rg-crmf-tfstate -backend-config=storage_account_name="$STATE_ACCOUNT" -backend-config=container_name=tfstate -backend-config=key=hml.tfstate -backend-config=use_azuread_auth=true -backend-config=use_oidc=true
+      - name: Plan only
+        env:
+          ARM_USE_OIDC: "true"
+          ARM_CLIENT_ID: ${{ vars.AZURE_CLIENT_ID }}
+          ARM_TENANT_ID: ${{ vars.AZURE_TENANT_ID }}
+          ARM_SUBSCRIPTION_ID: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+          TF_VAR_domain: ${{ vars.CRMF_DOMAIN }}
+        run: terraform -chdir=infra/envs/hml plan -input=false

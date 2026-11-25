@@ -1,0 +1,6 @@
+package: appcontract
+output: internal/server/httpapi/appcontract/generated.go
+generate:
+  models: true
+  chi-server: true
+  embedded-spec: true
