@@ -600,6 +600,13 @@ O worker é o único componente que escreve no banco analítico. Roda como `serv
 | `provision_tenant` | criação de tenant | Cria role, schema, aplica migrações, guarda a senha no Key Vault |
 | `migrate_tenants` | deploy com migração nova | Aplica migrações de tenant pendentes, um tenant por vez |
 
+`provision_tenant` roda no processo privilegiado separado `server provisioner`,
+consumindo a fila River `provision` no schema `jobs` do controle. API e worker
+comum não recebem credenciais de migração nem escrita no cofre de tenants.
+A reserva da rede, intenção com ator autenticado, job e auditoria são atômicos
+no controle; prontidão só é publicada após schema, role e migrações verificados.
+Veja [QG Redes](docs/implementation/hq-networks.md) para limites e reexecução.
+
 ### 8.2 `process_batch`, passo a passo
 
 1. Marca o lote `processing` e incrementa `attempts`.

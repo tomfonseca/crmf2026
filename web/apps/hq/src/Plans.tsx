@@ -15,6 +15,8 @@ import {
   type PlanInput,
 } from "./plans-client";
 import "./hq.css";
+import { Networks } from "./Networks";
+import type { NetworkClient } from "./networks-client";
 
 type Editor = { kind: "create" } | { kind: "edit" | "delete"; plan: Plan };
 const money = new Intl.NumberFormat("pt-BR", {
@@ -31,11 +33,13 @@ export function parsePrice(value: string): number {
   return cents;
 }
 export function CatalogHost(props: {
+  networks?: NetworkClient;
   client: PlanClient;
   onExpired: () => void;
   theme: string;
   toggleTheme: () => void;
 }) {
+  const [section, setSection] = useState<"plans" | "networks">("plans");
   // Authenticated mount owns its cache. Logout/expiry discards it, not just UI.
   const [queries] = useState(
     () =>
@@ -48,7 +52,36 @@ export function CatalogHost(props: {
   );
   return (
     <QueryClientProvider client={queries}>
-      <Plans {...props} />
+      {props.networks && (
+        <nav className="hq-catalog hq-actions" aria-label="Módulos do QG">
+          <button
+            className="auth-secondary"
+            aria-pressed={section === "plans"}
+            onClick={() => setSection("plans")}
+          >
+            Planos
+          </button>
+          <button
+            className="auth-secondary"
+            aria-pressed={section === "networks"}
+            onClick={() => setSection("networks")}
+          >
+            Redes
+          </button>
+        </nav>
+      )}
+      {section === "networks" && props.networks ? (
+        <Networks
+          client={props.networks}
+          plans={props.client}
+          onExpired={props.onExpired}
+          onPlans={() => setSection("plans")}
+          theme={props.theme}
+          toggleTheme={props.toggleTheme}
+        />
+      ) : (
+        <Plans {...props} />
+      )}
     </QueryClientProvider>
   );
 }
@@ -101,8 +134,9 @@ function Plans({
         automaticamente.
       </p>
       <p className="hq-muted">
-        Próximas etapas do M1: redes e assinaturas, lojas, pareamento e
-        provisionamento isolado. Dados de vendas não são exibidos aqui.
+        Cadastre redes no módulo Redes. Gestão de assinaturas, lojas e
+        pareamento seguem em implementação. Dados de vendas não são exibidos
+        aqui.
       </p>
       {!canWrite && <p role="status">Acesso de suporte: somente leitura.</p>}
       {notice && <p role="status">{notice}</p>}

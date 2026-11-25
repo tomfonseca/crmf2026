@@ -31,6 +31,7 @@ type AuthBackend interface {
 type AuthOptions struct {
 	Backend                      AuthBackend
 	Plans                        PlanBackend
+	Networks                     NetworkBackend
 	TenantOrigin, PlatformOrigin string
 	Development                  bool
 	TrustedProxies               []netip.Prefix
@@ -49,6 +50,12 @@ func NewAuthenticated(probes []Probe, logger *slog.Logger, options AuthOptions) 
 	return newRouter(probes, logger, &options), nil
 }
 func authRoute(path string) (auth.Realm, string, bool) {
+	if path == "/v1/hq/tenants" {
+		return auth.Platform, "GET, POST", true
+	}
+	if strings.HasPrefix(path, "/v1/hq/tenants/") {
+		return auth.Platform, "POST", true
+	}
 	if path == "/v1/hq/plans" {
 		return auth.Platform, "GET, POST", true
 	}

@@ -11,6 +11,11 @@ func TestCatalogPreflightUsesExactPlatformOriginAndMethod(t *testing.T) {
 		path, origin, method string
 		status               int
 	}{
+		{"/v1/hq/tenants", "http://localhost:5173", "GET", 204},
+		{"/v1/hq/tenants", "http://localhost:5173", "POST", 204},
+		{"/v1/hq/tenants", "http://localhost:5174", "POST", 403},
+		{"/v1/hq/tenants", "http://localhost:5173", "PUT", 403},
+		{"/v1/hq/tenants/00000000-0000-7000-8000-000000000001/retry", "http://localhost:5173", "POST", 204},
 		{"/v1/hq/plans", "http://localhost:5173", "POST", 204},
 		{"/v1/hq/plans", "http://localhost:5174", "POST", 403},
 		{"/v1/hq/plans/00000000-0000-7000-8000-000000000001", "http://localhost:5173", "PUT", 204},

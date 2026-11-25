@@ -16,8 +16,9 @@ and an authenticated Blob Storage service-properties request.
 Tenant migration files cannot be applied with the global migration CLI.
 The M1 [operator provisioner](../implementation/tenant-provisioning.md) now
 creates schema-bound roles/connections and applies those migrations explicitly.
-No default tenants or final users are created. QG network creation and job
-orchestration remain pending; API/worker must never receive provisioner URLs.
+No default tenants or final users are created. [QG Redes](../implementation/hq-networks.md)
+now dispatches durable jobs to a separate privileged process; API/worker never
+receive provisioner URLs or tenant-secret mounts.
 
 Docker does not rerun initdb scripts on existing volumes. M1 adds a separate,
 idempotent `postgres-bootstrap` service for application roles, ordered before
@@ -43,13 +44,17 @@ exposes data without the pending M1 authentication.
 ## Own-auth HTTP API (explicit opt-in)
 
 Run `python scripts/tasks.py auth-dev`. This builds the backend and applies
-`compose.auth.yaml`; the base `make dev` remains auth-disabled. Health probes
+`compose.auth.yaml` and `compose.provision.yaml`; the base `make dev` remains auth-disabled.
+The isolated provisioner and River migration container are opt-in. Preserve the
+private `crmf-dev_tenant-credentials` Docker volume; never reset it to retry a network. Health probes
 continue on port 8080. `GET /v1/me` returns 401 without a valid tenant session
 when auth is enabled, and 404 when disabled. Equivalent QG routes live under
 `/v1/hq`. No final users are automatically provisioned; use the operator-only
 procedure below to create the first administrator. QG login is at
 http://localhost:5173/; customer login is at http://localhost:5174/login.
-The authenticated QG opens the real [plan catalog](../implementation/hq-plans.md).
+The authenticated QG opens the real [plan catalog](../implementation/hq-plans.md)
+and offers [Redes → Nova rede](../implementation/hq-networks.md). Rebuild QG
+with `docker compose up -d --build hq` after changing frontend sources.
 No commercial plans/prices are pre-created. Admins can mutate plans; support
 can only read. The existing Dash demo routes stay synthetic and separate.
 

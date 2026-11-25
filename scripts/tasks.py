@@ -105,7 +105,7 @@ def auth_dev():
         raise RuntimeError("Invalid local MFA key; refusing replacement") from None
     if len(decoded) != 32:
         raise RuntimeError("Invalid local MFA key; refusing replacement")
-    run("docker", "compose", "-f", "compose.yaml", "-f", "compose.auth.yaml", "up", "-d", "--build", "api", "worker")
+    run("docker", "compose", "-f", "compose.yaml", "-f", "compose.auth.yaml", "-f", "compose.provision.yaml", "up", "-d", "--build", "api", "worker", "provisioner")
     wait_http("http://localhost:8080/readyz")
     print("Own-auth API enabled locally; no final users are provisioned. Business dashboards remain mocked.")
 

@@ -2,6 +2,7 @@ import { useCallback, useState } from "react";
 import { AuthPortal, createAuthClient } from "@crmf/auth";
 import { CatalogHost } from "./Plans";
 import { createPlanClient } from "./plans-client";
+import { createNetworkClient } from "./networks-client";
 
 function configuredClients() {
   try {
@@ -9,6 +10,7 @@ function configuredClients() {
     return {
       auth: createAuthClient(base, "platform", import.meta.env.DEV),
       plans: createPlanClient(base, import.meta.env.DEV),
+      networks: createNetworkClient(base, import.meta.env.DEV),
     };
   } catch {
     return null;
@@ -23,6 +25,7 @@ export function App() {
     <AuthPortal key={epoch} client={clients.auth} title="QG CRMF" theme={theme}>
       <CatalogHost
         client={clients.plans}
+        networks={clients.networks}
         onExpired={expire}
         theme={theme}
         toggleTheme={() =>

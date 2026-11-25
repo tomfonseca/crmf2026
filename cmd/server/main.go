@@ -18,6 +18,8 @@ import (
 	"github.com/crmf/crmf/internal/server/config"
 	"github.com/crmf/crmf/internal/server/httpapi"
 	"github.com/crmf/crmf/internal/server/migrate"
+	"github.com/crmf/crmf/internal/server/provisionqueue"
+	"github.com/crmf/crmf/internal/server/tenancy"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -35,17 +37,27 @@ func main() {
 
 func run(ctx context.Context, args []string, logger *slog.Logger) error {
 	if len(args) == 0 {
-		return errors.New("usage: server api | worker | migrate --scope control|platform | version")
+		return errors.New("usage: server api | worker | provisioner | migrate --scope control|platform|queue | version")
 	}
 	if args[0] == "version" {
 		fmt.Println(version)
 		return nil
 	}
+	if args[0] == "provisioner" {
+		credentials, err := tenancy.CredentialsFromEnvironment(os.Getenv)
+		if err != nil {
+			return errors.New("invalid isolated provisioner credential configuration")
+		}
+		return provisionqueue.Run(ctx, os.Getenv("PROVISION_CONTROL_DATABASE_URL"), os.Getenv("PROVISION_ANALYTICS_DATABASE_URL"), credentials, logger, "provision")
+	}
 	if args[0] == "migrate" {
 		flags := flag.NewFlagSet("migrate", flag.ContinueOnError)
-		scope := flags.String("scope", "control", "control or platform")
+		scope := flags.String("scope", "control", "control, platform or queue")
 		if err := flags.Parse(args[1:]); err != nil {
 			return fmt.Errorf("parse migration flags: %w", err)
+		}
+		if *scope == "queue" {
+			return provisionqueue.Migrate(ctx, os.Getenv("CONTROL_DATABASE_URL"))
 		}
 		env := "CONTROL_DATABASE_URL"
 		if *scope == "platform" {
@@ -116,9 +128,14 @@ func run(ctx context.Context, args []string, logger *slog.Logger) error {
 			cancel()
 			return errors.New("initialize restricted QG plan catalog")
 		}
+		networks, err := app.NewNetworks(startup, control, "provision")
+		if err != nil {
+			cancel()
+			return errors.New("initialize restricted network catalog")
+		}
 		cancel()
 		probes = append(probes, engine.Ping)
-		router, err = httpapi.NewAuthenticated(probes, logger, httpapi.AuthOptions{Backend: engine, Plans: catalog, TenantOrigin: cfg.Auth.TenantOrigin, PlatformOrigin: cfg.Auth.PlatformOrigin, Development: cfg.Auth.Development, TrustedProxies: cfg.Auth.TrustedProxies})
+		router, err = httpapi.NewAuthenticated(probes, logger, httpapi.AuthOptions{Backend: engine, Plans: catalog, Networks: networks, TenantOrigin: cfg.Auth.TenantOrigin, PlatformOrigin: cfg.Auth.PlatformOrigin, Development: cfg.Auth.Development, TrustedProxies: cfg.Auth.TrustedProxies})
 		if err != nil {
 			return errors.New("initialize authentication routes")
 		}
