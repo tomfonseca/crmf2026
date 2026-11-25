@@ -59,7 +59,9 @@ func TestEffectiveLimitsAuthenticatedIsolation(t *testing.T) {
 	}
 	exec("INSERT INTO auth.user_grants(id,user_id,role,tenant_id) VALUES($1,$2,'network_admin',$3)",uuid.New(),user,tenant)
 	exec("INSERT INTO auth.user_grants(id,user_id,role) VALUES($1,$2,'platform_support')",uuid.New(),staff)
-	exec("UPDATE auth.users SET mfa_secret_enc=decode(repeat('11',64),'hex'),mfa_enabled_at=now() WHERE id=$1",staff)
+	// This policy test seeds a synthetic credential and pre-proven session only;
+	// cryptographic WebAuthn ceremonies are exercised in auth integration tests.
+	exec("INSERT INTO auth.passkey_credentials(credential_id,user_id,realm,credential_enc,created_at,updated_at) VALUES($1,$2,'platform',decode(repeat('11',64),'hex'),now(),now())",[]byte(staff.String()),staff)
 	principal:=func(id uuid.UUID,realm auth.Realm) context.Context {
 		t.Helper()
 		raw:=make([]byte,32);if _,err:=rand.Read(raw);err!=nil {t.Fatal(err)}

@@ -17,7 +17,7 @@ test("focus rechecks expiration without background idle keepalive", async () => 
       .mockResolvedValueOnce(identity)
       .mockResolvedValueOnce(null),
     login: vi.fn(),
-    mfa: vi.fn(),
+    passkey: vi.fn(),
     logout: vi.fn(),
   };
   render(
@@ -39,7 +39,7 @@ test("duplicate submit is blocked and unmount cancels pending transport", async 
   const client: AuthClient = {
     identity: vi.fn().mockResolvedValue(null),
     login,
-    mfa: vi.fn(),
+    passkey: vi.fn(),
     logout: vi.fn(),
   };
   const view = render(<AuthPortal client={client} title="QG CRMF" />);

@@ -24,7 +24,7 @@ func TestConcurrentMFAChallengeSingleUse(t *testing.T) {
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
-			result, err := e.CompleteMFA(ctx, pending.ChallengeToken, code, Tenant, ip)
+			result, err := e.CompletePasskey(ctx, pending.ChallengeToken, code, Tenant, ip)
 			if err == nil && result.SessionToken != "" {
 				successes.Add(1)
 			} else if !errors.Is(err, ErrUnauthenticated) {

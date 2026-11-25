@@ -23,7 +23,7 @@ import (
 const (
 	Authenticated      AuthOutcomeStatus = "authenticated"
 	EnrollmentRequired AuthOutcomeStatus = "enrollment_required"
-	MfaRequired        AuthOutcomeStatus = "mfa_required"
+	PasskeyRequired    AuthOutcomeStatus = "passkey_required"
 )
 
 // Valid indicates whether the value is a known member of the AuthOutcomeStatus enum.
@@ -33,7 +33,7 @@ func (e AuthOutcomeStatus) Valid() bool {
 		return true
 	case EnrollmentRequired:
 		return true
-	case MfaRequired:
+	case PasskeyRequired:
 		return true
 	default:
 		return false
@@ -118,15 +118,15 @@ func (e LogoutTenantParamsXCRMFRequest) Valid() bool {
 	}
 }
 
-// Defines values for MfaTenantParamsXCRMFRequest.
+// Defines values for PasskeyTenantParamsXCRMFRequest.
 const (
-	MfaTenantParamsXCRMFRequestN1 MfaTenantParamsXCRMFRequest = "1"
+	PasskeyTenantParamsXCRMFRequestN1 PasskeyTenantParamsXCRMFRequest = "1"
 )
 
-// Valid indicates whether the value is a known member of the MfaTenantParamsXCRMFRequest enum.
-func (e MfaTenantParamsXCRMFRequest) Valid() bool {
+// Valid indicates whether the value is a known member of the PasskeyTenantParamsXCRMFRequest enum.
+func (e PasskeyTenantParamsXCRMFRequest) Valid() bool {
 	switch e {
-	case MfaTenantParamsXCRMFRequestN1:
+	case PasskeyTenantParamsXCRMFRequestN1:
 		return true
 	default:
 		return false
@@ -163,15 +163,15 @@ func (e LogoutPlatformParamsXCRMFRequest) Valid() bool {
 	}
 }
 
-// Defines values for MfaPlatformParamsXCRMFRequest.
+// Defines values for PasskeyPlatformParamsXCRMFRequest.
 const (
-	MfaPlatformParamsXCRMFRequestN1 MfaPlatformParamsXCRMFRequest = "1"
+	PasskeyPlatformParamsXCRMFRequestN1 PasskeyPlatformParamsXCRMFRequest = "1"
 )
 
-// Valid indicates whether the value is a known member of the MfaPlatformParamsXCRMFRequest enum.
-func (e MfaPlatformParamsXCRMFRequest) Valid() bool {
+// Valid indicates whether the value is a known member of the PasskeyPlatformParamsXCRMFRequest enum.
+func (e PasskeyPlatformParamsXCRMFRequest) Valid() bool {
 	switch e {
-	case MfaPlatformParamsXCRMFRequestN1:
+	case PasskeyPlatformParamsXCRMFRequestN1:
 		return true
 	default:
 		return false
@@ -210,8 +210,8 @@ func (e EnrollTenantParamsXCRMFRequest) Valid() bool {
 
 // AuthOutcome defines model for AuthOutcome.
 type AuthOutcome struct {
-	// EnrollmentUri Secret provisioning URI; show once
-	EnrollmentUri *string `json:"enrollment_uri,omitempty"`
+	// PublicKey JSON-serialized WebAuthn creation or request options; ephemeral and realm-bound
+	PublicKey *string `json:"public_key,omitempty"`
 
 	// RecoveryCodes One-time enrollment response only
 	RecoveryCodes *[]string         `json:"recovery_codes,omitempty"`
@@ -259,9 +259,10 @@ type LoginInput struct {
 	Password string `json:"password"`
 }
 
-// MFAInput defines model for MFAInput.
-type MFAInput struct {
-	Code string `json:"code"`
+// PasskeyInput defines model for PasskeyInput.
+type PasskeyInput struct {
+	// Response Serialized WebAuthn credential JSON or an explicit single-use recovery code; never a TOTP
+	Response string `json:"response"`
 }
 
 // Problem defines model for Problem.
@@ -290,13 +291,13 @@ type LogoutTenantParams struct {
 // LogoutTenantParamsXCRMFRequest defines parameters for LogoutTenant.
 type LogoutTenantParamsXCRMFRequest string
 
-// MfaTenantParams defines parameters for MfaTenant.
-type MfaTenantParams struct {
-	XCRMFRequest MfaTenantParamsXCRMFRequest `json:"X-CRMF-Request"`
+// PasskeyTenantParams defines parameters for PasskeyTenant.
+type PasskeyTenantParams struct {
+	XCRMFRequest PasskeyTenantParamsXCRMFRequest `json:"X-CRMF-Request"`
 }
 
-// MfaTenantParamsXCRMFRequest defines parameters for MfaTenant.
-type MfaTenantParamsXCRMFRequest string
+// PasskeyTenantParamsXCRMFRequest defines parameters for PasskeyTenant.
+type PasskeyTenantParamsXCRMFRequest string
 
 // LoginPlatformParams defines parameters for LoginPlatform.
 type LoginPlatformParams struct {
@@ -314,13 +315,13 @@ type LogoutPlatformParams struct {
 // LogoutPlatformParamsXCRMFRequest defines parameters for LogoutPlatform.
 type LogoutPlatformParamsXCRMFRequest string
 
-// MfaPlatformParams defines parameters for MfaPlatform.
-type MfaPlatformParams struct {
-	XCRMFRequest MfaPlatformParamsXCRMFRequest `json:"X-CRMF-Request"`
+// PasskeyPlatformParams defines parameters for PasskeyPlatform.
+type PasskeyPlatformParams struct {
+	XCRMFRequest PasskeyPlatformParamsXCRMFRequest `json:"X-CRMF-Request"`
 }
 
-// MfaPlatformParamsXCRMFRequest defines parameters for MfaPlatform.
-type MfaPlatformParamsXCRMFRequest string
+// PasskeyPlatformParamsXCRMFRequest defines parameters for PasskeyPlatform.
+type PasskeyPlatformParamsXCRMFRequest string
 
 // EnrollPlatformParams defines parameters for EnrollPlatform.
 type EnrollPlatformParams struct {
@@ -341,14 +342,14 @@ type EnrollTenantParamsXCRMFRequest string
 // LoginTenantJSONRequestBody defines body for LoginTenant for application/json ContentType.
 type LoginTenantJSONRequestBody = LoginInput
 
-// MfaTenantJSONRequestBody defines body for MfaTenant for application/json ContentType.
-type MfaTenantJSONRequestBody = MFAInput
+// PasskeyTenantJSONRequestBody defines body for PasskeyTenant for application/json ContentType.
+type PasskeyTenantJSONRequestBody = PasskeyInput
 
 // LoginPlatformJSONRequestBody defines body for LoginPlatform for application/json ContentType.
 type LoginPlatformJSONRequestBody = LoginInput
 
-// MfaPlatformJSONRequestBody defines body for MfaPlatform for application/json ContentType.
-type MfaPlatformJSONRequestBody = MFAInput
+// PasskeyPlatformJSONRequestBody defines body for PasskeyPlatform for application/json ContentType.
+type PasskeyPlatformJSONRequestBody = PasskeyInput
 
 // EnrollPlatformJSONRequestBody defines body for EnrollPlatform for application/json ContentType.
 type EnrollPlatformJSONRequestBody = EnrollmentInput
@@ -371,8 +372,8 @@ type ServerInterface interface {
 	// (POST /v1/auth/logout)
 	LogoutTenant(w http.ResponseWriter, r *http.Request, params LogoutTenantParams)
 
-	// (POST /v1/auth/mfa)
-	MfaTenant(w http.ResponseWriter, r *http.Request, params MfaTenantParams)
+	// (POST /v1/auth/passkey)
+	PasskeyTenant(w http.ResponseWriter, r *http.Request, params PasskeyTenantParams)
 
 	// (POST /v1/hq/auth/login)
 	LoginPlatform(w http.ResponseWriter, r *http.Request, params LoginPlatformParams)
@@ -380,19 +381,19 @@ type ServerInterface interface {
 	// (POST /v1/hq/auth/logout)
 	LogoutPlatform(w http.ResponseWriter, r *http.Request, params LogoutPlatformParams)
 
-	// (POST /v1/hq/auth/mfa)
-	MfaPlatform(w http.ResponseWriter, r *http.Request, params MfaPlatformParams)
+	// (POST /v1/hq/auth/passkey)
+	PasskeyPlatform(w http.ResponseWriter, r *http.Request, params PasskeyPlatformParams)
 
 	// (GET /v1/hq/me)
 	MePlatform(w http.ResponseWriter, r *http.Request)
 
-	// (POST /v1/hq/me/mfa)
+	// (POST /v1/hq/me/passkey)
 	EnrollPlatform(w http.ResponseWriter, r *http.Request, params EnrollPlatformParams)
 
 	// (GET /v1/me)
 	MeTenant(w http.ResponseWriter, r *http.Request)
 
-	// (POST /v1/me/mfa)
+	// (POST /v1/me/passkey)
 	EnrollTenant(w http.ResponseWriter, r *http.Request, params EnrollTenantParams)
 }
 
@@ -419,8 +420,8 @@ func (_ Unimplemented) LogoutTenant(w http.ResponseWriter, r *http.Request, para
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
-// (POST /v1/auth/mfa)
-func (_ Unimplemented) MfaTenant(w http.ResponseWriter, r *http.Request, params MfaTenantParams) {
+// (POST /v1/auth/passkey)
+func (_ Unimplemented) PasskeyTenant(w http.ResponseWriter, r *http.Request, params PasskeyTenantParams) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
@@ -434,8 +435,8 @@ func (_ Unimplemented) LogoutPlatform(w http.ResponseWriter, r *http.Request, pa
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
-// (POST /v1/hq/auth/mfa)
-func (_ Unimplemented) MfaPlatform(w http.ResponseWriter, r *http.Request, params MfaPlatformParams) {
+// (POST /v1/hq/auth/passkey)
+func (_ Unimplemented) PasskeyPlatform(w http.ResponseWriter, r *http.Request, params PasskeyPlatformParams) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
@@ -444,7 +445,7 @@ func (_ Unimplemented) MePlatform(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
-// (POST /v1/hq/me/mfa)
+// (POST /v1/hq/me/passkey)
 func (_ Unimplemented) EnrollPlatform(w http.ResponseWriter, r *http.Request, params EnrollPlatformParams) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
@@ -454,7 +455,7 @@ func (_ Unimplemented) MeTenant(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
-// (POST /v1/me/mfa)
+// (POST /v1/me/passkey)
 func (_ Unimplemented) EnrollTenant(w http.ResponseWriter, r *http.Request, params EnrollTenantParams) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
@@ -586,20 +587,20 @@ func (siw *ServerInterfaceWrapper) LogoutTenant(w http.ResponseWriter, r *http.R
 	handler.ServeHTTP(w, r)
 }
 
-// MfaTenant operation middleware
-func (siw *ServerInterfaceWrapper) MfaTenant(w http.ResponseWriter, r *http.Request) {
+// PasskeyTenant operation middleware
+func (siw *ServerInterfaceWrapper) PasskeyTenant(w http.ResponseWriter, r *http.Request) {
 
 	var err error
 	_ = err
 
 	// Parameter object where we will unmarshal all parameters from the context
-	var params MfaTenantParams
+	var params PasskeyTenantParams
 
 	headers := r.Header
 
 	// ------------- Required header parameter "X-CRMF-Request" -------------
 	if valueList, found := headers[http.CanonicalHeaderKey("X-CRMF-Request")]; found {
-		var XCRMFRequest MfaTenantParamsXCRMFRequest
+		var XCRMFRequest PasskeyTenantParamsXCRMFRequest
 		n := len(valueList)
 		if n != 1 {
 			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "X-CRMF-Request", Count: n})
@@ -621,7 +622,7 @@ func (siw *ServerInterfaceWrapper) MfaTenant(w http.ResponseWriter, r *http.Requ
 	}
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.MfaTenant(w, r, params)
+		siw.Handler.PasskeyTenant(w, r, params)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -721,20 +722,20 @@ func (siw *ServerInterfaceWrapper) LogoutPlatform(w http.ResponseWriter, r *http
 	handler.ServeHTTP(w, r)
 }
 
-// MfaPlatform operation middleware
-func (siw *ServerInterfaceWrapper) MfaPlatform(w http.ResponseWriter, r *http.Request) {
+// PasskeyPlatform operation middleware
+func (siw *ServerInterfaceWrapper) PasskeyPlatform(w http.ResponseWriter, r *http.Request) {
 
 	var err error
 	_ = err
 
 	// Parameter object where we will unmarshal all parameters from the context
-	var params MfaPlatformParams
+	var params PasskeyPlatformParams
 
 	headers := r.Header
 
 	// ------------- Required header parameter "X-CRMF-Request" -------------
 	if valueList, found := headers[http.CanonicalHeaderKey("X-CRMF-Request")]; found {
-		var XCRMFRequest MfaPlatformParamsXCRMFRequest
+		var XCRMFRequest PasskeyPlatformParamsXCRMFRequest
 		n := len(valueList)
 		if n != 1 {
 			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "X-CRMF-Request", Count: n})
@@ -756,7 +757,7 @@ func (siw *ServerInterfaceWrapper) MfaPlatform(w http.ResponseWriter, r *http.Re
 	}
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.MfaPlatform(w, r, params)
+		siw.Handler.PasskeyPlatform(w, r, params)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -1008,13 +1009,13 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 		r.Post(options.BaseURL+"/v1/auth/login", wrapper.LoginTenant)
 	})
 	r.Group(func(r chi.Router) {
-		r.Post(options.BaseURL+"/v1/auth/mfa", wrapper.MfaTenant)
+		r.Post(options.BaseURL+"/v1/auth/passkey", wrapper.PasskeyTenant)
 	})
 	r.Group(func(r chi.Router) {
 		r.Post(options.BaseURL+"/v1/auth/logout", wrapper.LogoutTenant)
 	})
 	r.Group(func(r chi.Router) {
-		r.Post(options.BaseURL+"/v1/me/mfa", wrapper.EnrollTenant)
+		r.Post(options.BaseURL+"/v1/me/passkey", wrapper.EnrollTenant)
 	})
 	r.Group(func(r chi.Router) {
 		r.Get(options.BaseURL+"/v1/me", wrapper.MeTenant)
@@ -1023,13 +1024,13 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 		r.Post(options.BaseURL+"/v1/hq/auth/login", wrapper.LoginPlatform)
 	})
 	r.Group(func(r chi.Router) {
-		r.Post(options.BaseURL+"/v1/hq/auth/mfa", wrapper.MfaPlatform)
+		r.Post(options.BaseURL+"/v1/hq/auth/passkey", wrapper.PasskeyPlatform)
 	})
 	r.Group(func(r chi.Router) {
 		r.Post(options.BaseURL+"/v1/hq/auth/logout", wrapper.LogoutPlatform)
 	})
 	r.Group(func(r chi.Router) {
-		r.Post(options.BaseURL+"/v1/hq/me/mfa", wrapper.EnrollPlatform)
+		r.Post(options.BaseURL+"/v1/hq/me/passkey", wrapper.EnrollPlatform)
 	})
 	r.Group(func(r chi.Router) {
 		r.Get(options.BaseURL+"/v1/hq/me", wrapper.MePlatform)
@@ -1043,29 +1044,30 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 // const string: with thousands of chunks the chained `+` fold is several
 // times slower for the Go compiler than parsing a slice literal.
 var swaggerSpec = []string{
-	"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",
+	"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",
+	"FxWZLAoa08yYIu73hUqYyJQ28ZvBmwEtR+VfAwA=",
 }
 
 // decodeSpec returns the embedded OpenAPI spec as raw JSON bytes,

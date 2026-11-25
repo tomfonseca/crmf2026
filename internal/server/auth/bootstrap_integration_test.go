@@ -10,10 +10,9 @@ import (
 	"sync"
 	"testing"
 
+	"github.com/crmf/crmf/internal/testpasskey"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgconn"
-	"github.com/pquerna/otp"
-	"github.com/pquerna/otp/totp"
 )
 
 const bootstrapPassword = "A unique synthetic bootstrap passphrase! 2026"
@@ -90,7 +89,7 @@ func TestBootstrapFirstAdminAndMandatoryMFA(t *testing.T) {
 	if _, err := rand.Read(key); err != nil {
 		t.Fatal("generate test key")
 	}
-	engine, err := NewEngine(ctx, f.service, key)
+	engine, err := NewEngine(ctx, f.service, key, "http://localhost:5174", "http://localhost:5173")
 	clear(key)
 	if err != nil {
 		t.Fatal(err)
@@ -100,18 +99,12 @@ func TestBootstrapFirstAdminAndMandatoryMFA(t *testing.T) {
 	ip := netip.AddrFrom16(raw)
 	t.Cleanup(func() { _, _ = f.admin.Exec(context.Background(), "DELETE FROM auth.ip_attempts WHERE ip=$1", ip) })
 	pending, err := engine.Login(ctx, email, bootstrapPassword, Platform, ip)
-	if err != nil || pending.SessionToken != "" || pending.ChallengeToken == "" || pending.EnrollmentURL == "" {
+	if err != nil || pending.SessionToken != "" || pending.ChallengeToken == "" || !pending.Enrollment {
 		t.Fatal("bootstrap platform login bypassed MFA")
 	}
-	otpKey, err := otp.NewKeyFromURL(pending.EnrollmentURL)
-	if err != nil {
-		t.Fatal("invalid enrollment URI")
-	}
-	code, err := totp.GenerateCode(otpKey.Secret(), f.now)
-	if err != nil {
-		t.Fatal("generate test TOTP")
-	}
-	complete, err := engine.CompleteMFA(ctx, pending.ChallengeToken, code, Platform, ip)
+	device := testpasskey.New(t)
+	code := device.Register(t, pending.PasskeyOptions, "http://localhost:5173")
+	complete, err := engine.CompletePasskey(ctx, pending.ChallengeToken, code, Platform, ip)
 	if err != nil || complete.SessionToken == "" {
 		t.Fatal("bootstrapped admin could not finish MFA")
 	}

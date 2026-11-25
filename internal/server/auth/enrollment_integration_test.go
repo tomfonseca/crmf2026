@@ -17,13 +17,13 @@ func TestOptionalEnrollmentRequiresPasswordAndRevokesOldSession(t *testing.T) {
 		t.Fatal("enrollment without password")
 	}
 	pending, err := e.StartEnrollment(ctx, existing.SessionToken, fixturePassword, Tenant, ip)
-	if err != nil || pending.EnrollmentURL == "" || pending.SessionToken != "" {
+	if err != nil || !pending.Enrollment || pending.SessionToken != "" {
 		t.Fatal("optional enrollment failed")
 	}
 	if _, err := f.service.Resolve(ctx, existing.SessionToken, Tenant); err != nil {
 		t.Fatal("unconfirmed enrollment revoked session")
 	}
-	result, err := e.CompleteMFA(ctx, pending.ChallengeToken, enrollmentCode(t, pending, f.now), Tenant, ip)
+	result, err := e.CompletePasskey(ctx, pending.ChallengeToken, enrollmentCode(t, pending, f.now), Tenant, ip)
 	if err != nil || result.SessionToken == "" {
 		t.Fatal("optional enrollment confirmation failed")
 	}
@@ -40,7 +40,7 @@ func TestMFAFailuresDoNotResetAtPasswordStep(t *testing.T) {
 	var pending LoginResult
 	for range 5 {
 		pending = loginFixture(t, f, e, ip)
-		if _, err := e.CompleteMFA(ctx, pending.ChallengeToken, "invalid", Tenant, ip); !errors.Is(err, ErrUnauthenticated) {
+		if _, err := e.CompletePasskey(ctx, pending.ChallengeToken, "invalid", Tenant, ip); !errors.Is(err, ErrUnauthenticated) {
 			t.Fatal("invalid MFA accepted")
 		}
 	}
@@ -49,7 +49,7 @@ func TestMFAFailuresDoNotResetAtPasswordStep(t *testing.T) {
 	}
 	f.now = f.now.Add(time.Minute)
 	pending = loginFixture(t, f, e, ip)
-	if result, err := e.CompleteMFA(ctx, pending.ChallengeToken, enrollmentCode(t, pending, f.now), Tenant, ip); err != nil || result.SessionToken == "" {
+	if result, err := e.CompletePasskey(ctx, pending.ChallengeToken, enrollmentCode(t, pending, f.now), Tenant, ip); err != nil || result.SessionToken == "" {
 		t.Fatal("MFA did not recover after lock expired")
 	}
 }

@@ -8,14 +8,14 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
-type AuthLoginChallenge struct {
-	TokenHash []byte
-	UserID    pgtype.UUID
-	Realm     string
-	Kind      string
-	SecretEnc []byte
-	Attempts  int32
-	CreatedAt pgtype.Timestamptz
-	ExpiresAt pgtype.Timestamptz
-	UsedAt    pgtype.Timestamptz
+type AuthPasskeyChallenge struct {
+	TokenHash  []byte
+	UserID     pgtype.UUID
+	Realm      string
+	Kind       string
+	SessionEnc []byte
+	Attempts   int32
+	CreatedAt  pgtype.Timestamptz
+	ExpiresAt  pgtype.Timestamptz
+	UsedAt     pgtype.Timestamptz
 }

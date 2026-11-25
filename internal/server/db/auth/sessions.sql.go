@@ -36,19 +36,24 @@ func (q *Queries) ActiveStores(ctx context.Context, tenantID pgtype.UUID) ([]pgt
 }
 
 const lockIdentity = `-- name: LockIdentity :one
-SELECT id, status, mfa_enabled_at FROM auth.users WHERE id = $1 FOR SHARE
+SELECT u.id, u.status, EXISTS(SELECT 1 FROM auth.passkey_credentials p WHERE p.user_id=u.id AND p.realm=$2) AS passkey_enrolled FROM auth.users u WHERE u.id=$1 FOR SHARE
 `
 
-type LockIdentityRow struct {
-	ID           pgtype.UUID
-	Status       string
-	MfaEnabledAt pgtype.Timestamptz
+type LockIdentityParams struct {
+	ID    pgtype.UUID
+	Realm string
 }
 
-func (q *Queries) LockIdentity(ctx context.Context, id pgtype.UUID) (LockIdentityRow, error) {
-	row := q.db.QueryRow(ctx, lockIdentity, id)
+type LockIdentityRow struct {
+	ID              pgtype.UUID
+	Status          string
+	PasskeyEnrolled bool
+}
+
+func (q *Queries) LockIdentity(ctx context.Context, arg LockIdentityParams) (LockIdentityRow, error) {
+	row := q.db.QueryRow(ctx, lockIdentity, arg.ID, arg.Realm)
 	var i LockIdentityRow
-	err := row.Scan(&i.ID, &i.Status, &i.MfaEnabledAt)
+	err := row.Scan(&i.ID, &i.Status, &i.PasskeyEnrolled)
 	return i, err
 }
 

@@ -24,7 +24,7 @@ func (f *fakeAuth) Login(context.Context, string, string, auth.Realm, netip.Addr
 	f.calls++
 	return f.result, f.err
 }
-func (f *fakeAuth) CompleteMFA(context.Context, string, string, auth.Realm, netip.Addr) (auth.LoginResult, error) {
+func (f *fakeAuth) CompletePasskey(context.Context, string, string, auth.Realm, netip.Addr) (auth.LoginResult, error) {
 	f.calls++
 	return f.result, f.err
 }

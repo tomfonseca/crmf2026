@@ -2,7 +2,7 @@
 SELECT user_id FROM auth.user_sessions WHERE token_hash = $1 AND realm = $2;
 
 -- name: LockIdentity :one
-SELECT id, status, mfa_enabled_at FROM auth.users WHERE id = $1 FOR SHARE;
+SELECT u.id, u.status, EXISTS(SELECT 1 FROM auth.passkey_credentials p WHERE p.user_id=u.id AND p.realm=$2) AS passkey_enrolled FROM auth.users u WHERE u.id=$1 FOR SHARE;
 
 -- name: LockSession :one
 SELECT id, user_id, mfa_verified, idle_expires_at, expires_at, revoked_at

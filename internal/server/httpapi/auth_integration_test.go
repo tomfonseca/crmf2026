@@ -15,15 +15,13 @@ import (
 	"net/netip"
 	"strings"
 	"testing"
-	"time"
 
 	"github.com/crmf/crmf/internal/server/auth"
 	"github.com/crmf/crmf/internal/server/httpapi/appcontract"
 	"github.com/crmf/crmf/internal/server/migrate"
+	"github.com/crmf/crmf/internal/testpasskey"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
-	"github.com/pquerna/otp"
-	"github.com/pquerna/otp/totp"
 )
 
 type httpFixture struct {
@@ -97,7 +95,7 @@ func newHTTPFixture(t *testing.T, required bool) *httpFixture {
 	if _, err := rand.Read(key); err != nil {
 		t.Fatal("generate test-only key")
 	}
-	engine, err := auth.NewEngine(ctx, sessions, key)
+	engine, err := auth.NewEngine(ctx, sessions, key, "http://localhost:5174", "http://localhost:5173")
 	clear(key)
 	if err != nil {
 		t.Fatal(err)
@@ -198,21 +196,15 @@ func TestHTTPSLoginIdentityAndLogout(t *testing.T) {
 func TestHTTPSRequiredMFA(t *testing.T) {
 	f := newHTTPFixture(t, true)
 	pending := f.login(t)
-	if pending.Status != appcontract.EnrollmentRequired || pending.EnrollmentUri == nil {
+	if pending.Status != appcontract.EnrollmentRequired || pending.PublicKey == nil {
 		t.Fatal("required MFA did not enroll")
 	}
 	if response, _ := f.request(t, "GET", "/v1/me", nil, false); response.StatusCode != 401 {
 		t.Fatal("MFA challenge granted identity")
 	}
-	key, err := otp.NewKeyFromURL(*pending.EnrollmentUri)
-	if err != nil {
-		t.Fatal("invalid synthetic MFA URI")
-	}
-	code, err := totp.GenerateCode(key.Secret(), time.Now())
-	if err != nil {
-		t.Fatal("generate synthetic code")
-	}
-	response, data := f.request(t, "POST", "/v1/auth/mfa", map[string]string{"code": code}, true)
+	device := testpasskey.New(t)
+	code := device.Register(t, []byte(*pending.PublicKey), "http://localhost:5174")
+	response, data := f.request(t, "POST", "/v1/auth/passkey", map[string]string{"response": code}, true)
 	var completed appcontract.AuthOutcome
 	if err := json.Unmarshal(data, &completed); err != nil || response.StatusCode != 200 || completed.Status != appcontract.Authenticated || completed.RecoveryCodes == nil || len(*completed.RecoveryCodes) != 10 {
 		t.Fatal("HTTP MFA did not finish")
@@ -220,7 +212,7 @@ func TestHTTPSRequiredMFA(t *testing.T) {
 	if response, _ := f.request(t, "GET", "/v1/me", nil, false); response.StatusCode != 200 {
 		t.Fatal("MFA session missing")
 	}
-	if response, _ := f.request(t, "POST", "/v1/auth/mfa", map[string]string{"code": code}, true); response.StatusCode != 401 {
+	if response, _ := f.request(t, "POST", "/v1/auth/passkey", map[string]string{"response": code}, true); response.StatusCode != 401 {
 		t.Fatal("MFA replay accepted")
 	}
 }

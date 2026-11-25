@@ -48,7 +48,7 @@ http://localhost:5173/; customer login is at http://localhost:5174/login.
 The existing Dash demo routes stay synthetic and separate.
 
 The helper provisions an ignored persistent development key only when no
-encrypted MFA state exists. Back up `.tools/local-secrets/mfa.key` securely;
+encrypted legacy or passkey state exists. Back up `.tools/local-secrets/mfa.key` securely;
 never print, commit or rotate it by deleting it. Startup fails on missing or
 invalid keys. Windows file permissions also depend on the workstation ACLs.
 Production rejects file keys and requires a version-pinned Key Vault reference
@@ -90,13 +90,24 @@ the migration role or point this procedure at the ERP. No default administrator
 or password exists. `/crmfctl version` and `/crmfctl help` do not create users.
 
 Successful bootstrap prints only the new UUID and instructions that MFA is
-mandatory. It does not create a session, enroll TOTP or print recovery codes.
-Open http://localhost:5173/ for the first QG login and enroll/confirm MFA
-using your own authenticator. The screen provides a manual TOTP setup key;
-QR rendering is not yet included. Save the one-time recovery codes securely,
-then acknowledge them. Never send credentials/codes to the coding agent.
+mandatory. It does not create a session, enroll a passkey or print recovery codes.
+Open http://localhost:5173/ for the first QG login, enter your email/password,
+then click **Criar passkey**. Complete the native browser/Windows Hello prompt
+with your device PIN, biometrics or a compatible security key. These proofs
+require user verification; do not share your device PIN or credentials with the
+agent. Save the one-time recovery codes privately, then acknowledge them.
+Later logins use **Usar passkey**, not an authenticator's six-digit code.
+Use the exact `localhost` URL, not `127.0.0.1`: WebAuthn RP IDs cannot be IP
+literals. Production requires DNS-hosted HTTPS frontend origins.
 Customer login uses a separate realm and does not accept platform sessions.
 See [web-auth scope and tests](../implementation/authentication-web.md).
+
+After the passkey upgrade, rebuild the frontend containers too:
+`docker compose up -d --no-deps --build hq dash`. Existing users retain their
+passwords; do not repeat bootstrap. Refresh login to replace an old challenge.
+Migration 00007 rejects installations with legacy enrolled MFA instead of
+silently resetting factors; arrange an authorized migration for those installs.
+The existing `mfa.key` now seals passkey state too: keep it, never regenerate it.
 
 Bootstrap is not an upsert, user-promotion command or password-recovery tool.
 It refuses initialized platforms and existing emails. The durable marker stays

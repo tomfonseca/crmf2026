@@ -1,5 +1,9 @@
 # M1 — control and identity foundation
 
+**Current factor: passkeys/WebAuthn, not TOTP.** Increment 8 below and
+[ADR 0005](../adr/0005-passkeys-replace-totp.md) supersede the historical
+TOTP-specific notes in increments 3/4. Applied migrations remain unchanged.
+
 ## Delivered in the first increment
 
 - Migration `migrations/control/00002_identity_and_control.sql`: operational
@@ -200,6 +204,30 @@ The identity migration deliberately rejects `Down`. Changes must be new
 forward migrations; never edit an already-applied migration to fix deployed
 state. PostgreSQL role bootstrap is administrative and separate from domain
 migrations; never execute the local-password script in Azure.
+
+## Delivered in the eighth increment: passkeys replace TOTP
+
+- Password-proven WebAuthn enrollment/assertion with required resident key and
+  user verification, exact per-realm origin/RP ID and realm-derived user handle.
+- `Engine.CompletePasskey` and `/v1/{hq/}auth/passkey` replace the TOTP engine
+  and routes; optional initial enrollment uses `/v1/{hq/}me/passkey`.
+- Forward migration 00007 preserves identities/passwords/bootstrap, invalidates
+  old sessions/challenges, and refuses legacy enrolled factors instead of
+  silently removing them. TOTP columns remain inert for migration compatibility.
+- Sealed public credential/counter/backup state and challenge sessions use the
+  original external key. Key-loss checks now include both new encrypted tables.
+- Enrollment, proof, counter update, one-use recovery, session issuance and
+  audit are transactional under user-before-challenge locking.
+- Native browser prompts replace manual TOTP setup/codes. Windows Hello/PIN,
+  biometrics and compatible external/synced passkeys are browser-mediated.
+  Unsupported/canceled/expired ceremonies never grant access.
+- Real cryptographic Go/Postgres/HTTPS tests plus native Chromium virtual-device
+  browser enrollment/assertion cover both realms. No real operator passkey is
+  created by tests. First/extra-key management and recovery are distinct:
+  additional-key CRUD, disable/replacement and lost-admin recovery remain pending.
+
+See [web authentication](authentication-web.md) for protocol, key custody,
+local origins, migration boundaries and the limits of these tests.
 
 ## Not delivered / next increments
 

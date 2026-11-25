@@ -104,7 +104,7 @@ func run(ctx context.Context, args []string, logger *slog.Logger) error {
 			cancel()
 			return errors.New("load authentication encryption key")
 		}
-		engine, err := auth.NewEngine(startup, sessions, key)
+		engine, err := auth.NewEngine(startup, sessions, key, cfg.Auth.TenantOrigin, cfg.Auth.PlatformOrigin)
 		clear(key)
 		if err != nil {
 			cancel()

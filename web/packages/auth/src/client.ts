@@ -1,4 +1,5 @@
 import { createAppClient, type AppComponents } from "@crmf/api-client";
+import { PasskeyFailure, validatePasskeyOptions } from "./passkey";
 
 export type Realm = "platform" | "tenant";
 type IdentityBody = AppComponents["schemas"]["Identity"];
@@ -17,7 +18,7 @@ export interface AuthClient {
     password: string,
     signal?: AbortSignal,
   ): Promise<Outcome>;
-  mfa(code: string, signal?: AbortSignal): Promise<Outcome>;
+  passkey(response: string, signal?: AbortSignal): Promise<Outcome>;
   logout(signal?: AbortSignal): Promise<void>;
 }
 
@@ -28,6 +29,7 @@ export class AuthFailure extends Error {
 }
 
 export function authMessage(error: unknown): string {
+  if (error instanceof PasskeyFailure) return error.message;
   if (!(error instanceof AuthFailure))
     return "Não foi possível conectar à autenticação. Tente novamente.";
   switch (error.status) {
@@ -75,13 +77,13 @@ export function createAuthClient(
       ? ({
           me: "/v1/hq/me",
           login: "/v1/hq/auth/login",
-          mfa: "/v1/hq/auth/mfa",
+          passkey: "/v1/hq/auth/passkey",
           logout: "/v1/hq/auth/logout",
         } as const)
       : ({
           me: "/v1/me",
           login: "/v1/auth/login",
-          mfa: "/v1/auth/mfa",
+          passkey: "/v1/auth/passkey",
           logout: "/v1/auth/logout",
         } as const);
   function options(signal?: AbortSignal) {
@@ -109,13 +111,12 @@ export function createAuthClient(
   function outcome(data: Outcome | undefined): Outcome {
     if (
       !data ||
-      !["authenticated", "mfa_required", "enrollment_required"].includes(
+      !["authenticated", "passkey_required", "enrollment_required"].includes(
         data.status,
       )
     )
       throw new AuthFailure(502);
-    if (data.status === "enrollment_required")
-      enrollmentSecret(data.enrollment_uri);
+    if (data.status !== "authenticated") validatePasskeyOptions(data);
     if (
       data.recovery_codes &&
       (data.status !== "authenticated" ||
@@ -181,11 +182,11 @@ export function createAuthClient(
         if (!result.response.ok) throw new AuthFailure(result.response.status);
         return outcome(result.data);
       }),
-    mfa: (code, signal) =>
+    passkey: (response, signal) =>
       guarded(async () => {
-        const result = await api.POST(routes.mfa, {
+        const result = await api.POST(routes.passkey, {
           ...mutationOptions(signal),
-          body: { code },
+          body: { response },
         });
         if (!result.response.ok) throw new AuthFailure(result.response.status);
         return outcome(result.data);
@@ -197,21 +198,4 @@ export function createAuthClient(
           throw new AuthFailure(result.response.status);
       }),
   };
-}
-
-// Parse locally, never navigate to or send this secret URI to a third party.
-export function enrollmentSecret(uri: string | undefined): string {
-  try {
-    const url = new URL(uri ?? "");
-    const secret = url.searchParams.get("secret") ?? "";
-    if (
-      url.protocol !== "otpauth:" ||
-      url.hostname !== "totp" ||
-      !/^[A-Z2-7]{16,64}$/.test(secret)
-    )
-      throw new Error();
-    return secret;
-  } catch {
-    throw new AuthFailure(502);
-  }
 }

@@ -53,7 +53,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/auth/mfa": {
+    "/v1/auth/passkey": {
         parameters: {
             query?: never;
             header?: never;
@@ -63,7 +63,7 @@ export interface paths {
         get?: never;
         put?: never;
         /** @description Realm-bound authentication; mutations require the allowed Origin and X-CRMF-Request header. */
-        post: operations["mfaTenant"];
+        post: operations["passkeyTenant"];
         delete?: never;
         options?: never;
         head?: never;
@@ -87,7 +87,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/me/mfa": {
+    "/v1/me/passkey": {
         parameters: {
             query?: never;
             header?: never;
@@ -138,7 +138,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/hq/auth/mfa": {
+    "/v1/hq/auth/passkey": {
         parameters: {
             query?: never;
             header?: never;
@@ -148,7 +148,7 @@ export interface paths {
         get?: never;
         put?: never;
         /** @description Realm-bound authentication; mutations require the allowed Origin and X-CRMF-Request header. */
-        post: operations["mfaPlatform"];
+        post: operations["passkeyPlatform"];
         delete?: never;
         options?: never;
         head?: never;
@@ -172,7 +172,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/hq/me/mfa": {
+    "/v1/hq/me/passkey": {
         parameters: {
             query?: never;
             header?: never;
@@ -214,17 +214,18 @@ export interface components {
             email: string;
             password: string;
         };
-        MFAInput: {
-            code: string;
+        PasskeyInput: {
+            /** @description Serialized WebAuthn credential JSON or an explicit single-use recovery code; never a TOTP */
+            response: string;
         };
         EnrollmentInput: {
             password: string;
         };
         AuthOutcome: {
             /** @enum {string} */
-            status: "authenticated" | "mfa_required" | "enrollment_required";
-            /** @description Secret provisioning URI; show once */
-            enrollment_uri?: string;
+            status: "authenticated" | "passkey_required" | "enrollment_required";
+            /** @description JSON-serialized WebAuthn creation or request options; ephemeral and realm-bound */
+            public_key?: string;
             /** @description One-time enrollment response only */
             recovery_codes?: string[];
         };
@@ -348,7 +349,7 @@ export interface operations {
             };
         };
     };
-    mfaTenant: {
+    passkeyTenant: {
         parameters: {
             query?: never;
             header: {
@@ -359,7 +360,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["MFAInput"];
+                "application/json": components["schemas"]["PasskeyInput"];
             };
         };
         responses: {
@@ -511,7 +512,7 @@ export interface operations {
             };
         };
     };
-    mfaPlatform: {
+    passkeyPlatform: {
         parameters: {
             query?: never;
             header: {
@@ -522,7 +523,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["MFAInput"];
+                "application/json": components["schemas"]["PasskeyInput"];
             };
         };
         responses: {

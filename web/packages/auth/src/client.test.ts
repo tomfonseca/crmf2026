@@ -1,10 +1,6 @@
 import { afterEach, describe, expect, test, vi } from "vitest";
-import {
-  AuthFailure,
-  authMessage,
-  createAuthClient,
-  enrollmentSecret,
-} from "./client";
+import { AuthFailure, authMessage, createAuthClient } from "./client";
+import { validatePasskeyOptions } from "./passkey";
 
 afterEach(() => vi.unstubAllGlobals());
 describe("secure auth transport", () => {
@@ -30,7 +26,7 @@ describe("secure auth transport", () => {
     "uses generated %s paths, credentialed cookies and CSRF header",
     async (realm) => {
       const fetch = vi.fn().mockResolvedValue(
-        new Response(JSON.stringify({ status: "mfa_required" }), {
+        new Response(JSON.stringify({ status: "authenticated" }), {
           status: 200,
           headers: { "Content-Type": "application/json" },
         }),
@@ -109,15 +105,46 @@ describe("secure auth transport", () => {
       createAuthClient("https://api.example.invalid", "tenant").logout(),
     ).rejects.toThrow();
   });
-  test("never sends enrollment secrets to a QR service", () => {
-    expect(
-      enrollmentSecret(
-        "otpauth://totp/CRMF:synthetic?secret=JBSWY3DPEHPK3PXP&issuer=CRMF",
-      ),
-    ).toBe("JBSWY3DPEHPK3PXP");
+  test("rejects missing or weakened passkey options instead of a TOTP fallback", () => {
     expect(() =>
-      enrollmentSecret("https://evil.example.invalid/?secret=JBSWY3DPEHPK3PXP"),
+      validatePasskeyOptions({ status: "enrollment_required" }),
     ).toThrow();
-    expect(() => enrollmentSecret(undefined)).toThrow();
+    expect(() =>
+      validatePasskeyOptions({ status: "passkey_required", public_key: "{}" }),
+    ).toThrow();
+    expect(() =>
+      validatePasskeyOptions({
+        status: "passkey_required",
+        public_key: JSON.stringify({
+          challenge: "a".repeat(43),
+          rpId: "localhost",
+          userVerification: "preferred",
+          allowCredentials: [{ id: "synthetic" }],
+        }),
+      }),
+    ).toThrow();
   });
+  test.each(["tenant", "platform"] as const)(
+    "submits WebAuthn proof only to the %s realm",
+    async (realm) => {
+      const fetch = vi.fn().mockResolvedValue(
+        new Response(JSON.stringify({ status: "authenticated" }), {
+          status: 200,
+          headers: { "Content-Type": "application/json" },
+        }),
+      );
+      vi.stubGlobal("fetch", fetch);
+      const response = '{"type":"public-key","synthetic":true}';
+      await createAuthClient("https://api.example.invalid", realm).passkey(
+        response,
+      );
+      const request = fetch.mock.calls[0][0] as Request;
+      expect(request.url).toBe(
+        `https://api.example.invalid/v1/${realm === "platform" ? "hq/" : ""}auth/passkey`,
+      );
+      expect(await request.json()).toEqual({ response });
+      expect(request.headers.get("X-CRMF-Request")).toBe("1");
+      expect(request.credentials).toBe("include");
+    },
+  );
 });

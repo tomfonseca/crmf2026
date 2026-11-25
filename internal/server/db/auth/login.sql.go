@@ -26,21 +26,6 @@ func (q *Queries) AddRecoveryCode(ctx context.Context, arg AddRecoveryCodeParams
 	return err
 }
 
-const advanceMFAStep = `-- name: AdvanceMFAStep :exec
-UPDATE auth.users SET mfa_last_step=$2,updated_at=$3 WHERE id=$1
-`
-
-type AdvanceMFAStepParams struct {
-	ID          pgtype.UUID
-	MfaLastStep int64
-	UpdatedAt   pgtype.Timestamptz
-}
-
-func (q *Queries) AdvanceMFAStep(ctx context.Context, arg AdvanceMFAStepParams) error {
-	_, err := q.db.Exec(ctx, advanceMFAStep, arg.ID, arg.MfaLastStep, arg.UpdatedAt)
-	return err
-}
-
 const auditAuth = `-- name: AuditAuth :exec
 INSERT INTO core.audit_log(actor_user_id,action,target,detail,at)
 VALUES ($1::uuid,$2::text,$3::text,jsonb_build_object('realm',$4::text),$5::timestamptz)
@@ -65,100 +50,12 @@ func (q *Queries) AuditAuth(ctx context.Context, arg AuditAuthParams) error {
 	return err
 }
 
-const cancelChallenge = `-- name: CancelChallenge :one
-DELETE FROM auth.login_challenges WHERE token_hash=$1 AND realm=$2 AND used_at IS NULL RETURNING user_id
-`
-
-type CancelChallengeParams struct {
-	TokenHash []byte
-	Realm     string
-}
-
-func (q *Queries) CancelChallenge(ctx context.Context, arg CancelChallengeParams) (pgtype.UUID, error) {
-	row := q.db.QueryRow(ctx, cancelChallenge, arg.TokenHash, arg.Realm)
-	var user_id pgtype.UUID
-	err := row.Scan(&user_id)
-	return user_id, err
-}
-
-const challengeOwner = `-- name: ChallengeOwner :one
-SELECT user_id FROM auth.login_challenges WHERE token_hash=$1 AND realm=$2
-`
-
-type ChallengeOwnerParams struct {
-	TokenHash []byte
-	Realm     string
-}
-
-func (q *Queries) ChallengeOwner(ctx context.Context, arg ChallengeOwnerParams) (pgtype.UUID, error) {
-	row := q.db.QueryRow(ctx, challengeOwner, arg.TokenHash, arg.Realm)
-	var user_id pgtype.UUID
-	err := row.Scan(&user_id)
-	return user_id, err
-}
-
-const clearChallenges = `-- name: ClearChallenges :exec
-DELETE FROM auth.login_challenges WHERE user_id=$1 AND realm=$2
-`
-
-type ClearChallengesParams struct {
-	UserID pgtype.UUID
-	Realm  string
-}
-
-func (q *Queries) ClearChallenges(ctx context.Context, arg ClearChallengesParams) error {
-	_, err := q.db.Exec(ctx, clearChallenges, arg.UserID, arg.Realm)
-	return err
-}
-
 const clearRecoveryCodes = `-- name: ClearRecoveryCodes :exec
 DELETE FROM auth.mfa_recovery_codes WHERE user_id=$1
 `
 
 func (q *Queries) ClearRecoveryCodes(ctx context.Context, userID pgtype.UUID) error {
 	_, err := q.db.Exec(ctx, clearRecoveryCodes, userID)
-	return err
-}
-
-const consumeChallenge = `-- name: ConsumeChallenge :exec
-UPDATE auth.login_challenges SET used_at=$2 WHERE token_hash=$1
-`
-
-type ConsumeChallengeParams struct {
-	TokenHash []byte
-	UsedAt    pgtype.Timestamptz
-}
-
-func (q *Queries) ConsumeChallenge(ctx context.Context, arg ConsumeChallengeParams) error {
-	_, err := q.db.Exec(ctx, consumeChallenge, arg.TokenHash, arg.UsedAt)
-	return err
-}
-
-const createChallenge = `-- name: CreateChallenge :exec
-INSERT INTO auth.login_challenges(token_hash,user_id,realm,kind,secret_enc,created_at,expires_at)
-VALUES($1,$2,$3,$4,$5,$6,$7)
-`
-
-type CreateChallengeParams struct {
-	TokenHash []byte
-	UserID    pgtype.UUID
-	Realm     string
-	Kind      string
-	SecretEnc []byte
-	CreatedAt pgtype.Timestamptz
-	ExpiresAt pgtype.Timestamptz
-}
-
-func (q *Queries) CreateChallenge(ctx context.Context, arg CreateChallengeParams) error {
-	_, err := q.db.Exec(ctx, createChallenge,
-		arg.TokenHash,
-		arg.UserID,
-		arg.Realm,
-		arg.Kind,
-		arg.SecretEnc,
-		arg.CreatedAt,
-		arg.ExpiresAt,
-	)
 	return err
 }
 
@@ -194,27 +91,6 @@ func (q *Queries) CreateSession(ctx context.Context, arg CreateSessionParams) er
 	return err
 }
 
-const enableMFA = `-- name: EnableMFA :exec
-UPDATE auth.users SET mfa_secret_enc=$2,mfa_enabled_at=$3,mfa_last_step=$4,updated_at=$3 WHERE id=$1
-`
-
-type EnableMFAParams struct {
-	ID           pgtype.UUID
-	MfaSecretEnc []byte
-	MfaEnabledAt pgtype.Timestamptz
-	MfaLastStep  int64
-}
-
-func (q *Queries) EnableMFA(ctx context.Context, arg EnableMFAParams) error {
-	_, err := q.db.Exec(ctx, enableMFA,
-		arg.ID,
-		arg.MfaSecretEnc,
-		arg.MfaEnabledAt,
-		arg.MfaLastStep,
-	)
-	return err
-}
-
 const ensureIP = `-- name: EnsureIP :exec
 INSERT INTO auth.ip_attempts(ip,last_attempt_at) VALUES ($1,$2) ON CONFLICT DO NOTHING
 `
@@ -229,41 +105,6 @@ func (q *Queries) EnsureIP(ctx context.Context, arg EnsureIPParams) error {
 	return err
 }
 
-const failChallenge = `-- name: FailChallenge :exec
-UPDATE auth.login_challenges SET attempts=attempts+1 WHERE token_hash=$1 AND attempts<5
-`
-
-func (q *Queries) FailChallenge(ctx context.Context, tokenHash []byte) error {
-	_, err := q.db.Exec(ctx, failChallenge, tokenHash)
-	return err
-}
-
-const lockChallenge = `-- name: LockChallenge :one
-SELECT token_hash, user_id, realm, kind, secret_enc, attempts, created_at, expires_at, used_at FROM auth.login_challenges WHERE token_hash=$1 AND realm=$2 FOR UPDATE
-`
-
-type LockChallengeParams struct {
-	TokenHash []byte
-	Realm     string
-}
-
-func (q *Queries) LockChallenge(ctx context.Context, arg LockChallengeParams) (AuthLoginChallenge, error) {
-	row := q.db.QueryRow(ctx, lockChallenge, arg.TokenHash, arg.Realm)
-	var i AuthLoginChallenge
-	err := row.Scan(
-		&i.TokenHash,
-		&i.UserID,
-		&i.Realm,
-		&i.Kind,
-		&i.SecretEnc,
-		&i.Attempts,
-		&i.CreatedAt,
-		&i.ExpiresAt,
-		&i.UsedAt,
-	)
-	return i, err
-}
-
 const lockIP = `-- name: LockIP :one
 SELECT attempts FROM auth.ip_attempts WHERE ip=$1 FOR UPDATE
 `
@@ -276,7 +117,7 @@ func (q *Queries) LockIP(ctx context.Context, ip netip.Addr) ([]pgtype.Timestamp
 }
 
 const lockLoginUser = `-- name: LockLoginUser :one
-SELECT id,status,password_hash,mfa_secret_enc,mfa_enabled_at,mfa_last_step,failed_logins,locked_until
+SELECT id,status,password_hash,mfa_enabled_at,failed_logins,locked_until
 FROM auth.users WHERE id=$1 FOR UPDATE
 `
 
@@ -284,9 +125,7 @@ type LockLoginUserRow struct {
 	ID           pgtype.UUID
 	Status       string
 	PasswordHash pgtype.Text
-	MfaSecretEnc []byte
 	MfaEnabledAt pgtype.Timestamptz
-	MfaLastStep  int64
 	FailedLogins int32
 	LockedUntil  pgtype.Timestamptz
 }
@@ -298,9 +137,7 @@ func (q *Queries) LockLoginUser(ctx context.Context, id pgtype.UUID) (LockLoginU
 		&i.ID,
 		&i.Status,
 		&i.PasswordHash,
-		&i.MfaSecretEnc,
 		&i.MfaEnabledAt,
-		&i.MfaLastStep,
 		&i.FailedLogins,
 		&i.LockedUntil,
 	)
@@ -329,15 +166,6 @@ type LoginSuccessParams struct {
 
 func (q *Queries) LoginSuccess(ctx context.Context, arg LoginSuccessParams) error {
 	_, err := q.db.Exec(ctx, loginSuccess, arg.ID, arg.LastLoginAt)
-	return err
-}
-
-const pruneChallenges = `-- name: PruneChallenges :exec
-DELETE FROM auth.login_challenges WHERE expires_at < $1
-`
-
-func (q *Queries) PruneChallenges(ctx context.Context, expiresAt pgtype.Timestamptz) error {
-	_, err := q.db.Exec(ctx, pruneChallenges, expiresAt)
 	return err
 }
 
