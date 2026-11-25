@@ -99,7 +99,9 @@ for (const support of [false, true]) {
         });
       });
       await page.goto(origin);
-      await page.getByRole("button", { name: "Redes", exact: true }).click();
+      if (support)
+        await page.getByRole("button", { name: "Alternar menu" }).click();
+      await page.getByRole("link", { name: "Redes", exact: true }).click();
       await expect(
         page.getByRole("heading", { name: "Redes", exact: true }),
       ).toBeVisible();
@@ -152,7 +154,9 @@ for (const support of [false, true]) {
         .click();
       await expect(page.getByText("Pronta", { exact: true })).toBeVisible();
       await expect(
-        page.getByText("Banco isolado confirmado · versão 1", { exact: true }),
+        page.getByText("Banco isolado confirmado · versão 1", {
+          exact: true,
+        }),
       ).toBeVisible();
       status = "suspended";
       state = "failed";

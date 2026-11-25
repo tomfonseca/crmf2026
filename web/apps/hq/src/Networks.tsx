@@ -26,13 +26,15 @@ export function Networks({
   plans,
   onExpired,
   onPlans,
-  theme,
-  toggleTheme,
+  route,
+  navigate,
 }: {
   client: NetworkClient;
   plans: PlanClient;
   onExpired: () => void;
   onPlans: () => void;
+  route?: string;
+  navigate?: (path: string) => void;
   theme: string;
   toggleTheme: () => void;
 }) {
@@ -40,7 +42,9 @@ export function Networks({
   const canWrite = scope.grants.some((g) => g.role === "platform_admin");
   const [after, setAfter] = useState("");
   const [history, setHistory] = useState<string[]>([]);
-  const [creating, setCreating] = useState(false);
+  const [creating, setCreating] = useState(route === "/tenants/new");
+  const [search, setSearch] = useState("");
+  useEffect(() => setCreating(route === "/tenants/new"), [route]);
   const [notice, setNotice] = useState("");
   const cache = useQueryClient();
   const query = useQuery({
@@ -68,6 +72,7 @@ export function Networks({
   }, [watching, cache]);
   function done() {
     setCreating(false);
+    navigate?.("/tenants");
     setNotice(
       "Rede registrada. A preparação será confirmada pelo processo isolado.",
     );
@@ -79,11 +84,10 @@ export function Networks({
       <header className="hq-heading">
         <div>
           <p className="hq-eyebrow">CONTROLE DA PLATAFORMA</p>
-          <h2 id="networks-title">Redes</h2>
+          <h1 tabIndex={-1} id="networks-title">
+            Redes
+          </h1>
         </div>
-        <button className="auth-secondary" onClick={toggleTheme}>
-          Tema {theme === "dark" ? "claro" : "escuro"}
-        </button>
       </header>
       <p>
         Cadastre a rede e acompanhe a preparação do banco isolado. Nenhuma loja,
@@ -97,6 +101,7 @@ export function Networks({
             onClick={() => {
               setNotice("");
               setCreating(true);
+              navigate?.("/tenants/new");
             }}
           >
             Nova rede
@@ -120,10 +125,25 @@ export function Networks({
           client={client}
           plans={plans}
           onDone={done}
-          onCancel={() => setCreating(false)}
+          onCancel={() => {
+            setCreating(false);
+            navigate?.("/tenants");
+          }}
           onExpired={onExpired}
           onPlans={onPlans}
         />
+      )}
+      {!creating && (
+        <div className="qg-filters">
+          <label>
+            Buscar por nome ou identificador
+            <input value={search} onChange={(e) => setSearch(e.target.value)} />
+          </label>
+          <small>
+            Filtros nesta página; assinatura, contagens de lojas e dispositivos
+            ainda não disponibilizados.
+          </small>
+        </div>
       )}
       {query.isPending && <p role="status">Carregando redes…</p>}
       {query.isError && (
@@ -148,66 +168,72 @@ export function Networks({
             </caption>
             <thead>
               <tr>
-                <th>Rede</th>
-                <th>Plano</th>
-                <th>Preparação</th>
-                <th>Ações</th>
+                <th scope="col">Rede</th>
+                <th scope="col">Plano</th>
+                <th scope="col">Preparação</th>
+                <th scope="col">Ações</th>
               </tr>
             </thead>
             <tbody>
-              {query.data.items.map((network) => (
-                <tr key={network.id}>
-                  <td>
-                    <strong>{network.legal_name}</strong>
-                    <small>{network.slug}</small>
-                    <small>CNPJ: {network.cnpj}</small>
-                  </td>
-                  <td>
-                    {network.plan_name}
-                    <small>
-                      {
+              {query.data.items
+                .filter((n) =>
+                  (n.legal_name + " " + n.slug)
+                    .toLocaleLowerCase("pt-BR")
+                    .includes(search.toLocaleLowerCase("pt-BR")),
+                )
+                .map((network) => (
+                  <tr key={network.id}>
+                    <th scope="row">
+                      <strong>{network.legal_name}</strong>
+                      <small>{network.slug}</small>
+                      <small>CNPJ: {network.cnpj}</small>
+                    </th>
+                    <td>
+                      {network.plan_name}
+                      <small>
                         {
-                          trial: "Em avaliação",
-                          active: "Ativa",
-                          suspended: "Suspensa",
-                          cancelled: "Cancelada",
-                        }[network.status]
-                      }
-                    </small>
-                  </td>
-                  <td>
-                    <strong>{labels[network.provision_status]}</strong>
-                    {network.provision_status === "ready" ? (
-                      <small>
-                        Banco isolado confirmado · versão{" "}
-                        {network.schema_version}
+                          {
+                            trial: "Em avaliação",
+                            active: "Ativa",
+                            suspended: "Suspensa",
+                            cancelled: "Cancelada",
+                          }[network.status]
+                        }
                       </small>
-                    ) : (
-                      <small>
-                        {network.provision_status === "failed"
-                          ? "Não foi possível concluir. Tente novamente sem duplicar a rede."
-                          : "A rede ainda não está pronta para uso."}
-                      </small>
-                    )}
-                  </td>
-                  <td>
-                    {canWrite &&
-                    network.provision_status === "failed" &&
-                    (network.status === "trial" ||
-                      network.status === "active") &&
-                    network.generation > 0 ? (
-                      <RetryNetwork
-                        network={network}
-                        client={client}
-                        onDone={done}
-                        onExpired={onExpired}
-                      />
-                    ) : (
-                      <span className="hq-muted">—</span>
-                    )}
-                  </td>
-                </tr>
-              ))}
+                    </td>
+                    <td>
+                      <strong>{labels[network.provision_status]}</strong>
+                      {network.provision_status === "ready" ? (
+                        <small>
+                          Banco isolado confirmado · versão{" "}
+                          {network.schema_version}
+                        </small>
+                      ) : (
+                        <small>
+                          {network.provision_status === "failed"
+                            ? "Não foi possível concluir. Tente novamente sem duplicar a rede."
+                            : "A rede ainda não está pronta para uso."}
+                        </small>
+                      )}
+                    </td>
+                    <td>
+                      {canWrite &&
+                      network.provision_status === "failed" &&
+                      (network.status === "trial" ||
+                        network.status === "active") &&
+                      network.generation > 0 ? (
+                        <RetryNetwork
+                          network={network}
+                          client={client}
+                          onDone={done}
+                          onExpired={onExpired}
+                        />
+                      ) : (
+                        <span className="hq-muted">—</span>
+                      )}
+                    </td>
+                  </tr>
+                ))}
             </tbody>
           </table>
         </div>
