@@ -1,5 +1,6 @@
 import { fireEvent, render, screen } from "@testing-library/react";
-import { expect, test, vi } from "vitest";
+import { afterEach, expect, test, vi } from "vitest";
+afterEach(() => vi.restoreAllMocks());
 import { AuthPortal } from "./AuthPortal";
 import { type AuthClient, type Identity } from "./client";
 
@@ -20,16 +21,21 @@ test("focus rechecks expiration without background idle keepalive", async () => 
     passkey: vi.fn(),
     logout: vi.fn(),
   };
+  const focusListener = vi.spyOn(window, "addEventListener");
   render(
     <AuthPortal client={client} title="QG CRMF">
       <p>Private data</p>
     </AuthPortal>,
   );
   await screen.findByText("Private data");
+  expect(focusListener).toHaveBeenCalledWith("focus", expect.any(Function));
   fireEvent.focus(window);
+  expect(client.identity).toHaveBeenCalledTimes(2);
   await screen.findByLabelText("Senha");
   expect(screen.queryByText("Private data")).not.toBeInTheDocument();
   expect(screen.getByRole("alert")).toHaveTextContent("Sua sessão expirou");
+  fireEvent.focus(window);
+  expect(client.identity).toHaveBeenCalledTimes(2);
 });
 
 test("duplicate submit is blocked and unmount cancels pending transport", async () => {

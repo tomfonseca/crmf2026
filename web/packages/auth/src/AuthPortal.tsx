@@ -2,6 +2,7 @@ import {
   createContext,
   useContext,
   useEffect,
+  useLayoutEffect,
   useRef,
   useState,
   type FormEvent,
@@ -82,7 +83,9 @@ export function AuthPortal({
     return () => window.clearTimeout(timer);
   }, [state.kind]);
 
-  useEffect(() => {
+  // Install before the authenticated frame can receive focus, not in a later
+  // passive effect: a fast focus event must not miss session revalidation.
+  useLayoutEffect(() => {
     if (state.kind !== "ready") return;
     function refreshOnFocus() {
       if (locked.current) return;
