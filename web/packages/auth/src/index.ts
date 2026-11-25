@@ -1,2 +1,9 @@
-// Reserved package boundary. Implementation follows the approved M1 scope.
-export {};
+export { AuthPortal, useScope } from "./AuthPortal";
+export {
+  createAuthClient,
+  AuthFailure,
+  authMessage,
+  type AuthClient,
+  type Identity,
+  type Realm,
+} from "./client";

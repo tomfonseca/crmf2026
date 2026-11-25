@@ -9,5 +9,12 @@
   "scripts": {
     "build": "tsc --noEmit",
     "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@crmf/api-client": "workspace:*",
+    "@crmf/ui": "workspace:*"
+  },
+  "peerDependencies": {
+    "react": "18.3.1"
   }
 }

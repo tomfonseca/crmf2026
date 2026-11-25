@@ -43,7 +43,9 @@ Run `python scripts/tasks.py auth-dev`. This builds the backend and applies
 continue on port 8080. `GET /v1/me` returns 401 without a valid tenant session
 when auth is enabled, and 404 when disabled. Equivalent QG routes live under
 `/v1/hq`. No final users are automatically provisioned; use the operator-only
-procedure below to create the first administrator. SPA login screens are pending.
+procedure below to create the first administrator. QG login is at
+http://localhost:5173/; customer login is at http://localhost:5174/login.
+The existing Dash demo routes stay synthetic and separate.
 
 The helper provisions an ignored persistent development key only when no
 encrypted MFA state exists. Back up `.tools/local-secrets/mfa.key` securely;
@@ -89,8 +91,12 @@ or password exists. `/crmfctl version` and `/crmfctl help` do not create users.
 
 Successful bootstrap prints only the new UUID and instructions that MFA is
 mandatory. It does not create a session, enroll TOTP or print recovery codes.
-The first QG login must enroll/confirm MFA through the own-auth API; browser
-login screens are still pending. Customer routes do not accept platform sessions.
+Open http://localhost:5173/ for the first QG login and enroll/confirm MFA
+using your own authenticator. The screen provides a manual TOTP setup key;
+QR rendering is not yet included. Save the one-time recovery codes securely,
+then acknowledge them. Never send credentials/codes to the coding agent.
+Customer login uses a separate realm and does not accept platform sessions.
+See [web-auth scope and tests](../implementation/authentication-web.md).
 
 Bootstrap is not an upsert, user-promotion command or password-recovery tool.
 It refuses initialized platforms and existing emails. The durable marker stays

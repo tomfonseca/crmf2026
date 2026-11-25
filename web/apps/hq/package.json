@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@crmf/api-client": "workspace:*",
+    "@crmf/auth": "workspace:*",
     "@crmf/ui": "workspace:*",
     "@tanstack/react-query": "^5.90.10",
     "@tanstack/react-router": "^1.139.12",

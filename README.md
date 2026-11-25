@@ -28,14 +28,16 @@ Aguarda os endpoints responderem antes de indicar sucesso.
 | API / liveness / readiness | http://localhost:8080/healthz e /readyz |
 | QG | http://localhost:5173 |
 | Dash | http://localhost:5174 |
-| OIDC Keycloak | http://localhost:18080/realms/crmf |
+| Keycloak legado, não usado pela autenticação | http://localhost:18080/realms/crmf |
 | Postgres | localhost:55432 |
 | MariaDB sintético | localhost:53306 |
 | Azurite Blob | localhost:51000 |
 
 Credenciais **exclusivas de desenvolvimento** estão em `.env.example` e nos
 scripts de inicialização locais. Keycloak: `admin` / `crmf_local_admin_only`.
-Não há usuários finais pré-cadastrados nem login nas SPAs em M0.
+Não há usuários finais pré-cadastrados. O QG e `/login` do Dash têm telas
+M1 de login/MFA; habilite a API com `python scripts/tasks.py auth-dev`.
+Veja [fluxos e limites da autenticação web](docs/implementation/authentication-web.md).
 
 ## Prévia do dashboard (sem backend)
 
@@ -82,7 +84,8 @@ Isso evita misturar dependências nativas Windows e Linux nos containers.
   segredo versionado do Key Vault via identidade gerenciada (ainda sem validação
   em Azure). O primeiro administrador é criado manualmente por
   `crmfctl user create-admin`, com senha no terminal e MFA no primeiro login;
-  telas de login, convites e redefinição de senha ainda pendem. O motor interno
+  as telas iniciais de login/MFA já estão disponíveis, mas convites e
+  redefinição de senha ainda pendem. O motor interno
   de [limites efetivos](docs/implementation/effective-limits.md) já resolve plano
   e overrides pelo contexto autenticado, ainda sem integração nas futuras rotas
   de negócio. Veja [estado e próximos incrementos](docs/implementation/m1-control.md).

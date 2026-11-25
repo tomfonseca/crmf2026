@@ -149,8 +149,9 @@ buckets. No real user or reusable runtime key is provisioned.
 See [ADR 0004](../adr/0004-one-time-platform-bootstrap.md) and the
 [local operator procedure](../runbooks/local-development.md#initial-platform-administrator).
 
-Invitations, password reset, MFA disable/recovery-code regeneration and
-authentication screens remain **pending**. No final user was provisioned by
+Invitations, password reset and MFA disable/recovery-code regeneration remain
+**pending**. Initial login/MFA screens are delivered below; invitation/reset
+screens and complete authenticated business navigation remain pending. No final user was provisioned by
 the agent; only disposable synthetic identities were used in tests. The
 dashboard remains mocked, and no business/ERP endpoint has been exposed.
 
@@ -165,6 +166,19 @@ dashboard remains mocked, and no business/ERP endpoint has been exposed.
   retired plans and invalid configuration. No identity SQL leaves auth.
 - This is the internal policy module, not enforcement on still-pending
   business/admin routes. See [scope and remaining integration](effective-limits.md).
+
+## Delivered in the seventh increment: initial authentication screens
+
+- Shared generated-client transport for realm-specific credentialed requests,
+  CSRF headers, no-store, HTTPS production configuration and bounded timeouts.
+- QG login and separate customer `/login`, MFA verification/manual enrollment,
+  one-time recovery-code acknowledgement, logout and expired-session handling.
+- Secrets stay in memory only, with no external QR service, URL persistence,
+  browser storage or logging. Outages never fall back to the synthetic demo.
+- Vitest and synthetic-contract Playwright tests supplement the existing real
+  backend HTTPS/Postgres tests; final-user/Azure acceptance still needs humans.
+- See [authentication-web scope](authentication-web.md). No final account was
+  created and no business/ERP route was exposed.
 
 ## Verify locally
 
@@ -194,7 +208,7 @@ only with explicit configuration; no business endpoints or real ERP records
 are present in the dashboard yet. The worker still checks dependencies
 and idles; giving it its future role does not implement ingestion.
 
-1. Implement invitations/password-reset flows and authentication screens using
+1. Implement invitations/password-reset flows and their remaining screens using
    generated contracts. Never bypass platform MFA or reuse bootstrap to recover
    an already initialized platform.
 2. Validate Key Vault/managed identity in Azure, design key rotation/rewrapping,
@@ -216,4 +230,6 @@ Subsequent milestones implement the approved historical slice January–April
 Cost quality, comparison periods and target/role decisions remain explicit
 prerequisites; no missing cost is replaced with zero in this increment.
 
-GitHub CI and Azure provisioning have not been demonstrated by local tests.
+GitHub CI passed on the dedicated CI repair and effective-limits PRs; local
+checks alone never imply remote acceptance. The auth-screen PR must pass its
+own CI. Azure provisioning and final-user acceptance remain unverified.
