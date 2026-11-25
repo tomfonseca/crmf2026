@@ -290,6 +290,22 @@ See [provisioning scope, command and evidence](tenant-provisioning.md) and
 
 See [scope, deployment, permissions and evidence](hq-networks.md).
 
+## Delivered in the twelfth increment: authentication layouts
+
+- Shared split login, central status/passkey/recovery cards and account tabs,
+  rebuilt in React from the supplied visual references, not embedded HTML.
+- All 94 reference variations in an explicitly synthetic, development-only
+  catalogue; structural/header/responsive tests at desktop and 320px. Production
+  bundles exclude the preview. Light default, persistent theme-only preference.
+- Existing password/passkey/recovery/session/cancellation transport remains real;
+  no server credentials, session values or recovery codes enter browser storage.
+- Reset/invitation/email and account mutations still have no complete secure APIs:
+  those screens show Previsto and disabled actions, never fabricated success.
+  Profile/session/passkey information absent from the identity API stays unavailable.
+- Existing administrator/passkey/bootstrap/sealing key and ERP remain unchanged.
+
+See [layouts, entry points and security boundaries](authentication-layout.md).
+
 ## Not delivered / next increments
 
 This is **M1 started, not M1 complete**. Authentication endpoints are available
@@ -297,7 +313,7 @@ only with explicit configuration; no business endpoints or real ERP records
 are present in the dashboard yet. The worker still checks dependencies
 and idles; giving it its future role does not implement ingestion.
 
-1. Implement invitations/password-reset flows and their remaining screens using
+1. Implement invitations/password-reset APIs and connect the prepared screens using
    generated contracts. Never bypass platform MFA or reuse bootstrap to recover
    an already initialized platform.
 2. Validate Key Vault/managed identity in Azure, design key rotation/rewrapping,

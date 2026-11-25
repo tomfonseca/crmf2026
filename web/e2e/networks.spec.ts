@@ -116,7 +116,9 @@ for (const support of [false, true]) {
             exact: true,
           }),
         ).toHaveCount(0);
-        await page.getByRole("button", { name: "Tema claro" }).click();
+        await page
+          .getByRole("button", { name: "Tema escuro", exact: true })
+          .click();
         expect(
           await page.evaluate(
             () => document.documentElement.scrollWidth <= innerWidth,

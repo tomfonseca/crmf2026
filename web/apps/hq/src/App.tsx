@@ -1,5 +1,10 @@
 import { useCallback, useState } from "react";
-import { AuthPortal, createAuthClient } from "@crmf/auth";
+import {
+  AuthPortal,
+  AuthDesignPreview,
+  createAuthClient,
+  useAuthTheme,
+} from "@crmf/auth";
 import { CatalogHost } from "./Plans";
 import { createPlanClient } from "./plans-client";
 import { createNetworkClient } from "./networks-client";
@@ -19,18 +24,25 @@ function configuredClients() {
 const clients = configuredClients();
 export function App() {
   const [epoch, setEpoch] = useState(0);
-  const [theme, setTheme] = useState<"light" | "dark">("dark");
+  const [theme, toggleTheme] = useAuthTheme();
   const expire = useCallback(() => setEpoch((value) => value + 1), []);
+  if (import.meta.env.DEV && window.location.pathname === "/__auth-design")
+    return <AuthDesignPreview />;
   return clients ? (
-    <AuthPortal key={epoch} client={clients.auth} title="QG CRMF" theme={theme}>
+    <AuthPortal
+      key={epoch}
+      client={clients.auth}
+      realm="platform"
+      title="QG CRMF"
+      theme={theme}
+      onThemeChange={toggleTheme}
+    >
       <CatalogHost
         client={clients.plans}
         networks={clients.networks}
         onExpired={expire}
         theme={theme}
-        toggleTheme={() =>
-          setTheme((value) => (value === "dark" ? "light" : "dark"))
-        }
+        toggleTheme={toggleTheme}
       />
     </AuthPortal>
   ) : (

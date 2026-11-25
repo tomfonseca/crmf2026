@@ -83,7 +83,9 @@ test("login clears password, requires MFA and presents recovery codes once witho
   expect(screen.queryByText("Cadastrar passkey")).not.toBeInTheDocument();
   expect(screen.queryByText("Sessão autenticada.")).not.toBeInTheDocument();
   client.identity.mockResolvedValue(identity);
-  fireEvent.click(screen.getByRole("button", { name: "Guardei os códigos" }));
+  expect(screen.getByRole("button", { name: "Continuar" })).toBeDisabled();
+  fireEvent.click(screen.getByRole("checkbox", { name: /Guardei os códigos/ }));
+  fireEvent.click(screen.getByRole("button", { name: "Continuar" }));
   await screen.findByText("Sessão autenticada.");
   expect(screen.queryByText(codes[0])).not.toBeInTheDocument();
   expect(storage).not.toHaveBeenCalled();
@@ -116,12 +118,17 @@ test("expired passkey does not unlock access and recovery input is cleared", asy
   render(<AuthPortal client={client} title="QG CRMF" />);
   await screen.findByLabelText("Senha");
   submitLogin();
+  fireEvent.click(await screen.findByText("Usar um código de recuperação"));
+  fireEvent.click(screen.getByRole("button", { name: "Continuar com código" }));
   const input = await screen.findByLabelText("Código de recuperação");
   fireEvent.change(input, { target: { value: "a".repeat(32) } });
   fireEvent.submit(input.closest("form")!);
   await screen.findByRole("alert");
   expect(input).toHaveValue("");
   expect(screen.queryByText("Sessão autenticada.")).not.toBeInTheDocument();
+  fireEvent.click(
+    screen.getByRole("button", { name: "Voltar para a passkey" }),
+  );
   fireEvent.click(screen.getByRole("button", { name: "Cancelar e voltar" }));
   await screen.findByLabelText("Senha");
 });
@@ -139,6 +146,52 @@ test("cancelling the native passkey prompt never submits a proof or grants acces
   await screen.findByRole("alert");
   expect(client.passkey).not.toHaveBeenCalled();
   expect(screen.queryByText("Sessão autenticada.")).not.toBeInTheDocument();
+});
+
+test("native cancellation aborts locally and revokes the backend challenge", async () => {
+  const client = fixture();
+  client.login.mockResolvedValue(enrollment);
+  vi.mocked(provePasskey).mockImplementationOnce(
+    (_, signal) =>
+      new Promise((_, reject) =>
+        signal.addEventListener(
+          "abort",
+          () => reject(new PasskeyFailure("Verificação cancelada.")),
+          { once: true },
+        ),
+      ),
+  );
+  render(<AuthPortal client={client} title="QG CRMF" />);
+  await screen.findByLabelText("Senha");
+  submitLogin();
+  fireEvent.click(await screen.findByRole("button", { name: "Criar passkey" }));
+  expect(
+    screen.queryByText("Usar um código de recuperação"),
+  ).not.toBeInTheDocument();
+  fireEvent.click(await screen.findByRole("button", { name: "Cancelar" }));
+  await screen.findByLabelText("Senha");
+  expect(client.logout).toHaveBeenCalledOnce();
+  expect(client.passkey).not.toHaveBeenCalled();
+});
+test("submitted proof cannot race cancellation or grant access before identity", async () => {
+  const client = fixture();
+  client.login.mockResolvedValue(enrollment);
+  let finish!: (outcome: { status: "authenticated" }) => void;
+  client.passkey.mockReturnValue(
+    new Promise((resolve) => {
+      finish = resolve;
+    }),
+  );
+  render(<AuthPortal client={client} title="QG CRMF" />);
+  await screen.findByLabelText("Senha");
+  submitLogin();
+  fireEvent.click(await screen.findByRole("button", { name: "Criar passkey" }));
+  await waitFor(() => expect(client.passkey).toHaveBeenCalledOnce());
+  expect(screen.getByRole("button", { name: "Cancelar" })).toBeDisabled();
+  expect(screen.queryByText("Sessão autenticada.")).not.toBeInTheDocument();
+  finish({ status: "authenticated" });
+  await screen.findByLabelText("Senha");
+  expect(client.logout).not.toHaveBeenCalled();
 });
 
 test("logout failure is not presented as success", async () => {

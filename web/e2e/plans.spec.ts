@@ -113,10 +113,12 @@ for (const support of [false, true]) {
         await expect(
           page.getByRole("button", { name: /Editar Plano/ }),
         ).toHaveCount(0);
-        await page.getByRole("button", { name: "Tema claro" }).click();
+        await page
+          .getByRole("button", { name: "Tema escuro", exact: true })
+          .click();
         await expect(page.locator("main")).toHaveAttribute(
           "data-theme",
-          "light",
+          "dark",
         );
         expect(
           await page.evaluate(

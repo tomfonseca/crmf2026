@@ -7,7 +7,10 @@ import {
 import type { Outcome } from "./client";
 
 export class PasskeyFailure extends Error {
-  constructor(message = "Não foi possível usar a passkey. Tente novamente.") {
+  constructor(
+    message = "Não foi possível usar a passkey. Tente novamente.",
+    readonly kind: "unsupported" | "failed" = "failed",
+  ) {
     super(message);
   }
 }
@@ -65,6 +68,7 @@ export async function provePasskey(
   if (!window.isSecureContext || !browserSupportsWebAuthn())
     throw new PasskeyFailure(
       "Passkeys indisponíveis neste navegador. Use HTTPS (ou localhost) e um navegador compatível.",
+      "unsupported",
     );
   const cancel = () => WebAuthnAbortService.cancelCeremony();
   signal.addEventListener("abort", cancel, { once: true });

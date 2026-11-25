@@ -1,5 +1,7 @@
 # M1 — authentication screens
 
+See [the updated layout, all 94 reference variations and implementation boundaries](authentication-layout.md).
+
 ## Available surfaces
 
 - QG: `http://localhost:5173/`, platform realm.
@@ -22,7 +24,8 @@ names with HTTPS. RP ID is the frontend hostname, not the API hostname.
 
 1. Resolve the realm's current identity; expired sessions return to login.
 2. Submit email/password. Inputs clear immediately; nothing is written to
-   localStorage/sessionStorage, URLs, console, analytics or logs.
+   localStorage/sessionStorage, URLs, console, analytics or logs. Only a literal
+   theme preference may persist; it contains no authentication data.
 3. For mandatory/previously enrolled MFA, receive five-minute, realm-bound
    WebAuthn options and a separate HttpOnly challenge cookie, never a session.
 4. Click **Criar passkey** on first enrollment, or **Usar passkey** thereafter.
@@ -77,6 +80,8 @@ The agent never enrolls the operator's authenticator or asks for credentials,
 device PIN, biometrics or recovery codes. Initial bootstrap remains a human-only
 CLI operation documented in the [local runbook](../runbooks/local-development.md#initial-platform-administrator).
 
-Invites/reset/email, optional-factor settings, additional-key management/removal,
-lost-key/admin recovery, user quotas, plan modules in identity, tenant
-provisioning and operational QG/Dash remain pending. M1 is still incomplete.
+Invites/reset/email APIs, optional-factor settings, additional-key management/removal,
+lost-key/admin recovery, user quotas and plan modules in identity remain pending.
+Their layouts now expose truthful Previsto/unavailable states. QG Planos/Redes
+and isolated tenant provisioning are delivered in later increments; real sales
+and the complete operational QG/Dash remain pending. M1 is still incomplete.

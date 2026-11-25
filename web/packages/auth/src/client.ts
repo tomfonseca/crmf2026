@@ -12,6 +12,7 @@ export type Identity = Readonly<
 export type Outcome = AppComponents["schemas"]["AuthOutcome"];
 
 export interface AuthClient {
+  readonly realm?: Realm;
   identity(signal?: AbortSignal): Promise<Identity | null>;
   login(
     email: string,
@@ -127,6 +128,7 @@ export function createAuthClient(
     return data;
   }
   return {
+    realm,
     identity: (signal) =>
       guarded(async () => {
         const result = await api.GET(routes.me, options(signal));

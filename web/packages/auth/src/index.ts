@@ -1,3 +1,5 @@
+export { useAuthTheme } from "./layout";
+export { AuthDesignPreview } from "./preview";
 export { AuthPortal, useScope } from "./AuthPortal";
 export {
   createAuthClient,

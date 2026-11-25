@@ -163,7 +163,11 @@ for (const realm of ["platform", "tenant"] as const) {
       page.getByRole("heading", { name: "Guarde seus códigos de recuperação" }),
     ).toBeVisible();
     await expect(page.getByText("Sessão autenticada.")).toHaveCount(0);
-    await page.getByRole("button", { name: "Guardei os códigos" }).click();
+    await expect(
+      page.getByRole("button", { name: "Continuar", exact: true }),
+    ).toBeDisabled();
+    await page.getByRole("checkbox", { name: /Guardei os códigos/ }).check();
+    await page.getByRole("button", { name: "Continuar", exact: true }).click();
     await expect(page.getByText("Sessão autenticada.")).toBeVisible();
     const { credentials } = await cdp.send("WebAuthn.getCredentials", {
       authenticatorId,
@@ -206,7 +210,7 @@ test("mobile auth outage fails closed without demo fallback", async ({
   await expect(page.getByRole("alert")).toBeVisible();
   await expect(
     page.getByText(
-      "Não foi possível verificar sua sessão. Nenhum acesso de demonstração foi concedido.",
+      "Não foi possível verificar seu acesso. Tente novamente. Nenhum acesso de demonstração foi concedido.",
     ),
   ).toBeVisible();
   await expect(
