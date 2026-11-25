@@ -30,14 +30,14 @@ func (e *Engine) CancelChallenge(ctx context.Context, token string, realm Realm)
 	}
 	defer func() { _ = tx.Rollback(ctx) }()
 	q := authdb.New(tx)
-	user, err := q.CancelChallenge(ctx, authdb.CancelChallengeParams{TokenHash: hash, Realm: string(realm)})
+	user, err := q.CancelPasskeyChallenge(ctx, authdb.CancelPasskeyChallengeParams{TokenHash: hash, Realm: string(realm)})
 	if errors.Is(err, pgx.ErrNoRows) {
 		return nil
 	}
 	if err != nil {
 		return storageError(ctx)
 	}
-	if err := auditAuth(ctx, q, user, user, realm, "auth.mfa_cancelled", e.sessions.now().UTC()); err != nil {
+	if err := auditAuth(ctx, q, user, user, realm, "auth.passkey_cancelled", e.sessions.now().UTC()); err != nil {
 		return err
 	}
 	if err := tx.Commit(ctx); err != nil {

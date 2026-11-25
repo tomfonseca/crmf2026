@@ -235,10 +235,28 @@ create table auth.users (
   status text not null,                    -- invited|active|disabled
   password_hash text,                      -- argon2id em formato PHC; null até aceitar o convite
   password_changed_at timestamptz,
-  mfa_secret_enc bytea,                    -- segredo TOTP cifrado com chave do Key Vault
   mfa_enabled_at timestamptz,
   failed_logins int not null default 0, locked_until timestamptz,
   last_login_at timestamptz
+);
+
+-- Credenciais públicas e metadados são selados com AES-256-GCM (Key Vault).
+-- A chave privada permanece no autenticador; AAD vincula usuário, realm e ID.
+create table auth.passkey_credentials (
+  credential_id bytea primary key,
+  user_id uuid not null references auth.users,
+  realm text not null,                     -- platform|tenant
+  credential_enc bytea not null,           -- registro WebAuthn completo, incluindo contador e flags
+  created_at timestamptz not null, updated_at timestamptz not null
+);
+
+create table auth.passkey_challenges (
+  token_hash bytea primary key,             -- SHA-256 do token opaco do cookie de desafio
+  user_id uuid not null references auth.users,
+  realm text not null, kind text not null,  -- enroll|verify
+  session_enc bytea not null,              -- challenge, handle, RP ID, UV e expiração selados
+  attempts int not null default 0,
+  created_at timestamptz not null, expires_at timestamptz not null, used_at timestamptz
 );
 
 create table auth.user_sessions (
@@ -617,13 +635,13 @@ Uma API serve o QG e o dash; o que muda entre eles é o escopo do usuário. Cont
 
 ### 9.1 Autenticação própria
 
-Autenticação e autorização são próprias: e-mail e senha, MFA por TOTP e sessões guardadas no banco de controle, sem provedor externo de identidade. Tudo fica em `internal/server/auth`.
+Autenticação e autorização são próprias: e-mail e senha, MFA por passkeys/WebAuthn e sessões guardadas no banco de controle, sem provedor externo de identidade. Tudo fica em `internal/server/auth`.
 
 - **Senhas:** argon2id (`golang.org/x/crypto/argon2`; 64 MB de memória, 3 iterações, paralelismo 2) em formato PHC. Mínimo de 12 caracteres; recusar senhas de uma lista local das 100 mil mais comuns. Refazer o hash no login quando os parâmetros mudarem.
 - **Sessão:** token opaco aleatório de 32 bytes, guardado apenas como SHA-256 em `user_sessions`. Vai em cookie `HttpOnly`, `Secure`, `SameSite=Strict`; sem JWT. A API também aceita `Authorization: Bearer <token>`, reservado ao Pulse na fase 2.
 - **Dois realms:** sessões `platform` só valem em `/v1/hq`; sessões `tenant` só nas rotas de cliente. O QG e o dash têm endpoints de login separados.
 - **Validade:** realm `platform` expira após 30 min ocioso ou 12 h no total; realm `tenant`, após 12 h ocioso ou 7 dias no total. Cada requisição renova o prazo ocioso.
-- **MFA:** obrigatório para papéis `platform_*` desde o primeiro login. Opcional para clientes, e o `network_admin` pode torná-lo obrigatório para a rede (`tenants.require_mfa`). Segredo TOTP (`pquerna/otp`) cifrado com chave do Key Vault; 10 códigos de recuperação de uso único.
+- **MFA:** obrigatório para papéis `platform_*` desde o primeiro login. Opcional para clientes, e o `network_admin` pode torná-lo obrigatório para a rede (`tenants.require_mfa`). Passkey/WebAuthn (`go-webauthn/webauthn`), com presença e verificação do usuário obrigatórias (PIN/biometria/chave de segurança), credential residente e origem/RP ID exatos por realm. Cadastro inicial não gera sessão até a prova ser validada. Estado dos desafios e registro público da credencial selados com chave do Key Vault; nenhuma chave privada/biometria chega ao servidor. Dez códigos de recuperação de uso único continuam disponíveis como exceção explícita, após senha e somente com passkey já cadastrada; não existe fallback TOTP.
 - **Força bruta:** após 5 falhas seguidas, a conta bloqueia por tempo crescente (1, 5, 15 e 60 min); no máximo 20 tentativas de login por minuto por IP. A resposta nunca revela se o e-mail existe.
 - **Convite e redefinição:** o `network_admin` (ou o QG) cadastra o usuário, que recebe por e-mail um link de uso único, válido por 72 h, para definir a senha. Link de redefinição de senha: uso único, 30 min.
 - **Revogação:** trocar ou redefinir a senha, desativar o usuário ou alterar seus grants encerra todas as sessões dele.
@@ -635,14 +653,14 @@ Autenticação e autorização são próprias: e-mail e senha, MFA por TOTP e se
 | Rota | Função |
 | --- | --- |
 | `POST /v1/auth/login` e `POST /v1/hq/auth/login` | E-mail e senha; devolvem sessão ou pedido de MFA |
-| `POST /v1/auth/mfa` e `POST /v1/hq/auth/mfa` | Código TOTP ou de recuperação; concluem o login |
+| `POST /v1/auth/passkey` e `POST /v1/hq/auth/passkey` | Prova WebAuthn (cadastro/assertion) ou código de recuperação de uso único; concluem o login |
 | `POST /v1/auth/logout` e `POST /v1/hq/auth/logout` | Encerram a sessão atual |
 | `POST /v1/auth/password/forgot` | Envia link de redefinição; sempre responde `202` |
 | `POST /v1/auth/password/reset` | Define nova senha com o token do link |
 | `POST /v1/auth/invite/accept` | Define a senha inicial com o token do convite |
 | `GET` e `DELETE /v1/me/sessions` | Lista e encerra as próprias sessões |
 | `PUT /v1/me/password` | Troca a senha, exigindo a atual |
-| `POST` e `DELETE /v1/me/mfa` | Ativa o MFA (com confirmação de código) ou desativa, quando permitido |
+| `POST` e `DELETE /v1/me/passkey` | Cadastra passkey (com senha atual e prova WebAuthn) ou remove, quando permitido; remoção e gerenciamento de múltiplas chaves ainda pendentes |
 
 As rotas equivalentes de redefinição, convite e conta existem também sob `/v1/hq`.
 
@@ -785,7 +803,7 @@ O requisito número um é nenhum vazamento entre redes. O isolamento é aplicado
 **Outras regras**
 
 - Dados do cliente final nunca são extraídos (lista de colunas proibidas no CI, seção 6.3).
-- Hash de senha, sessões e segredos de MFA ficam no schema auth, acessível só pelo role crmf\_auth. Segredos só no Key Vault; o backend usa identidade gerenciada para ler Key Vault, Blob Storage e Postgres (autenticação Entra para os roles de serviço, senha só para os roles de tenant).
+- Hash de senha, sessões, credenciais públicas e desafios WebAuthn selados ficam no schema auth, acessível só pelo role crmf\_auth. Segredos só no Key Vault; o backend usa identidade gerenciada para ler Key Vault, Blob Storage e Postgres (autenticação Entra para os roles de serviço, senha só para os roles de tenant).
 - Postgres e Storage sem acesso público: integração por rede virtual e endpoints privados; o Blob Storage aceita escrita externa apenas via SAS.
 - TLS 1.2 ou superior em todos os endpoints; HSTS nos front-ends.
 - Chave Ed25519 de releases e conectores: gerada offline, privada só em segredo do ambiente de release do GitHub com aprovação manual; pública embutida no updater e no agente.

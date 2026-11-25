@@ -9,11 +9,11 @@ import {
 } from "react";
 import {
   authMessage,
-  enrollmentSecret,
   type AuthClient,
   type Identity,
   type Outcome,
 } from "./client";
+import { provePasskey, validatePasskeyOptions } from "./passkey";
 import "@crmf/ui/styles.css";
 import "./auth.css";
 
@@ -21,7 +21,7 @@ type State =
   | { kind: "loading" }
   | { kind: "login" }
   | { kind: "unavailable" }
-  | { kind: "mfa"; uri?: string }
+  | { kind: "passkey"; outcome: Outcome }
   | { kind: "recovery"; codes: string[] }
   | { kind: "ready"; identity: Identity };
 const ScopeContext = createContext<Identity | null>(null);
@@ -69,7 +69,7 @@ export function AuthPortal({
     };
   }, [client]);
   useEffect(() => {
-    if (state.kind !== "mfa") return;
+    if (state.kind !== "passkey") return;
     const timer = window.setTimeout(() => {
       pending.current?.abort();
       locked.current = false;
@@ -125,11 +125,9 @@ export function AuthPortal({
     if (signal.aborted || !active.current) return;
     switch (outcome.status) {
       case "enrollment_required":
-        enrollmentSecret(outcome.enrollment_uri);
-        setState({ kind: "mfa", uri: outcome.enrollment_uri });
-        break;
-      case "mfa_required":
-        setState({ kind: "mfa" });
+      case "passkey_required":
+        validatePasskeyOptions(outcome);
+        setState({ kind: "passkey", outcome });
         break;
       case "authenticated":
         if (outcome.recovery_codes?.length)
@@ -149,13 +147,22 @@ export function AuthPortal({
       accept(await client.login(email, password, signal), signal),
     );
   }
-  function mfa(event: FormEvent<HTMLFormElement>) {
+  function passkey() {
+    if (state.kind !== "passkey") return;
+    const outcome = state.outcome;
+    void perform(async (signal) => {
+      const response = await provePasskey(outcome, signal);
+      if (!signal.aborted)
+        await accept(await client.passkey(response, signal), signal);
+    });
+  }
+  function recover(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const form = event.currentTarget;
     const code = String(new FormData(form).get("code") ?? "").trim();
     form.reset();
     void perform(async (signal) =>
-      accept(await client.mfa(code, signal), signal),
+      accept(await client.passkey(code, signal), signal),
     );
   }
   function signOut() {
@@ -222,46 +229,48 @@ export function AuthPortal({
             </p>
           </form>
         )}
-        {state.kind === "mfa" && (
+        {state.kind === "passkey" && (
           <>
             <h2>
-              {state.uri
-                ? "Configurar autenticação em duas etapas"
-                : "Verificação em duas etapas"}
+              {state.outcome.status === "enrollment_required"
+                ? "Cadastrar passkey"
+                : "Verificar passkey"}
             </h2>
-            {state.uri && (
-              <div>
+            <p>
+              Use Windows Hello, PIN, biometria ou uma chave de segurança. A
+              chave privada e a biometria não são enviadas ao CRMF.
+            </p>
+            <button disabled={busy} onClick={passkey}>
+              {state.outcome.status === "enrollment_required"
+                ? "Criar passkey"
+                : "Usar passkey"}
+            </button>
+            {state.outcome.status === "passkey_required" && (
+              <details>
+                <summary>Usar um código de recuperação</summary>
                 <p>
-                  Adicione uma conta TOTP manualmente no seu autenticador, com
-                  esta chave. Use 6 dígitos, SHA-1 e período de 30 segundos.
+                  Use apenas se não conseguir acessar sua passkey. Cada código
+                  funciona uma única vez.
                 </p>
-                <code
-                  className="auth-secret"
-                  aria-label="Chave do autenticador"
-                >
-                  {enrollmentSecret(state.uri)}
-                </code>
-                <p>Esta chave é secreta. Não a envie ao suporte.</p>
-              </div>
+                <form onSubmit={recover}>
+                  <label>
+                    Código de recuperação
+                    <input
+                      name="code"
+                      autoComplete="off"
+                      minLength={32}
+                      maxLength={32}
+                      pattern="[a-f0-9]{32}"
+                      required
+                      disabled={busy}
+                    />
+                  </label>
+                  <button type="submit" disabled={busy}>
+                    Usar código de recuperação
+                  </button>
+                </form>
+              </details>
             )}
-            <form onSubmit={mfa}>
-              <label>
-                {state.uri
-                  ? "Código do autenticador"
-                  : "Código do autenticador ou de recuperação"}
-                <input
-                  name="code"
-                  autoComplete="one-time-code"
-                  minLength={6}
-                  maxLength={32}
-                  required
-                  disabled={busy}
-                />
-              </label>
-              <button type="submit" disabled={busy}>
-                Verificar código
-              </button>
-            </form>
             <button
               className="auth-secondary"
               disabled={busy}

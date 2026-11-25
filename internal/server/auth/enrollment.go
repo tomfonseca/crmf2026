@@ -56,7 +56,11 @@ func (e *Engine) StartEnrollment(ctx context.Context, sessionToken, password str
 	if session.RevokedAt.Valid || !now.Before(session.ExpiresAt.Time) || !now.Before(session.IdleExpiresAt.Time) || user.Status != "active" || (user.LockedUntil.Valid && now.Before(user.LockedUntil.Time)) {
 		return e.reject(ctx, tx, q, nil, realm, "auth.mfa_failed")
 	}
-	if user.MfaEnabledAt.Valid {
+	keys, err := e.loadPasskeys(ctx, q, owner, realm)
+	if err != nil {
+		return LoginResult{}, err
+	}
+	if len(keys) > 0 {
 		return LoginResult{}, ErrForbidden
 	}
 	match, err := e.passwords.Verify(ctx, password, user.PasswordHash.String)

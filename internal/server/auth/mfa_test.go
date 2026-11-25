@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"github.com/google/uuid"
 	"testing"
-	"time"
 )
 
 func TestMFAEncryptionBinding(t *testing.T) {
@@ -13,7 +12,7 @@ func TestMFAEncryptionBinding(t *testing.T) {
 		t.Fatal(err)
 	}
 	user := uuid.New()
-	secret := "synthetic TOTP secret"
+	secret := "synthetic authentication state"
 	first, err := sealSecret(cipher, user, "enroll", secret)
 	if err != nil {
 		t.Fatal(err)
@@ -40,12 +39,14 @@ func TestMFAEncryptionBinding(t *testing.T) {
 		t.Fatal("missing key accepted")
 	}
 }
-func TestTOTPRFC6238(t *testing.T) {
-	step, ok := totpStep("287082", "GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ", time.Unix(59, 0))
-	if !ok || step != 1 {
-		t.Fatal("RFC 6238 SHA-1 vector failed")
+func TestPasskeyOriginsFailClosed(t *testing.T) {
+	for _, origins := range [][2]string{{"http://127.0.0.1:5174", "http://localhost:5173"}, {"https://[::1]", "https://hq.example.com"}, {"", ""}, {"http://example.com", "https://hq.example.com"}, {"https://app.example.com/path", "https://hq.example.com"}, {"https://same.example.com", "https://same.example.com"}} {
+		if _, err := passkeyProviders(origins[0], origins[1]); err == nil {
+			t.Fatal("invalid RP origins accepted")
+		}
 	}
-	if _, ok := totpStep(" 287082", "GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ", time.Unix(59, 0)); ok {
-		t.Fatal("noncanonical code accepted")
+	providers, err := passkeyProviders("https://app.example.com", "https://hq.example.com")
+	if err != nil || providers[Tenant].Config.RPID != "app.example.com" || providers[Platform].Config.RPID != "hq.example.com" {
+		t.Fatal("RP realm isolation")
 	}
 }

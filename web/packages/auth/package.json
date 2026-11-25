@@ -12,7 +12,8 @@
   },
   "dependencies": {
     "@crmf/api-client": "workspace:*",
-    "@crmf/ui": "workspace:*"
+    "@crmf/ui": "workspace:*",
+    "@simplewebauthn/browser": "14.0.0"
   },
   "peerDependencies": {
     "react": "18.3.1"

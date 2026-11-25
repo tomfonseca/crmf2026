@@ -77,7 +77,7 @@ Isso evita misturar dependências nativas Windows e Linux nos containers.
   shell do QG, prévia mockada do Dash, tokens/componentes visuais iniciais,
   verificações locais e workflows de CI/Terraform.
 - M1 parcial: schemas `auth`/`core`, cadastros-base, roles restritos, auditoria
-  append-only para os roles de aplicação; motor interno de login, MFA/TOTP,
+  append-only para os roles de aplicação; motor interno de login, MFA por passkeys/WebAuthn (sem TOTP),
   recuperação de uso único, bloqueios e limite de tentativas por IP no Postgres,
   além de sessões opacas, grants e revogação. Rotas HTTP de autenticação e
   identidade são opt-in com `python scripts/tasks.py auth-dev`; produção exige

@@ -88,11 +88,11 @@ def auth_dev():
                                      "-At", "-v", "ON_ERROR_STOP=1", "-c", sql],
                                     cwd=ROOT, env=ENV, check=True, capture_output=True, text=True)
             return result.stdout.strip()
-        for table in ("users", "login_challenges"):
+        for table, column in (("users", "mfa_secret_enc"), ("login_challenges", "secret_enc"),
+                              ("passkey_credentials", "credential_enc"), ("passkey_challenges", "session_enc")):
             if scalar(f"SELECT to_regclass('auth.{table}') IS NOT NULL") == "t":
-                column = "mfa_secret_enc" if table == "users" else "secret_enc"
                 if scalar(f"SELECT count(*) FROM auth.{table} WHERE {column} IS NOT NULL") != "0":
-                    raise RuntimeError("MFA key missing but encrypted state exists; recover the original key")
+                    raise RuntimeError("Authentication key missing but encrypted state exists; recover the original key")
     try:
         with key.open("xb") as output:
             output.write(base64.b64encode(secrets.token_bytes(32)) + b"\n")
@@ -107,7 +107,7 @@ def auth_dev():
         raise RuntimeError("Invalid local MFA key; refusing replacement")
     run("docker", "compose", "-f", "compose.yaml", "-f", "compose.auth.yaml", "up", "-d", "--build", "api", "worker")
     wait_http("http://localhost:8080/readyz")
-    print("Own-auth API enabled locally; no final users are provisioned. SPAs remain mocked.")
+    print("Own-auth API enabled locally; no final users are provisioned. Business dashboards remain mocked.")
 
 
 def test():

@@ -66,7 +66,7 @@ func (s *Service) Resolve(ctx context.Context, token string, realm Realm) (Scope
 		return Scope{}, storageError(ctx)
 	}
 	// Always lock user before session. Grant/security updates use the same order.
-	user, err := q.LockIdentity(ctx, owner)
+	user, err := q.LockIdentity(ctx, authdb.LockIdentityParams{ID: owner, Realm: string(realm)})
 	if errors.Is(err, pgx.ErrNoRows) {
 		return Scope{}, ErrUnauthenticated
 	}
@@ -87,7 +87,7 @@ func (s *Service) Resolve(ctx context.Context, token string, realm Realm) (Scope
 	if session.UserID != owner || session.RevokedAt.Valid || !session.IdleExpiresAt.Valid || !session.ExpiresAt.Valid || !now.Before(session.IdleExpiresAt.Time) || !now.Before(session.ExpiresAt.Time) {
 		return Scope{}, ErrUnauthenticated
 	}
-	scope, err := readScope(ctx, q, owner, realm, session.MfaVerified, user.MfaEnabledAt.Valid)
+	scope, err := readScope(ctx, q, owner, realm, session.MfaVerified, user.PasskeyEnrolled)
 	if err != nil {
 		return Scope{}, err
 	}

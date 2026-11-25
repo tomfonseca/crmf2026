@@ -20,7 +20,7 @@ import (
 
 type AuthBackend interface {
 	Login(context.Context, string, string, auth.Realm, netip.Addr) (auth.LoginResult, error)
-	CompleteMFA(context.Context, string, string, auth.Realm, netip.Addr) (auth.LoginResult, error)
+	CompletePasskey(context.Context, string, string, auth.Realm, netip.Addr) (auth.LoginResult, error)
 	StartEnrollment(context.Context, string, string, auth.Realm, netip.Addr) (auth.LoginResult, error)
 	Resolve(context.Context, string, auth.Realm) (auth.Scope, error)
 	Revoke(context.Context, string, auth.Realm) error
@@ -47,9 +47,9 @@ func NewAuthenticated(probes []Probe, logger *slog.Logger, options AuthOptions) 
 }
 func authRoute(path string) (auth.Realm, string, bool) {
 	switch path {
-	case "/v1/auth/login", "/v1/auth/mfa", "/v1/auth/logout", "/v1/me/mfa":
+	case "/v1/auth/login", "/v1/auth/passkey", "/v1/auth/logout", "/v1/me/passkey":
 		return auth.Tenant, http.MethodPost, true
-	case "/v1/hq/auth/login", "/v1/hq/auth/mfa", "/v1/hq/auth/logout", "/v1/hq/me/mfa":
+	case "/v1/hq/auth/login", "/v1/hq/auth/passkey", "/v1/hq/auth/logout", "/v1/hq/me/passkey":
 		return auth.Platform, http.MethodPost, true
 	case "/v1/me":
 		return auth.Tenant, http.MethodGet, true
@@ -252,16 +252,16 @@ func (h *handler) serveAuth(w http.ResponseWriter, r *http.Request, realm auth.R
 			return
 		}
 		result, err = h.auth.Backend.Login(r.Context(), input.Email, input.Password, realm, ip)
-	case "mfa":
-		var input appcontract.MFAInput
+	case "passkey":
+		var input appcontract.PasskeyInput
 		if !decodeAuthJSON(w, r, &input) {
 			return
 		}
-		if len(input.Code) != 6 && len(input.Code) != 32 {
-			problem(w, 400, "invalid_request", "Código inválido")
+		if len(input.Response) == 0 || len(input.Response) > 8192 {
+			problem(w, 400, "invalid_request", "Resposta da passkey inválida")
 			return
 		}
-		result, err = h.auth.Backend.CompleteMFA(r.Context(), challenge, input.Code, realm, ip)
+		result, err = h.auth.Backend.CompletePasskey(r.Context(), challenge, input.Response, realm, ip)
 	case "enroll":
 		var input appcontract.EnrollmentInput
 		if !decodeAuthJSON(w, r, &input) {
@@ -301,10 +301,11 @@ func (h *handler) serveAuth(w http.ResponseWriter, r *http.Request, realm auth.R
 			setAuthCookie(w, realm, false, "")
 		}
 		setAuthCookie(w, realm, true, result.ChallengeToken)
-		outcome.Status = appcontract.MfaRequired
-		if result.EnrollmentURL != "" {
+		outcome.Status = appcontract.PasskeyRequired
+		options := string(result.PasskeyOptions)
+		outcome.PublicKey = &options
+		if result.Enrollment {
 			outcome.Status = appcontract.EnrollmentRequired
-			outcome.EnrollmentUri = &result.EnrollmentURL
 		}
 	} else {
 		h.authError(w, auth.ErrUnavailable)
@@ -331,11 +332,11 @@ func (h *handler) LoginTenant(w http.ResponseWriter, r *http.Request, _ appcontr
 func (h *handler) LoginPlatform(w http.ResponseWriter, r *http.Request, _ appcontract.LoginPlatformParams) {
 	h.serveAuth(w, r, auth.Platform, "login")
 }
-func (h *handler) MfaTenant(w http.ResponseWriter, r *http.Request, _ appcontract.MfaTenantParams) {
-	h.serveAuth(w, r, auth.Tenant, "mfa")
+func (h *handler) PasskeyTenant(w http.ResponseWriter, r *http.Request, _ appcontract.PasskeyTenantParams) {
+	h.serveAuth(w, r, auth.Tenant, "passkey")
 }
-func (h *handler) MfaPlatform(w http.ResponseWriter, r *http.Request, _ appcontract.MfaPlatformParams) {
-	h.serveAuth(w, r, auth.Platform, "mfa")
+func (h *handler) PasskeyPlatform(w http.ResponseWriter, r *http.Request, _ appcontract.PasskeyPlatformParams) {
+	h.serveAuth(w, r, auth.Platform, "passkey")
 }
 func (h *handler) LogoutTenant(w http.ResponseWriter, r *http.Request, _ appcontract.LogoutTenantParams) {
 	h.serveAuth(w, r, auth.Tenant, "logout")

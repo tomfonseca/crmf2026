@@ -55,9 +55,9 @@ paths:
           content:
             application/problem+json:
               schema: {$ref: '#/components/schemas/Problem'}
-  /v1/auth/mfa:
+  /v1/auth/passkey:
     post:
-      operationId: mfaTenant
+      operationId: passkeyTenant
       security:
         - TenantChallenge: []
       parameters:
@@ -67,7 +67,7 @@ paths:
         required: true
         content:
           application/json:
-            schema: {$ref: '#/components/schemas/MFAInput'}
+            schema: {$ref: '#/components/schemas/PasskeyInput'}
       responses:
         '200':
           description: Authentication result; opaque tokens are only returned as secure HttpOnly cookies
@@ -96,7 +96,7 @@ paths:
           content:
             application/problem+json:
               schema: {$ref: '#/components/schemas/Problem'}
-  /v1/me/mfa:
+  /v1/me/passkey:
     post:
       operationId: enrollTenant
       security:
@@ -160,9 +160,9 @@ paths:
           content:
             application/problem+json:
               schema: {$ref: '#/components/schemas/Problem'}
-  /v1/hq/auth/mfa:
+  /v1/hq/auth/passkey:
     post:
-      operationId: mfaPlatform
+      operationId: passkeyPlatform
       security:
         - PlatformChallenge: []
       parameters:
@@ -172,7 +172,7 @@ paths:
         required: true
         content:
           application/json:
-            schema: {$ref: '#/components/schemas/MFAInput'}
+            schema: {$ref: '#/components/schemas/PasskeyInput'}
       responses:
         '200':
           description: Authentication result; opaque tokens are only returned as secure HttpOnly cookies
@@ -201,7 +201,7 @@ paths:
           content:
             application/problem+json:
               schema: {$ref: '#/components/schemas/Problem'}
-  /v1/hq/me/mfa:
+  /v1/hq/me/passkey:
     post:
       operationId: enrollPlatform
       security:
@@ -262,12 +262,12 @@ components:
       properties:
         email: {type: string, minLength: 1, maxLength: 320}
         password: {type: string, minLength: 1, maxLength: 1024}
-    MFAInput:
+    PasskeyInput:
       type: object
       additionalProperties: false
-      required: [code]
+      required: [response]
       properties:
-        code: {type: string, minLength: 6, maxLength: 32}
+        response: {type: string, minLength: 1, maxLength: 8192, description: Serialized WebAuthn credential JSON or an explicit single-use recovery code; never a TOTP}
     EnrollmentInput:
       type: object
       additionalProperties: false
@@ -278,8 +278,8 @@ components:
       type: object
       required: [status]
       properties:
-        status: {type: string, enum: [authenticated, mfa_required, enrollment_required]}
-        enrollment_uri: {type: string, description: Secret provisioning URI; show once, never persist in browser storage or logs}
+        status: {type: string, enum: [authenticated, passkey_required, enrollment_required]}
+        public_key: {type: string, description: JSON-serialized WebAuthn creation or request options; ephemeral and realm-bound}
         recovery_codes:
           type: array
           items: {type: string}

@@ -2,6 +2,34 @@ import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, expect, test, vi } from "vitest";
 import { AuthPortal, useScope } from "./AuthPortal";
 import { AuthFailure, type AuthClient, type Identity } from "./client";
+import { provePasskey, PasskeyFailure } from "./passkey";
+vi.mock("./passkey", async (original) => ({
+  ...(await original<typeof import("./passkey")>()),
+  provePasskey: vi
+    .fn()
+    .mockResolvedValue('{"type":"public-key","synthetic":true}'),
+}));
+const enrollment = {
+  status: "enrollment_required" as const,
+  public_key: JSON.stringify({
+    challenge: "a".repeat(43),
+    rp: { id: "localhost" },
+    user: { id: "synthetic-user" },
+    authenticatorSelection: {
+      residentKey: "required",
+      userVerification: "required",
+    },
+  }),
+};
+const assertion = {
+  status: "passkey_required" as const,
+  public_key: JSON.stringify({
+    challenge: "a".repeat(43),
+    rpId: "localhost",
+    userVerification: "required",
+    allowCredentials: [{ type: "public-key", id: "synthetic-credential" }],
+  }),
+};
 
 const identity: Identity = {
   user_id: "00000000-0000-7000-8000-000000000001",
@@ -13,7 +41,7 @@ function fixture() {
   return {
     identity: vi.fn().mockResolvedValue(null),
     login: vi.fn().mockResolvedValue({ status: "authenticated" }),
-    mfa: vi.fn().mockResolvedValue({ status: "authenticated" }),
+    passkey: vi.fn().mockResolvedValue({ status: "authenticated" }),
     logout: vi.fn().mockResolvedValue(undefined),
   } satisfies AuthClient;
 }
@@ -32,15 +60,11 @@ afterEach(() => vi.restoreAllMocks());
 
 test("login clears password, requires MFA and presents recovery codes once without storage", async () => {
   const client = fixture();
-  client.login.mockResolvedValue({
-    status: "enrollment_required",
-    enrollment_uri:
-      "otpauth://totp/CRMF:synthetic?secret=JBSWY3DPEHPK3PXP&issuer=CRMF",
-  });
+  client.login.mockResolvedValue(enrollment);
   const codes = Array.from({ length: 10 }, (_, i) =>
     i.toString(16).padStart(32, "0"),
   );
-  client.mfa.mockResolvedValue({
+  client.passkey.mockResolvedValue({
     status: "authenticated",
     recovery_codes: codes,
   });
@@ -48,22 +72,15 @@ test("login clears password, requires MFA and presents recovery codes once witho
   render(<AuthPortal client={client} title="QG CRMF" />);
   await screen.findByLabelText("Senha");
   submitLogin();
-  await screen.findByText("Configurar autenticação em duas etapas");
+  await screen.findByText("Cadastrar passkey");
   expect(
     screen.queryByDisplayValue("synthetic-password-only"),
   ).not.toBeInTheDocument();
   expect(screen.queryByText("Sessão autenticada.")).not.toBeInTheDocument();
-  expect(screen.getByLabelText("Chave do autenticador")).toHaveTextContent(
-    "JBSWY3DPEHPK3PXP",
-  );
-  fireEvent.change(screen.getByLabelText("Código do autenticador"), {
-    target: { value: "123456" },
-  });
-  fireEvent.click(screen.getByRole("button", { name: "Verificar código" }));
+  expect(client.passkey).not.toHaveBeenCalled();
+  fireEvent.click(screen.getByRole("button", { name: "Criar passkey" }));
   await screen.findByText("Guarde seus códigos de recuperação");
-  expect(
-    screen.queryByLabelText("Chave do autenticador"),
-  ).not.toBeInTheDocument();
+  expect(screen.queryByText("Cadastrar passkey")).not.toBeInTheDocument();
   expect(screen.queryByText("Sessão autenticada.")).not.toBeInTheDocument();
   client.identity.mockResolvedValue(identity);
   fireEvent.click(screen.getByRole("button", { name: "Guardei os códigos" }));
@@ -92,23 +109,36 @@ test("API outage fails closed and retries; no anonymous dashboard", async () => 
   await screen.findByLabelText("Senha");
 });
 
-test("expired MFA does not unlock access and code input is cleared", async () => {
+test("expired passkey does not unlock access and recovery input is cleared", async () => {
   const client = fixture();
-  client.login.mockResolvedValue({ status: "mfa_required" });
-  client.mfa.mockRejectedValue(new AuthFailure(401));
+  client.login.mockResolvedValue(assertion);
+  client.passkey.mockRejectedValue(new AuthFailure(401));
   render(<AuthPortal client={client} title="QG CRMF" />);
   await screen.findByLabelText("Senha");
   submitLogin();
-  const input = await screen.findByLabelText(
-    "Código do autenticador ou de recuperação",
-  );
-  fireEvent.change(input, { target: { value: "123456" } });
-  fireEvent.click(screen.getByRole("button", { name: "Verificar código" }));
+  const input = await screen.findByLabelText("Código de recuperação");
+  fireEvent.change(input, { target: { value: "a".repeat(32) } });
+  fireEvent.submit(input.closest("form")!);
   await screen.findByRole("alert");
   expect(input).toHaveValue("");
   expect(screen.queryByText("Sessão autenticada.")).not.toBeInTheDocument();
   fireEvent.click(screen.getByRole("button", { name: "Cancelar e voltar" }));
   await screen.findByLabelText("Senha");
+});
+
+test("cancelling the native passkey prompt never submits a proof or grants access", async () => {
+  const client = fixture();
+  client.login.mockResolvedValue(enrollment);
+  vi.mocked(provePasskey).mockRejectedValueOnce(
+    new PasskeyFailure("Verificação cancelada."),
+  );
+  render(<AuthPortal client={client} title="QG CRMF" />);
+  await screen.findByLabelText("Senha");
+  submitLogin();
+  fireEvent.click(await screen.findByRole("button", { name: "Criar passkey" }));
+  await screen.findByRole("alert");
+  expect(client.passkey).not.toHaveBeenCalled();
+  expect(screen.queryByText("Sessão autenticada.")).not.toBeInTheDocument();
 });
 
 test("logout failure is not presented as success", async () => {
