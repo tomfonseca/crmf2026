@@ -251,6 +251,28 @@ See [catalog scope and tests](hq-plans.md) and
 [ADR 0006](../adr/0006-platform-catalog-write-policy.md). Networks, subscriptions,
 tenant provisioning, stores and pairing remain subsequent M1 work.
 
+## Delivered in the tenth increment: provisioning kernel and tenant pools
+
+- Operator-only `crmfctl tenant provision` reserves a network/subscription,
+  pins tenant-owned credentials, creates schema/login role and runs tenant
+  migrations. API/worker receive no migration credentials.
+- Forward migration 00009 separates pending/ready metadata; control runtime can
+  read but cannot publish readiness. Cross-database failures are resumable.
+- Real login verification precedes readiness/audit. No lost credential reset,
+  foreign-resource adoption or empty recreation of a ready schema is allowed.
+- Runtime `tenancy.Manager.Pool(ctx)` accepts only the authenticated tenant
+  principal, rechecks current status, and caches max-four-connection pools
+  with idle eviction and physical role/search-path verification.
+- Real Postgres integration proves own-schema DML and denial of cross-tenant,
+  elevated-role, DDL, temporary-table, control-DB and migration-history access.
+- Managed-identity/version-pinned Key Vault adapter and explicit private
+  development files; actual Azure acceptance remains pending.
+- No final users/grants, ERP facts or commercial plans are seeded. The QG
+  network flow and isolated provisioning-job adapter are **not** delivered.
+
+See [provisioning scope, command and evidence](tenant-provisioning.md) and
+[ADR 0007](../adr/0007-resumable-tenant-provisioning.md).
+
 ## Not delivered / next increments
 
 This is **M1 started, not M1 complete**. Authentication endpoints are available
@@ -269,9 +291,9 @@ and idles; giving it its future role does not implement ingestion.
 4. Invites/reset emails via Mailpit locally and ACS in Azure. Retire the unused
    Keycloak dependency, stale OIDC descriptions and local readiness check at
    that cutover, rather than presenting it as the new auth implementation.
-5. Tenant provisioner, schema-bound pools, tenant migrations, integration of
-   `EffectiveLimits` into authenticated routes/creation quotas, and additional
-   cross-tenant/store authorization tests.
+5. Connect authenticated QG network creation to an isolated provisioner job;
+   orchestrate migrations across tenants, integrate `EffectiveLimits` into
+   routes/creation quotas, and add remaining tenant/store isolation tests.
 6. `/v1/me`, audited administrative endpoints and minimal QG, with generated
    OpenAPI clients. No unauthenticated provisioning route will be introduced.
 

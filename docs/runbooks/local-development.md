@@ -13,8 +13,11 @@ The role-bootstrap and two migration containers should exit with status 0. The f
 stays idle after validating dependencies. API readiness requires both databases
 and an authenticated Blob Storage service-properties request.
 
-M0 does not provision tenants. Tenant migration files cannot be applied with
-the global migration CLI; M1 must provision a schema-bound role and connection.
+Tenant migration files cannot be applied with the global migration CLI.
+The M1 [operator provisioner](../implementation/tenant-provisioning.md) now
+creates schema-bound roles/connections and applies those migrations explicitly.
+No default tenants or final users are created. QG network creation and job
+orchestration remain pending; API/worker must never receive provisioner URLs.
 
 Docker does not rerun initdb scripts on existing volumes. M1 adds a separate,
 idempotent `postgres-bootstrap` service for application roles, ordered before
@@ -26,7 +29,8 @@ script is not an Azure provisioning script.
 
 The API/worker control pool uses `crmf_core`, not the migrator. The analytics
 dependency probe uses `crmf_platform_reader` in the API and
-`crmf_platform_writer` in the worker; tenant pools arrive later in M1.
+`crmf_platform_writer` in the worker. The context-bound tenant pool module is
+available; wiring business routes and device/worker principals remains pending.
 Identity access is reserved for `crmf_auth`. See
 [M1 implementation status](../implementation/m1-control.md).
 

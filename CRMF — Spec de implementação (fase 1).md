@@ -321,7 +321,7 @@ Cada rede tem um schema `t_<slug>` e um role de login `r_<slug>` com permissão 
 | `crmf_platform_writer` | login | `INSERT`/`UPDATE` em `platform.*` | Worker, ao publicar agregados |
 | `crmf_platform_reader` | login | `SELECT` em `platform.*` | API de aplicação, rotas do QG |
 
-- Senha de cada `r_<slug>` gerada na criação do tenant e guardada no Key Vault como `pg-tenant-<slug>`.
+- Senha de cada `r_<slug>` gerada na criação do tenant e guardada no Key Vault como `pg-tenant-<slug>`, substituindo `_` por `-` apenas no nome do segredo (Key Vault não aceita `_`; a transformação é injetiva porque slugs não contêm `-`).
 - O backend mantém um pool `pgx` por tenant, criado sob demanda (máximo 4 conexões, fechado após 10 minutos ocioso). O pool é obtido por `tenancy.Pool(ctx, tenantID)`, que resolve o tenant pelo contexto autenticado. Não existe função que receba um nome de schema vindo de fora.
 - Toda conexão de tenant fixa `search_path = t_<slug>` na abertura. `PUBLIC` perde todos os privilégios no banco e no schema `public`.
 

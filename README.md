@@ -86,12 +86,15 @@ Isso evita misturar dependências nativas Windows e Linux nos containers.
   `crmfctl user create-admin`, com senha no terminal e MFA no primeiro login;
   o QG autenticado já tem [gestão real de planos](docs/implementation/hq-plans.md),
   com limites, módulos, revisões e auditoria; convites e
-  redefinição de senha ainda pendem. O motor interno
+  redefinição de senha ainda pendem. O [núcleo de provisionamento](docs/implementation/tenant-provisioning.md)
+  já cria schema/role por rede via CLI de operador, aplica migrações e oferece
+  pools por contexto autenticado; criação de redes pelo QG ainda não foi conectada.
+  O motor interno
   de [limites efetivos](docs/implementation/effective-limits.md) já resolve plano
   e overrides pelo contexto autenticado, ainda sem integração nas futuras rotas
   de negócio. Veja [estado e próximos incrementos](docs/implementation/m1-control.md).
-- Ainda não implementado: fluxos complementares de autenticação, provisionamento e isolamento
-  por tenant completos (M1),
+- Ainda não implementado: fluxos complementares de autenticação, criação de redes pelo QG
+  e aceite completo de provisionamento/isolamento por tenant (M1),
   conector real (M2), coleta/ingestão/MSI (M3), jobs River e agregados (M4),
   interfaces finais, design system completo e permissões integradas (M5/M6),
   OTA (M7), produção e piloto (M8). A prévia visual não conclui M1 nem M5.
