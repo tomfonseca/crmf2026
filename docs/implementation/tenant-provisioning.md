@@ -1,13 +1,13 @@
 # M1 — operator provisioning and context-bound tenant pools
 
 This tenth increment establishes the privileged provisioning kernel and real
-Postgres role/schema isolation. **It does not yet connect network creation in
-the QG, add a provisioning job, or complete M1.** The authenticated QG still
-shows Planos; no new operational web screen is claimed.
+Postgres role/schema isolation. The subsequent [eleventh increment](hq-networks.md)
+connects QG network creation through an isolated River provisioner. This document
+covers the shared kernel and operator CLI; M1 remains partial.
 
 ## Privilege and lifecycle
 
-- Only the operator CLI receives `PROVISION_CONTROL_DATABASE_URL` and
+- Only the operator CLI or separate privileged provisioner process receives `PROVISION_CONTROL_DATABASE_URL` and
   `PROVISION_ANALYTICS_DATABASE_URL`. Both require the non-superuser
   `crmf_migrator`; analytics provisioning requires CREATEROLE.
 - The API/worker Compose environments do not receive those credentials. Their

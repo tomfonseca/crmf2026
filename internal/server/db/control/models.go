@@ -8,6 +8,18 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+type CoreNetworkRequest struct {
+	TenantID    pgtype.UUID
+	Generation  int32
+	JobID       int64
+	ActorUserID pgtype.UUID
+	Slug        string
+	LegalName   string
+	Cnpj        string
+	PlanID      pgtype.UUID
+	CreatedAt   pgtype.Timestamptz
+}
+
 type CorePlan struct {
 	ID                  pgtype.UUID
 	Code                string

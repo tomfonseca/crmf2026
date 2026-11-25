@@ -26,6 +26,9 @@ func (h *handler) catalogContext(w http.ResponseWriter, r *http.Request, write b
 		problem(w, 404, "not_found", "Recurso não encontrado")
 		return nil, false
 	}
+	return h.platformContext(w, r, write)
+}
+func (h *handler) platformContext(w http.ResponseWriter, r *http.Request, write bool) (context.Context, bool) {
 	if r.Header.Get("Authorization") != "" {
 		problem(w, 400, "unsupported_credentials", "Use a sessão do navegador")
 		return nil, false
@@ -132,6 +135,9 @@ func planFields() []string {
 // Presence/null/duplicate/unknown checks supplement the generated DTOs; Go's
 // zero values must never silently turn omitted policy fields into valid input.
 func decodeCatalogJSON(w http.ResponseWriter, r *http.Request, out any, keys []string) bool {
+	return decodeRequiredJSON(w, r, out, keys, "invalid_plan", "Preencha todos os campos do plano com valores válidos")
+}
+func decodeRequiredJSON(w http.ResponseWriter, r *http.Request, out any, keys []string, kind, title string) bool {
 	var raw json.RawMessage
 	if !decodeAuthJSON(w, r, &raw) {
 		return false
@@ -173,7 +179,7 @@ func decodeCatalogJSON(w http.ResponseWriter, r *http.Request, out any, keys []s
 		return json.Unmarshal(raw, out) == nil
 	}
 	if !valid() {
-		problem(w, 400, "invalid_plan", "Preencha todos os campos do plano com valores válidos")
+		problem(w, 400, kind, title)
 		return false
 	}
 	return true

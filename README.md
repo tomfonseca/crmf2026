@@ -74,7 +74,7 @@ Isso evita misturar dependências nativas Windows e Linux nos containers.
 
 - Implementado: monorepo, processos buildáveis, contratos e clientes gerados,
   health/readiness reais, migrações base independentes, ambiente Docker local,
-  shell autenticado do QG com catálogo de planos, prévia mockada do Dash, tokens/componentes visuais iniciais,
+  shell autenticado do QG com Planos e Redes, prévia mockada do Dash, tokens/componentes visuais iniciais,
   verificações locais e workflows de CI/Terraform.
 - M1 parcial: schemas `auth`/`core`, cadastros-base, roles restritos, auditoria
   append-only para os roles de aplicação; motor interno de login, MFA por passkeys/WebAuthn (sem TOTP),
@@ -88,14 +88,16 @@ Isso evita misturar dependências nativas Windows e Linux nos containers.
   com limites, módulos, revisões e auditoria; convites e
   redefinição de senha ainda pendem. O [núcleo de provisionamento](docs/implementation/tenant-provisioning.md)
   já cria schema/role por rede via CLI de operador, aplica migrações e oferece
-  pools por contexto autenticado; criação de redes pelo QG ainda não foi conectada.
+  pools por contexto autenticado. O [QG Redes](docs/implementation/hq-networks.md)
+  já cadastra redes e acompanha fila, preparação, prontidão e nova tentativa,
+  com processo privilegiado separado da API.
   O motor interno
   de [limites efetivos](docs/implementation/effective-limits.md) já resolve plano
   e overrides pelo contexto autenticado, ainda sem integração nas futuras rotas
   de negócio. Veja [estado e próximos incrementos](docs/implementation/m1-control.md).
-- Ainda não implementado: fluxos complementares de autenticação, criação de redes pelo QG
+- Ainda não implementado: fluxos complementares de autenticação, gestão de lojas/pareamento
   e aceite completo de provisionamento/isolamento por tenant (M1),
-  conector real (M2), coleta/ingestão/MSI (M3), jobs River e agregados (M4),
+  conector real (M2), coleta/ingestão/MSI (M3), jobs de ingestão River e agregados (M4),
   interfaces finais, design system completo e permissões integradas (M5/M6),
   OTA (M7), produção e piloto (M8). A prévia visual não conclui M1 nem M5.
 - `worker` M0 verifica dependências e aguarda encerramento; não consome lotes.

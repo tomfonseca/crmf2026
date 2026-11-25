@@ -12,29 +12,42 @@ import (
 )
 
 const activeProvisionPlan = `-- name: ActiveProvisionPlan :one
-SELECT id FROM core.plans WHERE id=$1 AND active=true FOR SHARE
+SELECT id,name FROM core.plans WHERE id=$1 AND active=true FOR SHARE
 `
 
-func (q *Queries) ActiveProvisionPlan(ctx context.Context, id pgtype.UUID) (pgtype.UUID, error) {
+type ActiveProvisionPlanRow struct {
+	ID   pgtype.UUID
+	Name string
+}
+
+func (q *Queries) ActiveProvisionPlan(ctx context.Context, id pgtype.UUID) (ActiveProvisionPlanRow, error) {
 	row := q.db.QueryRow(ctx, activeProvisionPlan, id)
-	var id_2 pgtype.UUID
-	err := row.Scan(&id_2)
-	return id_2, err
+	var i ActiveProvisionPlanRow
+	err := row.Scan(&i.ID, &i.Name)
+	return i, err
 }
 
 const auditTenantProvisioning = `-- name: AuditTenantProvisioning :exec
-INSERT INTO core.audit_log(tenant_id,action,target,detail)
-VALUES($1,$2,$3,'{"source":"operator_cli"}')
+INSERT INTO core.audit_log(tenant_id,action,target,actor_user_id,detail)
+VALUES($1,$2,$3,$4,jsonb_build_object('source',$5::text))
 `
 
 type AuditTenantProvisioningParams struct {
-	TenantID pgtype.UUID
-	Action   string
-	Target   pgtype.Text
+	TenantID    pgtype.UUID
+	Action      string
+	Target      pgtype.Text
+	ActorUserID pgtype.UUID
+	Source      string
 }
 
 func (q *Queries) AuditTenantProvisioning(ctx context.Context, arg AuditTenantProvisioningParams) error {
-	_, err := q.db.Exec(ctx, auditTenantProvisioning, arg.TenantID, arg.Action, arg.Target)
+	_, err := q.db.Exec(ctx, auditTenantProvisioning,
+		arg.TenantID,
+		arg.Action,
+		arg.Target,
+		arg.ActorUserID,
+		arg.Source,
+	)
 	return err
 }
 

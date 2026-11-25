@@ -82,12 +82,34 @@ func (p *Provisioner) Close() {
 func validProvisionInput(in ProvisionInput) bool {
 	return slugPattern.MatchString(in.Slug) && utf8.ValidString(in.LegalName) && strings.TrimSpace(in.LegalName) == in.LegalName && utf8.RuneCountInString(in.LegalName) > 0 && utf8.RuneCountInString(in.LegalName) <= 200 && !strings.ContainsFunc(in.LegalName, unicode.IsControl) && regexp.MustCompile(`^[A-Z0-9]{12}[0-9]{2}$`).MatchString(in.CNPJ) && in.PlanID != uuid.Nil
 }
+func auditActor(id uuid.UUID) pgtype.UUID { return pgtype.UUID{Bytes: id, Valid: id != uuid.Nil} }
+func auditSource(id uuid.UUID) string {
+	if id == uuid.Nil {
+		return "operator_cli"
+	}
+	return "qg"
+}
 func pgID(id uuid.UUID) pgtype.UUID { return pgtype.UUID{Bytes: id, Valid: true} }
 func ident(name string) string      { return pgx.Identifier{name}.Sanitize() }
 
 // Provision is idempotent only for the exact previously reserved identity.
 // Cross-database steps are resumable, not falsely advertised as one transaction.
 func (p *Provisioner) Provision(ctx context.Context, in ProvisionInput) (ProvisionResult, error) {
+	return p.provision(ctx, in, uuid.Nil)
+}
+
+// ProvisionQueued resolves identity and actor from immutable persisted requests,
+// not from job-supplied legal names, schema names, credentials or actor IDs.
+func (p *Provisioner) ProvisionQueued(ctx context.Context, id uuid.UUID, generation int32, jobID int64) error {
+	row, err := control.New(p.control).NetworkWork(ctx, control.NetworkWorkParams{TenantID: pgID(id), Generation: generation, JobID: jobID})
+	if err != nil || uuid.UUID(row.ActorUserID.Bytes) == uuid.Nil {
+		return ErrConflict
+	}
+	_, err = p.provision(ctx, ProvisionInput{Slug: row.Slug, LegalName: row.LegalName, CNPJ: row.Cnpj, PlanID: uuid.UUID(row.PlanID.Bytes)}, uuid.UUID(row.ActorUserID.Bytes))
+	return err
+}
+func ValidateProvisionInput(in ProvisionInput) bool { return validProvisionInput(in) }
+func (p *Provisioner) provision(ctx context.Context, in ProvisionInput, actor uuid.UUID) (ProvisionResult, error) {
 	if !validProvisionInput(in) {
 		return ProvisionResult{}, ErrInvalid
 	}
@@ -111,7 +133,7 @@ func (p *Provisioner) Provision(ctx context.Context, in ProvisionInput) (Provisi
 			_ = p.control.Close(unlock)
 		}
 	}()
-	row, err := p.reserve(ctx, in)
+	row, err := p.reserve(ctx, in, actor)
 	if err != nil {
 		return ProvisionResult{}, err
 	}
@@ -176,7 +198,7 @@ func (p *Provisioner) Provision(ctx context.Context, in ProvisionInput) (Provisi
 		}
 		defer func() { _ = tx.Rollback(ctx) }()
 		q := control.New(tx)
-		if q.TenantSchemaVersion(ctx, control.TenantSchemaVersionParams{ID: row.ID, SchemaVersion: version}) != nil || q.ReadyTenantProvisioning(ctx, row.ID) != nil || q.AuditTenantProvisioning(ctx, control.AuditTenantProvisioningParams{TenantID: row.ID, Action: "tenant.provision_ready", Target: pgtype.Text{String: id.String(), Valid: true}}) != nil {
+		if q.TenantSchemaVersion(ctx, control.TenantSchemaVersionParams{ID: row.ID, SchemaVersion: version}) != nil || q.ReadyTenantProvisioning(ctx, row.ID) != nil || q.AuditTenantProvisioning(ctx, control.AuditTenantProvisioningParams{TenantID: row.ID, Action: "tenant.provision_ready", ActorUserID: auditActor(actor), Source: auditSource(actor), Target: pgtype.Text{String: id.String(), Valid: true}}) != nil {
 			return ProvisionResult{}, ErrUnavailable
 		}
 		if tx.Commit(ctx) != nil {
@@ -185,7 +207,7 @@ func (p *Provisioner) Provision(ctx context.Context, in ProvisionInput) (Provisi
 	}
 	return ProvisionResult{ID: id, Slug: row.Slug, SchemaVersion: version}, nil
 }
-func (p *Provisioner) reserve(ctx context.Context, in ProvisionInput) (control.ProvisionTenantRow, error) {
+func (p *Provisioner) reserve(ctx context.Context, in ProvisionInput, actor uuid.UUID) (control.ProvisionTenantRow, error) {
 	q := control.New(p.control)
 	row, err := q.ProvisionTenant(ctx, in.Slug)
 	if err == nil {
@@ -217,7 +239,7 @@ func (p *Provisioner) reserve(ctx context.Context, in ProvisionInput) (control.P
 	if err != nil {
 		return row, ErrUnavailable
 	}
-	if q.ReserveTenantSubscription(ctx, control.ReserveTenantSubscriptionParams{ID: pgID(subscriptionID), TenantID: pgID(id), PlanID: pgID(in.PlanID)}) != nil || q.ReserveTenantProvisioning(ctx, pgID(id)) != nil || q.AuditTenantProvisioning(ctx, control.AuditTenantProvisioningParams{TenantID: pgID(id), Action: "tenant.provision_reserved", Target: pgtype.Text{String: id.String(), Valid: true}}) != nil {
+	if q.ReserveTenantSubscription(ctx, control.ReserveTenantSubscriptionParams{ID: pgID(subscriptionID), TenantID: pgID(id), PlanID: pgID(in.PlanID)}) != nil || q.ReserveTenantProvisioning(ctx, pgID(id)) != nil || q.AuditTenantProvisioning(ctx, control.AuditTenantProvisioningParams{TenantID: pgID(id), Action: "tenant.provision_reserved", ActorUserID: auditActor(actor), Source: auditSource(actor), Target: pgtype.Text{String: id.String(), Valid: true}}) != nil {
 		return row, ErrUnavailable
 	}
 	if tx.Commit(ctx) != nil {

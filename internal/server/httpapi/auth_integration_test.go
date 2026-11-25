@@ -112,7 +112,11 @@ func newHTTPFixture(t *testing.T, required bool) *httpFixture {
 	if err != nil {
 		t.Fatal(err)
 	}
-	router, err := NewAuthenticated(nil, slog.New(slog.NewTextHandler(io.Discard, nil)), AuthOptions{Backend: engine, Plans: catalog, Development: true, TenantOrigin: "http://localhost:5174", PlatformOrigin: "http://localhost:5173", TrustedProxies: []netip.Prefix{netip.MustParsePrefix("127.0.0.1/32")}})
+	networks, err := app.NewNetworks(ctx, core, "http_"+strings.ReplaceAll(f.user.String(), "-", ""))
+	if err != nil {
+		t.Fatal(err)
+	}
+	router, err := NewAuthenticated(nil, slog.New(slog.NewTextHandler(io.Discard, nil)), AuthOptions{Backend: engine, Plans: catalog, Networks: networks, Development: true, TenantOrigin: "http://localhost:5174", PlatformOrigin: "http://localhost:5173", TrustedProxies: []netip.Prefix{netip.MustParsePrefix("127.0.0.1/32")}})
 	if err != nil {
 		t.Fatal(err)
 	}

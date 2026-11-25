@@ -240,10 +240,67 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/hq/tenants": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["listNetworks"];
+        put?: never;
+        post: operations["createNetwork"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/hq/tenants/{id}/retry": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["retryNetwork"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        NetworkInput: {
+            slug: string;
+            legal_name: string;
+            cnpj: string;
+            /** Format: uuid */
+            plan_id: string;
+        };
+        Network: {
+            /** Format: uuid */
+            id: string;
+            slug: string;
+            legal_name: string;
+            cnpj: string;
+            /** Format: uuid */
+            plan_id: string;
+            plan_name: string;
+            /** @enum {string} */
+            status: "trial" | "active" | "suspended" | "cancelled";
+            /** @enum {string} */
+            provision_status: "queued" | "preparing" | "ready" | "failed";
+            /** Format: int64 */
+            schema_version: number;
+            /** Format: int32 */
+            generation: number;
+        };
         PlanFields: {
             name: string;
             /** Format: int32 */
@@ -318,6 +375,15 @@ export interface components {
         };
     };
     responses: {
+        /** @description Network request rejected or unavailable */
+        NetworkProblem: {
+            headers: {
+                [name: string]: unknown;
+            };
+            content: {
+                "application/problem+json": components["schemas"]["Problem"];
+            };
+        };
         /** @description Invalid input (400), unauthenticated (401), forbidden (403), missing (404), stale/duplicate/in-use (409) or unavailable (503) */
         CatalogError: {
             headers: {
@@ -824,6 +890,91 @@ export interface operations {
                 content?: never;
             };
             default: components["responses"]["CatalogError"];
+        };
+    };
+    listNetworks: {
+        parameters: {
+            query?: {
+                after?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Bounded network page with confirmed provisioning status */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["Network"][];
+                        next_cursor?: string;
+                    };
+                };
+            };
+            default: components["responses"]["NetworkProblem"];
+        };
+    };
+    createNetwork: {
+        parameters: {
+            query?: never;
+            header: {
+                "X-CRMF-Request": components["parameters"]["CRMFRequest"];
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["NetworkInput"];
+            };
+        };
+        responses: {
+            /** @description Reserved network and durable job, or exact existing request */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Network"];
+                };
+            };
+            default: components["responses"]["NetworkProblem"];
+        };
+    };
+    retryNetwork: {
+        parameters: {
+            query?: never;
+            header: {
+                "X-CRMF-Request": components["parameters"]["CRMFRequest"];
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** Format: int32 */
+                    generation: number;
+                };
+            };
+        };
+        responses: {
+            /** @description A new attempt for the same network, never a second tenant */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Network"];
+                };
+            };
+            default: components["responses"]["NetworkProblem"];
         };
     };
 }

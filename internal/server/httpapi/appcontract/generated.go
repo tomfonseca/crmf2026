@@ -74,6 +74,54 @@ func (e IdentityRealm) Valid() bool {
 	}
 }
 
+// Defines values for NetworkProvisionStatus.
+const (
+	Failed    NetworkProvisionStatus = "failed"
+	Preparing NetworkProvisionStatus = "preparing"
+	Queued    NetworkProvisionStatus = "queued"
+	Ready     NetworkProvisionStatus = "ready"
+)
+
+// Valid indicates whether the value is a known member of the NetworkProvisionStatus enum.
+func (e NetworkProvisionStatus) Valid() bool {
+	switch e {
+	case Failed:
+		return true
+	case Preparing:
+		return true
+	case Queued:
+		return true
+	case Ready:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for NetworkStatus.
+const (
+	Active    NetworkStatus = "active"
+	Cancelled NetworkStatus = "cancelled"
+	Suspended NetworkStatus = "suspended"
+	Trial     NetworkStatus = "trial"
+)
+
+// Valid indicates whether the value is a known member of the NetworkStatus enum.
+func (e NetworkStatus) Valid() bool {
+	switch e {
+	case Active:
+		return true
+	case Cancelled:
+		return true
+	case Suspended:
+		return true
+	case Trial:
+		return true
+	default:
+		return false
+	}
+}
+
 // Defines values for PlanModules.
 const (
 	PlanModulesCore     PlanModules = "core"
@@ -335,6 +383,36 @@ func (e UpdatePlanParamsXCRMFRequest) Valid() bool {
 	}
 }
 
+// Defines values for CreateNetworkParamsXCRMFRequest.
+const (
+	CreateNetworkParamsXCRMFRequestN1 CreateNetworkParamsXCRMFRequest = "1"
+)
+
+// Valid indicates whether the value is a known member of the CreateNetworkParamsXCRMFRequest enum.
+func (e CreateNetworkParamsXCRMFRequest) Valid() bool {
+	switch e {
+	case CreateNetworkParamsXCRMFRequestN1:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for RetryNetworkParamsXCRMFRequest.
+const (
+	RetryNetworkParamsXCRMFRequestN1 RetryNetworkParamsXCRMFRequest = "1"
+)
+
+// Valid indicates whether the value is a known member of the RetryNetworkParamsXCRMFRequest enum.
+func (e RetryNetworkParamsXCRMFRequest) Valid() bool {
+	switch e {
+	case RetryNetworkParamsXCRMFRequestN1:
+		return true
+	default:
+		return false
+	}
+}
+
 // Defines values for EnrollTenantParamsXCRMFRequest.
 const (
 	EnrollTenantParamsXCRMFRequestN1 EnrollTenantParamsXCRMFRequest = "1"
@@ -399,6 +477,34 @@ type IdentityGrant struct {
 type LoginInput struct {
 	Email    string `json:"email"`
 	Password string `json:"password"`
+}
+
+// Network defines model for Network.
+type Network struct {
+	Cnpj            string                 `json:"cnpj"`
+	Generation      int32                  `json:"generation"`
+	Id              openapi_types.UUID     `json:"id"`
+	LegalName       string                 `json:"legal_name"`
+	PlanId          openapi_types.UUID     `json:"plan_id"`
+	PlanName        string                 `json:"plan_name"`
+	ProvisionStatus NetworkProvisionStatus `json:"provision_status"`
+	SchemaVersion   int64                  `json:"schema_version"`
+	Slug            string                 `json:"slug"`
+	Status          NetworkStatus          `json:"status"`
+}
+
+// NetworkProvisionStatus defines model for Network.ProvisionStatus.
+type NetworkProvisionStatus string
+
+// NetworkStatus defines model for Network.Status.
+type NetworkStatus string
+
+// NetworkInput defines model for NetworkInput.
+type NetworkInput struct {
+	Cnpj      string             `json:"cnpj"`
+	LegalName string             `json:"legal_name"`
+	PlanId    openapi_types.UUID `json:"plan_id"`
+	Slug      string             `json:"slug"`
 }
 
 // PasskeyInput defines model for PasskeyInput.
@@ -484,6 +590,9 @@ type CRMFRequest string
 
 // CatalogError defines model for CatalogError.
 type CatalogError = Problem
+
+// NetworkProblem defines model for NetworkProblem.
+type NetworkProblem = Problem
 
 // LoginTenantParams defines parameters for LoginTenant.
 type LoginTenantParams struct {
@@ -577,6 +686,32 @@ type UpdatePlanParams struct {
 // UpdatePlanParamsXCRMFRequest defines parameters for UpdatePlan.
 type UpdatePlanParamsXCRMFRequest string
 
+// ListNetworksParams defines parameters for ListNetworks.
+type ListNetworksParams struct {
+	After *string `form:"after,omitempty" json:"after,omitempty"`
+}
+
+// CreateNetworkParams defines parameters for CreateNetwork.
+type CreateNetworkParams struct {
+	XCRMFRequest CreateNetworkParamsXCRMFRequest `json:"X-CRMF-Request"`
+}
+
+// CreateNetworkParamsXCRMFRequest defines parameters for CreateNetwork.
+type CreateNetworkParamsXCRMFRequest string
+
+// RetryNetworkJSONBody defines body for RetryNetwork for application/json ContentType.
+type RetryNetworkJSONBody struct {
+	Generation int32 `json:"generation"`
+}
+
+// RetryNetworkParams defines parameters for RetryNetwork.
+type RetryNetworkParams struct {
+	XCRMFRequest RetryNetworkParamsXCRMFRequest `json:"X-CRMF-Request"`
+}
+
+// RetryNetworkParamsXCRMFRequest defines parameters for RetryNetwork.
+type RetryNetworkParamsXCRMFRequest string
+
 // EnrollTenantParams defines parameters for EnrollTenant.
 type EnrollTenantParams struct {
 	XCRMFRequest EnrollTenantParamsXCRMFRequest `json:"X-CRMF-Request"`
@@ -608,6 +743,12 @@ type DeletePlanJSONRequestBody DeletePlanJSONBody
 
 // UpdatePlanJSONRequestBody defines body for UpdatePlan for application/json ContentType.
 type UpdatePlanJSONRequestBody = PlanUpdate
+
+// CreateNetworkJSONRequestBody defines body for CreateNetwork for application/json ContentType.
+type CreateNetworkJSONRequestBody = NetworkInput
+
+// RetryNetworkJSONRequestBody defines body for RetryNetwork for application/json ContentType.
+type RetryNetworkJSONRequestBody RetryNetworkJSONBody
 
 // EnrollTenantJSONRequestBody defines body for EnrollTenant for application/json ContentType.
 type EnrollTenantJSONRequestBody = EnrollmentInput
@@ -656,6 +797,15 @@ type ServerInterface interface {
 
 	// (PUT /v1/hq/plans/{id})
 	UpdatePlan(w http.ResponseWriter, r *http.Request, id openapi_types.UUID, params UpdatePlanParams)
+
+	// (GET /v1/hq/tenants)
+	ListNetworks(w http.ResponseWriter, r *http.Request, params ListNetworksParams)
+
+	// (POST /v1/hq/tenants)
+	CreateNetwork(w http.ResponseWriter, r *http.Request, params CreateNetworkParams)
+
+	// (POST /v1/hq/tenants/{id}/retry)
+	RetryNetwork(w http.ResponseWriter, r *http.Request, id openapi_types.UUID, params RetryNetworkParams)
 
 	// (GET /v1/me)
 	MeTenant(w http.ResponseWriter, r *http.Request)
@@ -734,6 +884,21 @@ func (_ Unimplemented) DeletePlan(w http.ResponseWriter, r *http.Request, id ope
 
 // (PUT /v1/hq/plans/{id})
 func (_ Unimplemented) UpdatePlan(w http.ResponseWriter, r *http.Request, id openapi_types.UUID, params UpdatePlanParams) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// (GET /v1/hq/tenants)
+func (_ Unimplemented) ListNetworks(w http.ResponseWriter, r *http.Request, params ListNetworksParams) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// (POST /v1/hq/tenants)
+func (_ Unimplemented) CreateNetwork(w http.ResponseWriter, r *http.Request, params CreateNetworkParams) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// (POST /v1/hq/tenants/{id}/retry)
+func (_ Unimplemented) RetryNetwork(w http.ResponseWriter, r *http.Request, id openapi_types.UUID, params RetryNetworkParams) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
@@ -1299,6 +1464,138 @@ func (siw *ServerInterfaceWrapper) UpdatePlan(w http.ResponseWriter, r *http.Req
 	handler.ServeHTTP(w, r)
 }
 
+// ListNetworks operation middleware
+func (siw *ServerInterfaceWrapper) ListNetworks(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params ListNetworksParams
+
+	// ------------- Optional query parameter "after" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "after", r.URL.Query(), &params.After, runtime.BindQueryParameterOptions{Type: "string", Format: ""})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "after"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "after", Err: err})
+		}
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.ListNetworks(w, r, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// CreateNetwork operation middleware
+func (siw *ServerInterfaceWrapper) CreateNetwork(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params CreateNetworkParams
+
+	headers := r.Header
+
+	// ------------- Required header parameter "X-CRMF-Request" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("X-CRMF-Request")]; found {
+		var XCRMFRequest CreateNetworkParamsXCRMFRequest
+		n := len(valueList)
+		if n != 1 {
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "X-CRMF-Request", Count: n})
+			return
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "X-CRMF-Request", valueList[0], &XCRMFRequest, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true, Type: "string", Format: ""})
+		if err != nil {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "X-CRMF-Request", Err: err})
+			return
+		}
+
+		params.XCRMFRequest = XCRMFRequest
+
+	} else {
+		err := fmt.Errorf("Header parameter X-CRMF-Request is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "X-CRMF-Request", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.CreateNetwork(w, r, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// RetryNetwork operation middleware
+func (siw *ServerInterfaceWrapper) RetryNetwork(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "id" -------------
+	var id openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", chi.URLParam(r, "id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: r.URL.RawPath == ""})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
+		return
+	}
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params RetryNetworkParams
+
+	headers := r.Header
+
+	// ------------- Required header parameter "X-CRMF-Request" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("X-CRMF-Request")]; found {
+		var XCRMFRequest RetryNetworkParamsXCRMFRequest
+		n := len(valueList)
+		if n != 1 {
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "X-CRMF-Request", Count: n})
+			return
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "X-CRMF-Request", valueList[0], &XCRMFRequest, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true, Type: "string", Format: ""})
+		if err != nil {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "X-CRMF-Request", Err: err})
+			return
+		}
+
+		params.XCRMFRequest = XCRMFRequest
+
+	} else {
+		err := fmt.Errorf("Header parameter X-CRMF-Request is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "X-CRMF-Request", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.RetryNetwork(w, r, id, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
 // MeTenant operation middleware
 func (siw *ServerInterfaceWrapper) MeTenant(w http.ResponseWriter, r *http.Request) {
 
@@ -1520,6 +1817,15 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 	r.Group(func(r chi.Router) {
 		r.Put(options.BaseURL+"/v1/hq/plans/{id}", wrapper.UpdatePlan)
 	})
+	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/v1/hq/tenants", wrapper.ListNetworks)
+	})
+	r.Group(func(r chi.Router) {
+		r.Post(options.BaseURL+"/v1/hq/tenants", wrapper.CreateNetwork)
+	})
+	r.Group(func(r chi.Router) {
+		r.Post(options.BaseURL+"/v1/hq/tenants/{id}/retry", wrapper.RetryNetwork)
+	})
 
 	return r
 }
@@ -1529,41 +1835,48 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 // const string: with thousands of chunks the chained `+` fold is several
 // times slower for the Go compiler than parsing a slice literal.
 var swaggerSpec = []string{
-	"7Fpbb9s4Fv4rBHceJlg5Vi4zaJWnTLazzW67CZIWu0DgNWjx2GJDkQovbtzA/31A6m7JidOmqQvkKZEs",
-	"Hp7Ld77DQ/IOxzLNpABhNI7ucEYUScGA8k8nF+//vIAbC9q4RyZwhBMgFBQOsCAp4Aj/b+C+GpSfBVjB",
-	"jWUKKI6MshBgHSeQEjcehE1xdIX38CjAZpG54dooJmZ4uVy6kTqTQkM+NzGEy9kbpaRyz7EUBoTXg2QZ",
-	"ZzExTIphpuSEQ/r3T1oK91s92y8KpjjCfxvWFg7zX/XwPB+VT0tBx4plThyO8KmYE84oYiKzBv16GIY7",
-	"AbKCWJOAMG5aoO713k6AplJNGKUg3IuDnQClTGsmZu7xcCdA2hAOQ2pzdWHIxMBqcL++3kFSObFzwjiZ",
-	"cEC//hYe7GCnT6Gks+HYmuTMmlg6V9/hTMkMlGG5hzI74SweX8PCPbWt+Nfl2X8GGhQjnH0Biv4LEydL",
-	"oFiBd5ybXuUxQ9KP0kcIsgRSUIQjIihSQHg6mEgrKO7Ey0UrlnNQi3EsKeiuCmcCBoalgEAoyXkKwqAy",
-	"wkgKvsABZgZSP7QjvXhBlCIL96wNMVY3UdSKCA5wRrS+hsW4wl+A65nrtz3Qa2L2qpyp/k5OPkFsnBJv",
-	"KnmnDh0ei5QyZzDh543gTAnXEKzGi2j9WSrq/k/J7TsQM5PgaC/cPwxwykT14iENK0F9Or4Fwk3SRUvX",
-	"gfL6m5xxSp33zaI71UyRgk6q+N6XjKWgf7phfbH3QGxqnnFiplKlDpYg3KhRD0C1kQrGjLY1ceOIwRG2",
-	"lvXienX2fIYxoxuNthrUZt+ueLocWJrb1D8oXXpfHHL3dYKhJIfeDNPAOSifvf2/F9M/3hQ/ZZ+q7+SM",
-	"ia9JHUgJ4yt5c7AfPpA2wdOlXK5AcH/qnecM9DUGlsTYpdHLfhL3QSccOaJ3XE4EgltXZ5hBrgRx8KWm",
-	"JGnkwnyEBMxBIYI+nH04x0HTJa/2Xu8/ziWVyr2u4MSXY8L52RRHVw+UY04KWCyDVfxumHdzUJpJ0fqW",
-	"CXOwj71VLLVp0yYmDMxAdYzywktZXcNGhWl/MuA5r7SVJbFh82Y6TaTkQITTMGEuoxbjVAqT6Ecr6qM1",
-	"9km56eCranSAheUcjwopjmu+TYiklkObWEtyjqWCgsVc+ccBhttMKuOyx/IWXtaQboCtYDcWTnPRRllY",
-	"luvNdh5vQgGKxTCOywXueovDPp/rhYjH7lnNCR9riKWg+ltB5i1paxaU0Fk3ZQc/LTw0w1pHZ11i1gS1",
-	"cXYWgO+mZ1k+MmIMKIEj/P8rMvgSDl6Pir/jweguDH4/WP7yYOHwwtZn3ceMEgNPpPgTEcYDXFH0Gfes",
-	"xrqYM8ysKdn5i7sHvOh/LcUE65dwfg0QW8XM4tJ5LNfsvFhbnSSEcxAzqDq/WMprBnXnNx6/ldoMYpVO",
-	"x+WKbBxXw+qkzti/YVGAz391Cbr0/caS++R98Euzx2laLOfu1TOX+xgtc6ldWc7JTExlt66/D1Hil+rI",
-	"tbCgfcv1fg/JzwI1WhsmxS46bj2jIti6UfFdHAHFUkzZzCr/2RESEuU9IlIwY9qoqvN7c3GObiwoBnq3",
-	"gkrk+310XHfX6Pj8tFEPIxzuhruh85DMQJCM4Qgf7O7thn5lVFS1YW7WF/f/DDzPOOR7gacUR0WH8gWv",
-	"NPz7YXhPn/+4/j6foq+9P1cyBq0R04hwR7hL/9FQAaGL9Tpf5D//EJVPpDBKckSJIROiIUBEEL4wLNbV",
-	"O4+eP7icoEsjFZkBIgqQAhInbnfBhey38OA591GOS5hSRCEDQUHEC+f2xqZH6fz53tBBfshdf+DJUuY7",
-	"Tm2RF/WGxEqKHKHUGv+fLqdFJgFEOJefgaIzxWZMeCe196tQvp3lkqAdcN+qfCizurkttqbo1J8Mm9tm",
-	"y1FOzqDNH5IungwujVZq2S4AxXLpuwG1uSfVF/dVrtKWmyMkM3JjARl5DUJ7cLotIKTAWCWAIqJLEntr",
-	"THbmfsv51tVuTGFKLDfPid8SIApctQTqm6y2bW0k19UUR1ejVVxLa7YG2NKaJ0N2C2SHXdNO8iCimANx",
-	"XOA0zRRoEM6nOi+xw6oaIwVzeQ30pwz63erC4Wq0DO6WbSwU25TbAYZix2KLea61p/LCdNsL+sYq/GpU",
-	"Yz652c7Sfl63FS/F/QXyX1fck5ttre9PCO+XCt8ku84WxkqNT262t8xvNee9FPqfBvvrS30KjR2UH4f3",
-	"99CA+ndDTXUA/gKZR9FlGzDbxZT5DY+tJsrVSygvXPkzAj/jROi1283vmHZLOKG7CPRHEW7vflGfRJCp",
-	"8eeztdWNQ9LfD7vHbqNvBMjKEX15BLzRdR9nV989GwG3ZhxbpfP7fvefceUz9ZxpdQL5MUNGor0wRN7l",
-	"iAmkjYuZvxKBpKKgjpC2WSaVcfvTCggdOHSuIK/PpsqJw9Z1xQ3REFSE147+iQJiwPtpK1dq9W2NTahn",
-	"70kn7j3T4USgDJRm2hQNCLGUGaBHqDqYJDRlAj1LXFeyfHjH6DIvaxwMdOP9D//+h8b7EVeV/CGjSokp",
-	"zkbbsXhzS2LjU83n13e8qlOKCdoa9XPCQyDt6Ws/Cm0n7sUEaG5QHr8WwJ6DI3r43x221vRf3Bpcd+36",
-	"oct7owAX90HasMyvW2w1DeUqPvcS6F4esl6lFRbyF8FRgdi8yBTLis/MJOgwfP1cpLQ1HVp15vDSn23V",
-	"gVUDKdvYmm3xUdVLY/bTIt5/pOYlmKziOMKJMVk0HHIZE55IbaJX4avQ3ev7awA=",
+	"7Fthb9s40v4rBN/9sMErx3KSLVrnU9rrXnPXboK0xR0u8Bm0NLHZUKRCUk7cwP/9MKRkSZYc222aukC+",
+	"2bJIDmeeeWY4HN/TSCWpkiCtof17mjLNErCg3bc3Fx/+vICbDIzFr1zSPp0Ai0HTgEqWAO3Tf3fwrU7x",
+	"WkA13GRcQ0z7VmcQUBNNIGE4HmSW0P4l7dFBQO0sxeHGai7HdD6f40iTKmnAr80sE2r8Vmul8XukpAXp",
+	"5GBpKnjELFeym2o1EpD8/xejJP5Wrvabhivap//XLXfY9b+a7rkf5ZeNwUSapzgd7dNTOWWCx4TLNLPk",
+	"96Mw3AtIJllmJyAtLgsxPu7tBeRK6RGPY5D44HAvIAk3hssxfj3aC4ixTEA3zry40OWykxnAX1/tEaVx",
+	"2injgo0EkN//CA/36Dygf4G9Vfq6EPEJt56vTLS3JdHwBSLcbl1UiiPz6XC1k8xOzjIbKcTDPU21SkFb",
+	"7s2YZiPBo+E1zPBbfb1/fDz7q2NAcyb4V4jJv2CEc0kSaXBbxIULYZQbZY4JpBNIQDNBmIyJBiaSzkhl",
+	"MqYNUCGkIjUFPRtGKgbTFOFMQsfyBAhIrYRIQFpSwJAoKWY0oNxC4oY2Zs8fMK3ZDL8by2xmqlCvwYYG",
+	"NGXGXMNsuHCSgJYrl09b/KPqWJfFSuV7aoS2QiHeLuY7RQg71MQxxw0zcV4xzhUTBoJlezFjbpWO8XPC",
+	"7t6DHNsJ7ffCg6OAJlwuHqyTcDFRm4zvgAk7aaKlqUB1/V3KOI1R+3bWXGqsWc55C/s+5DbFRH/HYW22",
+	"d0CsSp4KZq+UTmhALUgcNWgBqLFKw5DHdUlwHLO0T7OMt+J6eXW/wpDHG43ODOjN3l3SdDGw2G5V/qBQ",
+	"6UN28OprGEMrAa0eZkAI0M5723/Pl99+K27JNlHfqzGX3+I6kDAulvzm8CBc4zbB47mcFyB42PVykm/a",
+	"IJLpl1Ydj0GCZp4wK1rm0h4eUCchTxDy4WI1Li2MQePgDREpYMzE0KcULSKkgslNwe3eXT2TVlNuuJLD",
+	"JtfcZJB5ltaQMjfCAT3GKHDFuGhl5iIWDqegTYuSXhytVZIR2XgFvJdltBgtaUBZZPkUaEBNZlKQsZM7",
+	"YjIC0S7mElac7ty6NeUHHgalxqv6XMjTosaGFmq4eQCI3+JpBVRTZi1oSfv0v5cnnf+EnVeD+97B/NJ9",
+	"OJj/th5pFX87CDdw1S1wWBi1KiTrfA07r4aD+8PgKGyTbzmyrTdQm2rPfZbxLaotkp9mqvSxPVFzxM4E",
+	"wWQO8zUmCdxhksotwVxYgMt5i0SMIJUfEwlT0ISRT2efzmlQNcPL3quD7WhvIXKrKgRzHsmEOLui/cs1",
+	"ybFgOfXPg2V+3NDsK1igTpW9Jgu0+WcxV3Njg3xrf3IQPneoC5vTQ8kpI6UEMIkSTrixSs+GiZJ2YrYW",
+	"1FlriFPApoMvF6MDKjMh6CCfBfOJ75tExZmAevJUUGWkNOSZCqb4NKBwlypt0XkyUcPLisQqoJnkNxmc",
+	"+qnxPDsPaAt39DYJ85pHMIyKk/aWcdTMZDTE73rKxNBApGRsvhdkOaNUJatGltYlG/ip4aFq1tI6qxyz",
+	"JKiNvTMHfNM9ixSxSbeDgnY7g/sweHG4Ae+6yVZ73ec0ZhYeSfBHIow1XFFWE1aduJqYs9yuSMv9g/s1",
+	"WnS/FtMEq49pLs+PMs3t7CNqzEt2np+f3kyYECDHsChBRUpdcyhLUMPhO2VsJ9LJ1bA4dQ2jxbDSqVP+",
+	"T5jl4HNvfQRT6H7jmdvm++SOX9tJmh/ZHpTTz7uNlH7W5lyoZC6vVDOufwjJxB3HCRaUwLiyyoceUbeS",
+	"VMoXXMl9clL7TnJjm0rERzsCiZS84uPMZ3/HRCri60BEw5gbqxfVnbcX5+QmA83B7C+g0neFR3JS1rrI",
+	"yflpJR72abgf7oeoIZWCZCmnfXq439sP3eknj2pdv62v+HkMjmcQ+W7C05j28yrEV7pUeTwIwweqbttV",
+	"2/wSbcW2c60iMIZwQ5hAwp27l7ruvLFa5gv/808R+Y2SVitBYmbZiBkICJNMzCyPzOKZQ89roUbko1Wa",
+	"jYEwjdkfiya+dhjQP8LDp6xqnhQwjUkM7qgkoxmqvV7SdMqf9roI+a7AGoAjS+VL3/UpL8qi45KLHJMk",
+	"s+6TKZYldgKECaFuISZnmo+5dEqqF86Jr6ujE9QN7soRnwqvrtbnVwSd8pVutX4/H3hyBmNfq3j2aHCp",
+	"lEvm9QCQp0s/DKjVunOb3Ze5ymTCHhOVspsMiFXXII0DJ5Z5iQabaQkxYaYgsXfWpmf4m+dbjN00hiuW",
+	"CfuU+L1oqcbXQdcszufRlPYvB8u4VpndGWCrzD4asmsgO2pu7Y03IokEMOQClDTVYECiTo0Psd1FNCYa",
+	"puoa4l/S6PfLicPlYB7cz+tYyK8idgMMecVih3muVlN5ZrrdBX0lC78clJif3OxmaD8vjxXPwf0Z8t8W",
+	"3Cc3uxrfHxHezxG+SnaNEsZSjJ/c7G6Y32nOew70vwz2V4f6BCoVlJ+H9w9QgfoPQ82iyeUZMlvRZR0w",
+	"u8WUvotrp4lyudHsmSt/ReBjH4FZWW5+zw2mcNI0EeiuIrB2PytvItiVdfez5a4rl6QvjprXboPvBMjS",
+	"FX1xBbxRSx/uq62XTsKdHUaZNr7xeE0fjVup5U6rYcjPKbGK9MKQOJUTLomxrvUXbxuJ0jHoY2KyNFXa",
+	"Yn0abwI6iM4l5LXtaaHEbq1vekM0BAvCq1v/jQZmwelpJzO1sltjE+rpPerCrXc6gkmSgjbc2PwAwrKY",
+	"W4iPyeJiksUJl+RJ7Lrk5d17Hs99WBNgoWnvv7nnP9Xe23SB4SWjThadiXVbvL1jkXWu5vzrB7bqlB1v",
+	"NYnaOWEdSFvOtZ+lyUb4YASx35C3Xw1gT8ERLfyPl60l/eedwav+/7GuQXcQ0LwfpA5L326x0zTkRXzq",
+	"FOhBHsqcSEss5P6RQnLE+iCTpxW33E7IUfjqCUnJ9yo8nHzkXaLfnH/sUsKR7yVvocubynph+GQpyGs8",
+	"ukBMpBeEpHg/7wyfMxcSTNHZi/9jylt2toHE0t+XHiUDKRS3i95fa2PeyP8PHnvt9mODAT2t2BppIM60",
+	"Szi/qFGA5whwMRLuuLFobV2o6oebu8EBLjXparC6dv5e7n2xerYSC48fj4JdzHo2/TfG+rzlwf78nQHy",
+	"CZFwS5i1kKQW/3HpCiuGJVBAO1h0k/seVeIx9XQw3pli4+L6/LnUuFO9FxWk7GKVcYe7Lp5rjL8s4t1L",
+	"elqAKdOC9unE2rTf7QoVMTFRxvZfhi9DbFH/3wA=",
 }
 
 // decodeSpec returns the embedded OpenAPI spec as raw JSON bytes,

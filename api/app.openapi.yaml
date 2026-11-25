@@ -313,8 +313,71 @@ paths:
       responses:
         '204': {description: Unsubscribed plan deleted and audited}
         default: {$ref: '#/components/responses/CatalogError'}
+  /v1/hq/tenants:
+    get:
+      operationId: listNetworks
+      security: [{PlatformSession: []}]
+      parameters:
+        - {name: after, in: query, schema: {type: string}}
+      responses:
+        '200':
+          description: Bounded network page with confirmed provisioning status
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items]
+                properties:
+                  items: {type: array, maxItems: 100, items: {$ref: '#/components/schemas/Network'}}
+                  next_cursor: {type: string}
+        default: {$ref: '#/components/responses/NetworkProblem'}
+    post:
+      operationId: createNetwork
+      security: [{PlatformSession: []}]
+      parameters: [{$ref: '#/components/parameters/CRMFRequest'}]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/NetworkInput'}
+      responses:
+        '202':
+          description: Reserved network and durable job, or exact existing request
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Network'}
+        default: {$ref: '#/components/responses/NetworkProblem'}
+  /v1/hq/tenants/{id}/retry:
+    post:
+      operationId: retryNetwork
+      security: [{PlatformSession: []}]
+      parameters:
+        - {name: id, in: path, required: true, schema: {type: string, format: uuid}}
+        - {$ref: '#/components/parameters/CRMFRequest'}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [generation]
+              properties:
+                generation: {type: integer, format: int32, minimum: 1}
+      responses:
+        '202':
+          description: A new attempt for the same network, never a second tenant
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Network'}
+        default: {$ref: '#/components/responses/NetworkProblem'}
 components:
   responses:
+    NetworkProblem:
+      description: Network request rejected or unavailable
+      content:
+        application/problem+json:
+          schema: {$ref: '#/components/schemas/Problem'}
     CatalogError:
       description: Invalid input (400), unauthenticated (401), forbidden (403), missing (404), stale/duplicate/in-use (409) or unavailable (503)
       content:
@@ -332,6 +395,29 @@ components:
     TenantChallenge: {type: apiKey, in: cookie, name: __Host-crmf_tenant_challenge}
     PlatformChallenge: {type: apiKey, in: cookie, name: __Host-crmf_platform_challenge}
   schemas:
+    NetworkInput:
+      type: object
+      additionalProperties: false
+      required: [slug, legal_name, cnpj, plan_id]
+      properties:
+        slug: {type: string, pattern: '^[a-z0-9_]{3,40}$'}
+        legal_name: {type: string, minLength: 1, maxLength: 200}
+        cnpj: {type: string, pattern: '^[A-Z0-9]{12}[0-9]{2}$'}
+        plan_id: {type: string, format: uuid}
+    Network:
+      type: object
+      required: [id, slug, legal_name, cnpj, plan_id, plan_name, status, provision_status, schema_version, generation]
+      properties:
+        id: {type: string, format: uuid}
+        slug: {type: string}
+        legal_name: {type: string}
+        cnpj: {type: string}
+        plan_id: {type: string, format: uuid}
+        plan_name: {type: string}
+        status: {type: string, enum: [trial, active, suspended, cancelled]}
+        provision_status: {type: string, enum: [queued, preparing, ready, failed]}
+        schema_version: {type: integer, format: int64, minimum: 0}
+        generation: {type: integer, format: int32, minimum: 0}
     PlanFields:
       type: object
       required: [name, price_cents, active, sync_interval_seconds, history_months, max_stores, max_users, modules]

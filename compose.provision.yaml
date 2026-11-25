@@ -1,0 +1,29 @@
+# Explicit crmf-dev ONLY. Dedicated privileged process, never API/worker.
+services:
+  migrate-queue:
+    image: crmf-server:dev
+    build: {context: ., dockerfile: deploy/Dockerfile}
+    command: ["migrate", "--scope", "queue"]
+    environment:
+      CONTROL_DATABASE_URL: postgres://crmf_migrator:crmf_local_migrator_only@postgres:5432/crmf_control?sslmode=disable
+    depends_on:
+      migrate-control: {condition: service_completed_successfully}
+  api:
+    depends_on:
+      migrate-queue: {condition: service_completed_successfully}
+  provisioner:
+    image: crmf-server:dev
+    build: {context: ., dockerfile: deploy/Dockerfile}
+    command: ["provisioner"]
+    restart: unless-stopped
+    environment:
+      APP_ENV: development
+      PROVISION_CONTROL_DATABASE_URL: postgres://crmf_migrator:crmf_local_migrator_only@postgres:5432/crmf_control?sslmode=disable
+      PROVISION_ANALYTICS_DATABASE_URL: postgres://crmf_migrator:crmf_local_migrator_only@postgres:5432/crmf_analytics?sslmode=disable
+      TENANT_CREDENTIALS_DIR: /tenant-credentials/credentials
+    volumes: [tenant-credentials:/tenant-credentials]
+    depends_on:
+      migrate-queue: {condition: service_completed_successfully}
+      migrate-platform: {condition: service_completed_successfully}
+volumes:
+  tenant-credentials:

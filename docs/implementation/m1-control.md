@@ -249,7 +249,8 @@ local origins, migration boundaries and the limits of these tests.
 
 See [catalog scope and tests](hq-plans.md) and
 [ADR 0006](../adr/0006-platform-catalog-write-policy.md). Networks, subscriptions,
-tenant provisioning, stores and pairing remain subsequent M1 work.
+tenant provisioning followed in increments 10/11 below; subscription management,
+stores and pairing remain subsequent M1 work.
 
 ## Delivered in the tenth increment: provisioning kernel and tenant pools
 
@@ -268,10 +269,26 @@ tenant provisioning, stores and pairing remain subsequent M1 work.
 - Managed-identity/version-pinned Key Vault adapter and explicit private
   development files; actual Azure acceptance remains pending.
 - No final users/grants, ERP facts or commercial plans are seeded. The QG
-  network flow and isolated provisioning-job adapter are **not** delivered.
+  network flow and isolated job adapter follow in increment 11 below.
 
 See [provisioning scope, command and evidence](tenant-provisioning.md) and
 [ADR 0007](../adr/0007-resumable-tenant-provisioning.md).
+
+## Delivered in the eleventh increment: QG Redes
+
+- Platform-admin network creation atomically reserves tenant, subscription,
+  pending metadata, immutable actor-bound request, River job and audit.
+- Separate privileged `server provisioner`; API/ordinary worker never receive
+  migration URLs or tenant-secret mounts. Forward-only control migration 00010
+  and separately versioned River jobs schema.
+- Bounded network listing, active-plan selection, preparing/ready/failure and
+  generation-bound retry of the same network. Exact repeated creation is
+  idempotent; support is read-only. Ready requires real tenant login/migrations.
+- Real PostgreSQL/HTTPS/River tests and browser support/mobile/creation tests;
+  additional local browser → actual API → Docker provisioner smoke without mocks.
+- No stores, customer users, ERP facts, ingestion or Azure acceptance is claimed.
+
+See [scope, deployment, permissions and evidence](hq-networks.md).
 
 ## Not delivered / next increments
 
@@ -291,8 +308,7 @@ and idles; giving it its future role does not implement ingestion.
 4. Invites/reset emails via Mailpit locally and ACS in Azure. Retire the unused
    Keycloak dependency, stale OIDC descriptions and local readiness check at
    that cutover, rather than presenting it as the new auth implementation.
-5. Connect authenticated QG network creation to an isolated provisioner job;
-   orchestrate migrations across tenants, integrate `EffectiveLimits` into
+5. Orchestrate migrations across tenants, integrate `EffectiveLimits` into
    routes/creation quotas, and add remaining tenant/store isolation tests.
 6. `/v1/me`, audited administrative endpoints and minimal QG, with generated
    OpenAPI clients. No unauthenticated provisioning route will be introduced.

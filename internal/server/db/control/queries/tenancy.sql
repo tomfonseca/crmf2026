@@ -14,7 +14,7 @@ INSERT INTO core.subscriptions(id,tenant_id,plan_id,status)
 VALUES($1,$2,$3,'trialing');
 
 -- name: ActiveProvisionPlan :one
-SELECT id FROM core.plans WHERE id=$1 AND active=true FOR SHARE;
+SELECT id,name FROM core.plans WHERE id=$1 AND active=true FOR SHARE;
 
 -- name: ReserveTenantProvisioning :exec
 INSERT INTO core.tenant_provisioning(tenant_id) VALUES($1);
@@ -29,8 +29,8 @@ UPDATE core.tenant_provisioning SET state='ready',updated_at=now() WHERE tenant_
 UPDATE core.tenants SET schema_version=$2,updated_at=now() WHERE id=$1;
 
 -- name: AuditTenantProvisioning :exec
-INSERT INTO core.audit_log(tenant_id,action,target,detail)
-VALUES($1,$2,$3,'{"source":"operator_cli"}');
+INSERT INTO core.audit_log(tenant_id,action,target,actor_user_id,detail)
+VALUES($1,$2,$3,$4,jsonb_build_object('source',sqlc.arg(source)::text));
 
 -- name: RuntimeTenant :one
 SELECT t.id,t.slug,t.schema_name,t.db_role,t.schema_version,p.secret_version
