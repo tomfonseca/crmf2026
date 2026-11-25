@@ -7,6 +7,7 @@ import (
 	"bytes"
 	"compress/flate"
 	"encoding/base64"
+	"errors"
 	"fmt"
 	"net/http"
 	"net/url"
@@ -67,6 +68,102 @@ func (e IdentityRealm) Valid() bool {
 	case Platform:
 		return true
 	case Tenant:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for PlanModules.
+const (
+	PlanModulesCore     PlanModules = "core"
+	PlanModulesExport   PlanModules = "export"
+	PlanModulesPulse    PlanModules = "pulse"
+	PlanModulesRealtime PlanModules = "realtime"
+)
+
+// Valid indicates whether the value is a known member of the PlanModules enum.
+func (e PlanModules) Valid() bool {
+	switch e {
+	case PlanModulesCore:
+		return true
+	case PlanModulesExport:
+		return true
+	case PlanModulesPulse:
+		return true
+	case PlanModulesRealtime:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for PlanFieldsModules.
+const (
+	PlanFieldsModulesCore     PlanFieldsModules = "core"
+	PlanFieldsModulesExport   PlanFieldsModules = "export"
+	PlanFieldsModulesPulse    PlanFieldsModules = "pulse"
+	PlanFieldsModulesRealtime PlanFieldsModules = "realtime"
+)
+
+// Valid indicates whether the value is a known member of the PlanFieldsModules enum.
+func (e PlanFieldsModules) Valid() bool {
+	switch e {
+	case PlanFieldsModulesCore:
+		return true
+	case PlanFieldsModulesExport:
+		return true
+	case PlanFieldsModulesPulse:
+		return true
+	case PlanFieldsModulesRealtime:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for PlanInputModules.
+const (
+	PlanInputModulesCore     PlanInputModules = "core"
+	PlanInputModulesExport   PlanInputModules = "export"
+	PlanInputModulesPulse    PlanInputModules = "pulse"
+	PlanInputModulesRealtime PlanInputModules = "realtime"
+)
+
+// Valid indicates whether the value is a known member of the PlanInputModules enum.
+func (e PlanInputModules) Valid() bool {
+	switch e {
+	case PlanInputModulesCore:
+		return true
+	case PlanInputModulesExport:
+		return true
+	case PlanInputModulesPulse:
+		return true
+	case PlanInputModulesRealtime:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for PlanUpdateModules.
+const (
+	PlanUpdateModulesCore     PlanUpdateModules = "core"
+	PlanUpdateModulesExport   PlanUpdateModules = "export"
+	PlanUpdateModulesPulse    PlanUpdateModules = "pulse"
+	PlanUpdateModulesRealtime PlanUpdateModules = "realtime"
+)
+
+// Valid indicates whether the value is a known member of the PlanUpdateModules enum.
+func (e PlanUpdateModules) Valid() bool {
+	switch e {
+	case PlanUpdateModulesCore:
+		return true
+	case PlanUpdateModulesExport:
+		return true
+	case PlanUpdateModulesPulse:
+		return true
+	case PlanUpdateModulesRealtime:
 		return true
 	default:
 		return false
@@ -193,6 +290,51 @@ func (e EnrollPlatformParamsXCRMFRequest) Valid() bool {
 	}
 }
 
+// Defines values for CreatePlanParamsXCRMFRequest.
+const (
+	CreatePlanParamsXCRMFRequestN1 CreatePlanParamsXCRMFRequest = "1"
+)
+
+// Valid indicates whether the value is a known member of the CreatePlanParamsXCRMFRequest enum.
+func (e CreatePlanParamsXCRMFRequest) Valid() bool {
+	switch e {
+	case CreatePlanParamsXCRMFRequestN1:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for DeletePlanParamsXCRMFRequest.
+const (
+	DeletePlanParamsXCRMFRequestN1 DeletePlanParamsXCRMFRequest = "1"
+)
+
+// Valid indicates whether the value is a known member of the DeletePlanParamsXCRMFRequest enum.
+func (e DeletePlanParamsXCRMFRequest) Valid() bool {
+	switch e {
+	case DeletePlanParamsXCRMFRequestN1:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for UpdatePlanParamsXCRMFRequest.
+const (
+	UpdatePlanParamsXCRMFRequestN1 UpdatePlanParamsXCRMFRequest = "1"
+)
+
+// Valid indicates whether the value is a known member of the UpdatePlanParamsXCRMFRequest enum.
+func (e UpdatePlanParamsXCRMFRequest) Valid() bool {
+	switch e {
+	case UpdatePlanParamsXCRMFRequestN1:
+		return true
+	default:
+		return false
+	}
+}
+
 // Defines values for EnrollTenantParamsXCRMFRequest.
 const (
 	EnrollTenantParamsXCRMFRequestN1 EnrollTenantParamsXCRMFRequest = "1"
@@ -265,6 +407,71 @@ type PasskeyInput struct {
 	Response string `json:"response"`
 }
 
+// Plan defines model for Plan.
+type Plan struct {
+	Active              bool               `json:"active"`
+	Code                string             `json:"code"`
+	HistoryMonths       int32              `json:"history_months"`
+	Id                  openapi_types.UUID `json:"id"`
+	MaxStores           *int32             `json:"max_stores"`
+	MaxUsers            *int32             `json:"max_users"`
+	Modules             []PlanModules      `json:"modules"`
+	Name                string             `json:"name"`
+	PriceCents          int32              `json:"price_cents"`
+	SyncIntervalSeconds int32              `json:"sync_interval_seconds"`
+	Version             int32              `json:"version"`
+}
+
+// PlanModules defines model for Plan.Modules.
+type PlanModules string
+
+// PlanFields defines model for PlanFields.
+type PlanFields struct {
+	Active              bool                `json:"active"`
+	HistoryMonths       int32               `json:"history_months"`
+	MaxStores           *int32              `json:"max_stores"`
+	MaxUsers            *int32              `json:"max_users"`
+	Modules             []PlanFieldsModules `json:"modules"`
+	Name                string              `json:"name"`
+	PriceCents          int32               `json:"price_cents"`
+	SyncIntervalSeconds int32               `json:"sync_interval_seconds"`
+}
+
+// PlanFieldsModules defines model for PlanFields.Modules.
+type PlanFieldsModules string
+
+// PlanInput defines model for PlanInput.
+type PlanInput struct {
+	Active              bool               `json:"active"`
+	Code                string             `json:"code"`
+	HistoryMonths       int32              `json:"history_months"`
+	MaxStores           *int32             `json:"max_stores"`
+	MaxUsers            *int32             `json:"max_users"`
+	Modules             []PlanInputModules `json:"modules"`
+	Name                string             `json:"name"`
+	PriceCents          int32              `json:"price_cents"`
+	SyncIntervalSeconds int32              `json:"sync_interval_seconds"`
+}
+
+// PlanInputModules defines model for PlanInput.Modules.
+type PlanInputModules string
+
+// PlanUpdate defines model for PlanUpdate.
+type PlanUpdate struct {
+	Active              bool                `json:"active"`
+	HistoryMonths       int32               `json:"history_months"`
+	MaxStores           *int32              `json:"max_stores"`
+	MaxUsers            *int32              `json:"max_users"`
+	Modules             []PlanUpdateModules `json:"modules"`
+	Name                string              `json:"name"`
+	PriceCents          int32               `json:"price_cents"`
+	SyncIntervalSeconds int32               `json:"sync_interval_seconds"`
+	Version             int32               `json:"version"`
+}
+
+// PlanUpdateModules defines model for PlanUpdate.Modules.
+type PlanUpdateModules string
+
 // Problem defines model for Problem.
 type Problem struct {
 	Status int    `json:"status"`
@@ -274,6 +481,9 @@ type Problem struct {
 
 // CRMFRequest defines model for CRMFRequest.
 type CRMFRequest string
+
+// CatalogError defines model for CatalogError.
+type CatalogError = Problem
 
 // LoginTenantParams defines parameters for LoginTenant.
 type LoginTenantParams struct {
@@ -331,6 +541,42 @@ type EnrollPlatformParams struct {
 // EnrollPlatformParamsXCRMFRequest defines parameters for EnrollPlatform.
 type EnrollPlatformParamsXCRMFRequest string
 
+// ListPlansParams defines parameters for ListPlans.
+type ListPlansParams struct {
+	After *string `form:"after,omitempty" json:"after,omitempty"`
+}
+
+// CreatePlanParams defines parameters for CreatePlan.
+type CreatePlanParams struct {
+	XCRMFRequest CreatePlanParamsXCRMFRequest `json:"X-CRMF-Request"`
+}
+
+// CreatePlanParamsXCRMFRequest defines parameters for CreatePlan.
+type CreatePlanParamsXCRMFRequest string
+
+// DeletePlanJSONBody defines body for DeletePlan for application/json ContentType.
+type DeletePlanJSONBody struct {
+	// Confirmation Exact plan code
+	Confirmation string `json:"confirmation"`
+	Version      int32  `json:"version"`
+}
+
+// DeletePlanParams defines parameters for DeletePlan.
+type DeletePlanParams struct {
+	XCRMFRequest DeletePlanParamsXCRMFRequest `json:"X-CRMF-Request"`
+}
+
+// DeletePlanParamsXCRMFRequest defines parameters for DeletePlan.
+type DeletePlanParamsXCRMFRequest string
+
+// UpdatePlanParams defines parameters for UpdatePlan.
+type UpdatePlanParams struct {
+	XCRMFRequest UpdatePlanParamsXCRMFRequest `json:"X-CRMF-Request"`
+}
+
+// UpdatePlanParamsXCRMFRequest defines parameters for UpdatePlan.
+type UpdatePlanParamsXCRMFRequest string
+
 // EnrollTenantParams defines parameters for EnrollTenant.
 type EnrollTenantParams struct {
 	XCRMFRequest EnrollTenantParamsXCRMFRequest `json:"X-CRMF-Request"`
@@ -353,6 +599,15 @@ type PasskeyPlatformJSONRequestBody = PasskeyInput
 
 // EnrollPlatformJSONRequestBody defines body for EnrollPlatform for application/json ContentType.
 type EnrollPlatformJSONRequestBody = EnrollmentInput
+
+// CreatePlanJSONRequestBody defines body for CreatePlan for application/json ContentType.
+type CreatePlanJSONRequestBody = PlanInput
+
+// DeletePlanJSONRequestBody defines body for DeletePlan for application/json ContentType.
+type DeletePlanJSONRequestBody DeletePlanJSONBody
+
+// UpdatePlanJSONRequestBody defines body for UpdatePlan for application/json ContentType.
+type UpdatePlanJSONRequestBody = PlanUpdate
 
 // EnrollTenantJSONRequestBody defines body for EnrollTenant for application/json ContentType.
 type EnrollTenantJSONRequestBody = EnrollmentInput
@@ -389,6 +644,18 @@ type ServerInterface interface {
 
 	// (POST /v1/hq/me/passkey)
 	EnrollPlatform(w http.ResponseWriter, r *http.Request, params EnrollPlatformParams)
+
+	// (GET /v1/hq/plans)
+	ListPlans(w http.ResponseWriter, r *http.Request, params ListPlansParams)
+
+	// (POST /v1/hq/plans)
+	CreatePlan(w http.ResponseWriter, r *http.Request, params CreatePlanParams)
+
+	// (DELETE /v1/hq/plans/{id})
+	DeletePlan(w http.ResponseWriter, r *http.Request, id openapi_types.UUID, params DeletePlanParams)
+
+	// (PUT /v1/hq/plans/{id})
+	UpdatePlan(w http.ResponseWriter, r *http.Request, id openapi_types.UUID, params UpdatePlanParams)
 
 	// (GET /v1/me)
 	MeTenant(w http.ResponseWriter, r *http.Request)
@@ -447,6 +714,26 @@ func (_ Unimplemented) MePlatform(w http.ResponseWriter, r *http.Request) {
 
 // (POST /v1/hq/me/passkey)
 func (_ Unimplemented) EnrollPlatform(w http.ResponseWriter, r *http.Request, params EnrollPlatformParams) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// (GET /v1/hq/plans)
+func (_ Unimplemented) ListPlans(w http.ResponseWriter, r *http.Request, params ListPlansParams) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// (POST /v1/hq/plans)
+func (_ Unimplemented) CreatePlan(w http.ResponseWriter, r *http.Request, params CreatePlanParams) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// (DELETE /v1/hq/plans/{id})
+func (_ Unimplemented) DeletePlan(w http.ResponseWriter, r *http.Request, id openapi_types.UUID, params DeletePlanParams) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// (PUT /v1/hq/plans/{id})
+func (_ Unimplemented) UpdatePlan(w http.ResponseWriter, r *http.Request, id openapi_types.UUID, params UpdatePlanParams) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
@@ -826,6 +1113,192 @@ func (siw *ServerInterfaceWrapper) EnrollPlatform(w http.ResponseWriter, r *http
 	handler.ServeHTTP(w, r)
 }
 
+// ListPlans operation middleware
+func (siw *ServerInterfaceWrapper) ListPlans(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params ListPlansParams
+
+	// ------------- Optional query parameter "after" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "after", r.URL.Query(), &params.After, runtime.BindQueryParameterOptions{Type: "string", Format: ""})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "after"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "after", Err: err})
+		}
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.ListPlans(w, r, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// CreatePlan operation middleware
+func (siw *ServerInterfaceWrapper) CreatePlan(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params CreatePlanParams
+
+	headers := r.Header
+
+	// ------------- Required header parameter "X-CRMF-Request" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("X-CRMF-Request")]; found {
+		var XCRMFRequest CreatePlanParamsXCRMFRequest
+		n := len(valueList)
+		if n != 1 {
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "X-CRMF-Request", Count: n})
+			return
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "X-CRMF-Request", valueList[0], &XCRMFRequest, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true, Type: "string", Format: ""})
+		if err != nil {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "X-CRMF-Request", Err: err})
+			return
+		}
+
+		params.XCRMFRequest = XCRMFRequest
+
+	} else {
+		err := fmt.Errorf("Header parameter X-CRMF-Request is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "X-CRMF-Request", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.CreatePlan(w, r, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// DeletePlan operation middleware
+func (siw *ServerInterfaceWrapper) DeletePlan(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "id" -------------
+	var id openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", chi.URLParam(r, "id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: r.URL.RawPath == ""})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
+		return
+	}
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params DeletePlanParams
+
+	headers := r.Header
+
+	// ------------- Required header parameter "X-CRMF-Request" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("X-CRMF-Request")]; found {
+		var XCRMFRequest DeletePlanParamsXCRMFRequest
+		n := len(valueList)
+		if n != 1 {
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "X-CRMF-Request", Count: n})
+			return
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "X-CRMF-Request", valueList[0], &XCRMFRequest, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true, Type: "string", Format: ""})
+		if err != nil {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "X-CRMF-Request", Err: err})
+			return
+		}
+
+		params.XCRMFRequest = XCRMFRequest
+
+	} else {
+		err := fmt.Errorf("Header parameter X-CRMF-Request is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "X-CRMF-Request", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.DeletePlan(w, r, id, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// UpdatePlan operation middleware
+func (siw *ServerInterfaceWrapper) UpdatePlan(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "id" -------------
+	var id openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", chi.URLParam(r, "id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: r.URL.RawPath == ""})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
+		return
+	}
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params UpdatePlanParams
+
+	headers := r.Header
+
+	// ------------- Required header parameter "X-CRMF-Request" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("X-CRMF-Request")]; found {
+		var XCRMFRequest UpdatePlanParamsXCRMFRequest
+		n := len(valueList)
+		if n != 1 {
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "X-CRMF-Request", Count: n})
+			return
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "X-CRMF-Request", valueList[0], &XCRMFRequest, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true, Type: "string", Format: ""})
+		if err != nil {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "X-CRMF-Request", Err: err})
+			return
+		}
+
+		params.XCRMFRequest = XCRMFRequest
+
+	} else {
+		err := fmt.Errorf("Header parameter X-CRMF-Request is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "X-CRMF-Request", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.UpdatePlan(w, r, id, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
 // MeTenant operation middleware
 func (siw *ServerInterfaceWrapper) MeTenant(w http.ResponseWriter, r *http.Request) {
 
@@ -1035,6 +1508,18 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 	r.Group(func(r chi.Router) {
 		r.Get(options.BaseURL+"/v1/hq/me", wrapper.MePlatform)
 	})
+	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/v1/hq/plans", wrapper.ListPlans)
+	})
+	r.Group(func(r chi.Router) {
+		r.Post(options.BaseURL+"/v1/hq/plans", wrapper.CreatePlan)
+	})
+	r.Group(func(r chi.Router) {
+		r.Delete(options.BaseURL+"/v1/hq/plans/{id}", wrapper.DeletePlan)
+	})
+	r.Group(func(r chi.Router) {
+		r.Put(options.BaseURL+"/v1/hq/plans/{id}", wrapper.UpdatePlan)
+	})
 
 	return r
 }
@@ -1044,30 +1529,41 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 // const string: with thousands of chunks the chained `+` fold is several
 // times slower for the Go compiler than parsing a slice literal.
 var swaggerSpec = []string{
-	"7FlRb9s4Ev4rBO/eTo6dtAf0lKc06G2z22yMJMAuEBgGLY0tNhQpD0m3bqD/viBpybKtpHU33SqAn2xJ",
-	"5MzHmW++IaUHmqi8UBKk0TR+oAVDloMB9Ffn15f/v4a5BW3cJZc0phmwFJBGVLIcaEz/7LlRvWpYRBHm",
-	"liOkNDZoIaI6ySBnbj5Im9P4jh7TUUTNsnDTtUEuZ7Qsy2qk93xmTXZlTaKcjwdaoCoADYcA0k4ET8b3",
-	"sHRXKegEeWG4cvB+vbn6vacBORP8C6TkD5g4W5IkCMyNIQoJBrBE+Vn6lECRQQ7IBGEyJQhM5L2JsjKl",
-	"O0DdAhO1AFyOE5WC3oVwJaFneA4EJCohcpCGIOhCSQ1ESbGkEeUGcj91x/rqBkNkS3etDTNWN8PHrMlA",
-	"Gp4wAw5gwbS+h+W4DnxE157Xd1ti3kzWXeVpPU5NPkJiHIh3tb0LWVhPBpam3C2YiWEjOVMmNETb+WJa",
-	"f1KYuv85+/wB5MxkND4enLyOaM5lfeNrCGtDbRjfAxMm22XLbgDV/d8KxkXqom+Wu65myFZ1VOf33whT",
-	"GtN/9dd11l/xvF8Z+sVNa8u9J2ITeSGYmSrMHS1BulmjFoJqoxDGPN1E4uYxQ2NqLW/l9bb34GHM02+a",
-	"bTXgt43dinQ1sVpuE39UhfSpPITw7SQDlYDWCtMgBKCv3vbnK/f7L8W7bIP6Qc24/J7SgZxxsVU3r04G",
-	"Xymb6PlKLgCIni69YVCg71lgJYy7MnrTLuI+6UwQJ/ROy5kk8LkQPOGGaC5nAnpWA6lEmrg0nxIJC0DC",
-	"yO3V7ZBGzZC8Of7fyX4hqSG3hgLVRED+lAyt5nBpYAboJhluHuFquPHwFUT+aWUmely7PPkTi9wsb5wG",
-	"BWTDlaicZ0wIkDOoe32i1D2Hda8fj98rbXoJ5tNxJUXjpJ5W+2MF/w28hlS2b0Brn9Y9LLfZu/WatB/S",
-	"lY49iTPY3QdlsLprywWZy6naJfTlgGS+R5EC1QS032tcHhP1SZJGT+dKHpGzjWuySrZuUN3lEUii5JTP",
-	"LPphp0QqEjZHBGHGtcF6y/PuekjmFpCDPqqpEvsdHjkrnNEw9Gx4QSO6AAyBoIOjwdHARUgVIFnBaUxf",
-	"HR0fDbwkmMwTqB+W9cX9n4FXAMd8b/AipfGqNX+hUV07ft7JYOB+EiUNBAVnayT9jzpkYr1/fKqXBhch",
-	"/JthH6JKQGvCNWGCL8CNKSPaR2Dp8nHM1+HxT4F8rqRBJUjKDJswDRFhkoml4Ymu73n2vBVqQm6MQjYD",
-	"wtDJHksyNhHgUvbfwasnwBZBqf6zH+hK31pQn1U0TUkKBcgUZLJ0YbeSLRgXAVYI/uK47yjfF64xerFU",
-	"4YyxafJ6vRPfKpFTklvj/+nKLTEZECaE+gQpuUI+49IHafOEQsIBxhXBZsJ9j76tqrp5ELprD8l6SL95",
-	"UCpHQZxBm7cqXT4bXRp7iLIst89Z5Q8kavMw1pb3ba3SVphTogo2t0CMugepPTnd2YcgGIsSUsJ0JWLv",
-	"jSmu3LOgt5p6F1Nmhfkn+VsRBMF1S0j97mJzbZtMXndTGt+NtnmtrOkMsZU1z8bsDZK93l3aeUgiSQQw",
-	"pwUOaYGgQbqY6tBi+3U3JggLdQ/pi0z6w/bG4W5URg/lJhdW5/NukGG1Ve+wzm0cJg5K113SN3bhd6M1",
-	"57N5N1v7cH2sODT3A+W/r7ln867292ek96HDN8Vu5xXGVo/P5t1t853WvEOjfzHcf7zV59B4g/Lz+H4J",
-	"Dar/MNbUX34OlNlLLjcJ0y2lDJ82Oy2U219fD1r54ojfGZmsD/4HkezUW6MGU7qojx1+X3RQxxfLeD8I",
-	"FxWZLAoa08yYIu73hUqYyJQ28ZvBmwEtR+VfAwA=",
+	"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",
 }
 
 // decodeSpec returns the embedded OpenAPI spec as raw JSON bytes,

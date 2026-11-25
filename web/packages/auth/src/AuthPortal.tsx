@@ -35,10 +35,12 @@ export function AuthPortal({
   client,
   title,
   children,
+  theme = "dark",
 }: {
   client: AuthClient;
   title: string;
   children?: ReactNode;
+  theme?: "dark" | "light";
 }) {
   const [state, setState] = useState<State>({ kind: "loading" });
   const [error, setError] = useState("");
@@ -173,7 +175,7 @@ export function AuthPortal({
   }
 
   return (
-    <main className="dashboard auth-page">
+    <main className="dashboard auth-page" data-theme={theme}>
       <section
         className="auth-card"
         aria-labelledby="auth-title"

@@ -229,6 +229,28 @@ migrations; never execute the local-password script in Azure.
 See [web authentication](authentication-web.md) for protocol, key custody,
 local origins, migration boundaries and the limits of these tests.
 
+## Delivered in the ninth increment: real QG plan catalog
+
+- Authenticated Planos screen replaces the QG placeholder. Listing, creation,
+  editing/deactivation and deletion use the real restricted control pool.
+- Platform admins mutate; support reads only; every request reloads identity.
+  Business methods independently enforce server-principal authorization.
+- Forward migration 00008 adds database-owned revisions and immutable plan
+  identity. Stale concurrent edits fail; subscription references prevent delete.
+- All writes and actor/target/revision audit events are transactional. No
+  audit-read or identity SQL privilege is added.
+- Credentialed generated clients, exact-origin CSRF for POST/PUT/DELETE, strict
+  policy JSON, bounded keyset pages, exact decimal-to-cents parsing and explicit
+  unlimited quotas; no plans/prices are invented or seeded.
+- Per-authenticated-mount TanStack Query cache, expiry handling, light/dark
+  tokens, 360px layout and typed-code delete confirmation.
+- Real restricted-role/Postgres/HTTPS tests and synthetic browser-contract CRUD/
+  support/expiry tests complement the existing passkey and dashboard tests.
+
+See [catalog scope and tests](hq-plans.md) and
+[ADR 0006](../adr/0006-platform-catalog-write-policy.md). Networks, subscriptions,
+tenant provisioning, stores and pairing remain subsequent M1 work.
+
 ## Not delivered / next increments
 
 This is **M1 started, not M1 complete**. Authentication endpoints are available

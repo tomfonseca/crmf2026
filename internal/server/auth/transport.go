@@ -7,6 +7,9 @@ import (
 	"github.com/jackc/pgx/v5"
 )
 
+func (e *Engine) Authenticate(ctx context.Context, token string, realm Realm) (context.Context, error) {
+	return e.sessions.Authenticate(ctx, token, realm)
+}
 func (e *Engine) Resolve(ctx context.Context, token string, realm Realm) (Scope, error) {
 	return e.sessions.Resolve(ctx, token, realm)
 }

@@ -36,7 +36,9 @@ func newRouter(probes []Probe, logger *slog.Logger, options *AuthOptions) http.H
 	r.MethodNotAllowed(func(w http.ResponseWriter, _ *http.Request) {
 		problem(w, http.StatusMethodNotAllowed, "method_not_allowed", "Método não permitido")
 	})
-	return h.authSecurity(appcontract.HandlerFromMux(h, r))
+	return h.authSecurity(appcontract.HandlerWithOptions(h, appcontract.ChiServerOptions{BaseRouter: r, ErrorHandlerFunc: func(w http.ResponseWriter, _ *http.Request, _ error) {
+		problem(w, 400, "invalid_request", "Parâmetro de requisição inválido")
+	}}))
 }
 
 func (h *handler) Healthz(w http.ResponseWriter, _ *http.Request) {

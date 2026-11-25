@@ -206,10 +206,72 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/hq/plans": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["listPlans"];
+        put?: never;
+        post: operations["createPlan"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/hq/plans/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put: operations["updatePlan"];
+        post?: never;
+        delete: operations["deletePlan"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        PlanFields: {
+            name: string;
+            /** Format: int32 */
+            price_cents: number;
+            active: boolean;
+            /** Format: int32 */
+            sync_interval_seconds: number;
+            /** Format: int32 */
+            history_months: number;
+            /** Format: int32 */
+            max_stores: number | null;
+            /** Format: int32 */
+            max_users: number | null;
+            modules: ("core" | "realtime" | "export" | "pulse")[];
+        };
+        PlanInput: components["schemas"]["PlanFields"] & {
+            code: string;
+        };
+        PlanUpdate: components["schemas"]["PlanFields"] & {
+            /** Format: int32 */
+            version: number;
+        };
+        Plan: components["schemas"]["PlanInput"] & {
+            /** Format: uuid */
+            id: string;
+            /** Format: int32 */
+            version: number;
+        };
         LoginInput: {
             email: string;
             password: string;
@@ -255,7 +317,17 @@ export interface components {
             status: number;
         };
     };
-    responses: never;
+    responses: {
+        /** @description Invalid input (400), unauthenticated (401), forbidden (403), missing (404), stale/duplicate/in-use (409) or unavailable (503) */
+        CatalogError: {
+            headers: {
+                [name: string]: unknown;
+            };
+            content: {
+                "application/problem+json": components["schemas"]["Problem"];
+            };
+        };
+    };
     parameters: {
         CRMFRequest: "1";
     };
@@ -638,6 +710,120 @@ export interface operations {
                     "application/problem+json": components["schemas"]["Problem"];
                 };
             };
+        };
+    };
+    listPlans: {
+        parameters: {
+            query?: {
+                after?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Up to 100 plans in stable code order; support is read-only */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["Plan"][];
+                        next_cursor?: string;
+                    };
+                };
+            };
+            default: components["responses"]["CatalogError"];
+        };
+    };
+    createPlan: {
+        parameters: {
+            query?: never;
+            header: {
+                "X-CRMF-Request": components["parameters"]["CRMFRequest"];
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PlanInput"];
+            };
+        };
+        responses: {
+            /** @description Plan persisted and audited; platform_admin only */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Plan"];
+                };
+            };
+            default: components["responses"]["CatalogError"];
+        };
+    };
+    updatePlan: {
+        parameters: {
+            query?: never;
+            header: {
+                "X-CRMF-Request": components["parameters"]["CRMFRequest"];
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PlanUpdate"];
+            };
+        };
+        responses: {
+            /** @description Plan updated and audited; stale version is rejected with 409 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Plan"];
+                };
+            };
+            default: components["responses"]["CatalogError"];
+        };
+    };
+    deletePlan: {
+        parameters: {
+            query?: never;
+            header: {
+                "X-CRMF-Request": components["parameters"]["CRMFRequest"];
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** Format: int32 */
+                    version: number;
+                    /** @description Exact plan code */
+                    confirmation: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Unsubscribed plan deleted and audited */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            default: components["responses"]["CatalogError"];
         };
     };
 }

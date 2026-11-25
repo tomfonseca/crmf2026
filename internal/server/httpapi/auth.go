@@ -9,6 +9,7 @@ import (
 	"mime"
 	"net/http"
 	"net/netip"
+	"slices"
 	"strings"
 	"time"
 
@@ -19,6 +20,7 @@ import (
 )
 
 type AuthBackend interface {
+	Authenticate(context.Context, string, auth.Realm) (context.Context, error)
 	Login(context.Context, string, string, auth.Realm, netip.Addr) (auth.LoginResult, error)
 	CompletePasskey(context.Context, string, string, auth.Realm, netip.Addr) (auth.LoginResult, error)
 	StartEnrollment(context.Context, string, string, auth.Realm, netip.Addr) (auth.LoginResult, error)
@@ -28,6 +30,7 @@ type AuthBackend interface {
 }
 type AuthOptions struct {
 	Backend                      AuthBackend
+	Plans                        PlanBackend
 	TenantOrigin, PlatformOrigin string
 	Development                  bool
 	TrustedProxies               []netip.Prefix
@@ -46,6 +49,12 @@ func NewAuthenticated(probes []Probe, logger *slog.Logger, options AuthOptions) 
 	return newRouter(probes, logger, &options), nil
 }
 func authRoute(path string) (auth.Realm, string, bool) {
+	if path == "/v1/hq/plans" {
+		return auth.Platform, "GET, POST", true
+	}
+	if strings.HasPrefix(path, "/v1/hq/plans/") && !strings.Contains(strings.TrimPrefix(path, "/v1/hq/plans/"), "/") {
+		return auth.Platform, "PUT, DELETE", true
+	}
 	switch path {
 	case "/v1/auth/login", "/v1/auth/passkey", "/v1/auth/logout", "/v1/me/passkey":
 		return auth.Tenant, http.MethodPost, true
@@ -86,7 +95,7 @@ func (h *handler) authSecurity(next http.Handler) http.Handler {
 		if r.Method == http.MethodOptions {
 			w.Header().Add("Vary", "Access-Control-Request-Method")
 			w.Header().Add("Vary", "Access-Control-Request-Headers")
-			if supplied != origin || r.Header.Get("Access-Control-Request-Method") != method {
+			if supplied != origin || !slices.Contains(strings.Split(method, ", "), r.Header.Get("Access-Control-Request-Method")) {
 				problem(w, 403, "preflight_denied", "Requisição não permitida")
 				return
 			}
@@ -102,7 +111,7 @@ func (h *handler) authSecurity(next http.Handler) http.Handler {
 			w.WriteHeader(http.StatusNoContent)
 			return
 		}
-		if r.Method == http.MethodPost && (supplied != origin || len(r.Header.Values("X-CRMF-Request")) != 1 || r.Header.Get("X-CRMF-Request") != "1") {
+		if r.Method != http.MethodGet && r.Method != http.MethodHead && (supplied != origin || len(r.Header.Values("X-CRMF-Request")) != 1 || r.Header.Get("X-CRMF-Request") != "1") {
 			problem(w, 403, "csrf_denied", "Requisição não permitida")
 			return
 		}

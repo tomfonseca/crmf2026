@@ -1,20 +1,35 @@
+import { useCallback, useState } from "react";
 import { AuthPortal, createAuthClient } from "@crmf/auth";
+import { CatalogHost } from "./Plans";
+import { createPlanClient } from "./plans-client";
 
-function configuredClient() {
+function configuredClients() {
   try {
-    return createAuthClient(
-      import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8080",
-      "platform",
-      import.meta.env.DEV,
-    );
+    const base = import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8080";
+    return {
+      auth: createAuthClient(base, "platform", import.meta.env.DEV),
+      plans: createPlanClient(base, import.meta.env.DEV),
+    };
   } catch {
     return null;
   }
 }
-const client = configuredClient();
+const clients = configuredClients();
 export function App() {
-  return client ? (
-    <AuthPortal client={client} title="QG CRMF" />
+  const [epoch, setEpoch] = useState(0);
+  const [theme, setTheme] = useState<"light" | "dark">("dark");
+  const expire = useCallback(() => setEpoch((value) => value + 1), []);
+  return clients ? (
+    <AuthPortal key={epoch} client={clients.auth} title="QG CRMF" theme={theme}>
+      <CatalogHost
+        client={clients.plans}
+        onExpired={expire}
+        theme={theme}
+        toggleTheme={() =>
+          setTheme((value) => (value === "dark" ? "light" : "dark"))
+        }
+      />
+    </AuthPortal>
   ) : (
     <main>
       <h1>QG CRMF</h1>

@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/sdk/storage/azblob"
+	"github.com/crmf/crmf/internal/server/app"
 	"github.com/crmf/crmf/internal/server/auth"
 	"github.com/crmf/crmf/internal/server/config"
 	"github.com/crmf/crmf/internal/server/httpapi"
@@ -110,9 +111,14 @@ func run(ctx context.Context, args []string, logger *slog.Logger) error {
 			cancel()
 			return errors.New("initialize authentication engine")
 		}
+		catalog, err := app.NewPlanCatalog(startup, control)
+		if err != nil {
+			cancel()
+			return errors.New("initialize restricted QG plan catalog")
+		}
 		cancel()
 		probes = append(probes, engine.Ping)
-		router, err = httpapi.NewAuthenticated(probes, logger, httpapi.AuthOptions{Backend: engine, TenantOrigin: cfg.Auth.TenantOrigin, PlatformOrigin: cfg.Auth.PlatformOrigin, Development: cfg.Auth.Development, TrustedProxies: cfg.Auth.TrustedProxies})
+		router, err = httpapi.NewAuthenticated(probes, logger, httpapi.AuthOptions{Backend: engine, Plans: catalog, TenantOrigin: cfg.Auth.TenantOrigin, PlatformOrigin: cfg.Auth.PlatformOrigin, Development: cfg.Auth.Development, TrustedProxies: cfg.Auth.TrustedProxies})
 		if err != nil {
 			return errors.New("initialize authentication routes")
 		}

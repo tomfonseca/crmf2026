@@ -20,6 +20,9 @@ type fakeAuth struct {
 	result auth.LoginResult
 }
 
+func (f *fakeAuth) Authenticate(context.Context, string, auth.Realm) (context.Context, error) {
+	return nil, auth.ErrUnauthenticated
+}
 func (f *fakeAuth) Login(context.Context, string, string, auth.Realm, netip.Addr) (auth.LoginResult, error) {
 	f.calls++
 	return f.result, f.err
