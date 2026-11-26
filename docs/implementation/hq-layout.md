@@ -76,6 +76,36 @@ collapse, mobile, documentation accessibility and non-overlapping search text.
 The complete frontend suite passes with **67 unit and 15 browser tests**. This
 correction changes no authentication, permissions, API or backend capability.
 
+## Planos composition correction
+
+The actual authenticated Planos screens now follow the supplied listing, form,
+delete and discard screenshots: aligned page actions, compact search/segmented
+filters, persistent table structure for an empty real catalog, compact rows and
+module badges, five independent form cards in an adaptive 420px-minimum grid,
+unit suffixes, quota checkboxes, a native accessible active switch and a separate
+bottom action bar. Delete/discard use focused native dialogs with the reference
+headers, borders, widths, backdrop and distinct destructive buttons. The earlier
+all-board catalogue remains an illustrative development inventory, not visual
+acceptance of the other internal modules.
+
+SPA cancel/navigation, account/logout actions and browser history request a
+custom discard confirmation. Continuing editing/Escape preserves the draft;
+confirmed discard proceeds without saving. Browser reload/tab close retains the
+browser-native beforeunload protection. Navigation is blocked during submission;
+a confirmed server success releases that guard before returning to the listing.
+
+The added production-component browser regression first failed on the original
+composition. It checks action placement, five-card geometry, switch semantics,
+dialogs, draft retention, back navigation, dark styling and mobile overflow, and
+captures private screenshots for visual inspection. Existing CRUD still checks
+BRL cents, nullable quotas, frozen revisions, typed deletion, support read-only
+and session expiry. Complete local validation: **67 unit / 16 browser tests**,
+typecheck, lint and production build. No pixel-perfect acceptance is claimed.
+
+Example plans exist only in intercepted browser tests, never as seeded records
+or an API-to-mock fallback. Missing subscription counts remain unavailable;
+no fictional author/counts/plan prices are inserted to match a screenshot.
+
 ## Routes and boundaries
 
 - `/` retains the existing plan-catalog entry; `/overview` opens the planned panel.

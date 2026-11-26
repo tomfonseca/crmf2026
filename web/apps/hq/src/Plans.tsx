@@ -15,16 +15,18 @@ import {
   type PlanInput,
 } from "./plans-client";
 import "./hq.css";
+import "./plans.css";
+import {
+  PlanFields,
+  PlanIcon,
+  PlanDialog,
+  syncLabel,
+} from "./PlanPresentation";
 import { Networks } from "./Networks";
 import type { NetworkClient } from "./networks-client";
 import { Shell, type WorkspaceActions } from "./Shell";
 import { useQGRoute } from "./routing";
-import {
-  OperationalScreen,
-  routeFamily,
-  Pill,
-  QGDialog,
-} from "./OperationalScreens";
+import { OperationalScreen, routeFamily, Pill } from "./OperationalScreens";
 
 type Editor = { kind: "create" } | { kind: "edit" | "delete"; plan: Plan };
 const money = new Intl.NumberFormat("pt-BR", {
@@ -61,7 +63,7 @@ export function CatalogHost(props: {
   toggleTheme: () => void;
   actions?: WorkspaceActions;
 }) {
-  const [path, navigate] = useQGRoute();
+  const [path, navigate, leave] = useQGRoute();
   const scope = useScope();
   const support = !scope.grants.some((g) => g.role === "platform_admin");
   // Authenticated mount owns its cache. Logout/expiry discards it, not just UI.
@@ -82,8 +84,17 @@ export function CatalogHost(props: {
         support={support}
         theme={props.theme}
         toggleTheme={props.toggleTheme}
-        actions={props.actions}
+        actions={
+          props.actions
+            ? {
+                ...props.actions,
+                onAccount: () => leave.requestLeave(props.actions!.onAccount),
+                onLogout: () => leave.requestLeave(props.actions!.onLogout),
+              }
+            : undefined
+        }
       >
+        {leave.dialog}
         {path.startsWith("/tenants") &&
         !/\/tenants\/[^/]+/.test(path.replace("/tenants/new", "/tenants")) &&
         props.networks ? (
@@ -124,17 +135,16 @@ function Plans({
   theme: string;
   toggleTheme: () => void;
 }) {
-  const scope = useScope();
-  const canWrite = scope.grants.some(
-    (grant) => grant.role === "platform_admin",
-  );
-  const [after, setAfter] = useState("");
-  const [history, setHistory] = useState<string[]>([]);
-  const [editor, setEditor] = useState<Editor | null>(null);
-  const [notice, setNotice] = useState("");
-  const cache = useQueryClient();
-  const [search, setSearch] = useState(""),
+  const scope = useScope(),
+    canWrite = scope.grants.some((g) => g.role === "platform_admin");
+  const [after, setAfter] = useState(""),
+    [history, setHistory] = useState<string[]>([]),
+    [editor, setEditor] = useState<Editor | null>(null),
+    [deleting, setDeleting] = useState<Plan | null>(null),
+    [notice, setNotice] = useState(""),
+    [search, setSearch] = useState(""),
     [filter, setFilter] = useState("Todos");
+  const cache = useQueryClient();
   const query = useQuery({
     queryKey: ["hq-plans", after],
     queryFn: ({ signal }) => client.list(after, signal),
@@ -144,7 +154,10 @@ function Plans({
       onExpired();
   }, [query.error, onExpired]);
   useEffect(() => {
-    if (route === "/plans/new" && canWrite) setEditor({ kind: "create" });
+    if (route === "/plans/new" && canWrite)
+      setEditor((current) =>
+        current?.kind === "create" ? current : { kind: "create" },
+      );
     else if (/^\/plans\/[^/]+$/.test(route) && canWrite) {
       const plan = query.data?.items.find((p) => p.id === route.split("/")[2]);
       if (plan)
@@ -163,265 +176,319 @@ function Plans({
       (filter === "Todos" || (filter === "Ativos") === p.active),
   );
   function done(message: string) {
+    setDeleting(null);
     setEditor(null);
     setNotice(message);
     navigate("/plans");
     void cache.invalidateQueries({ queryKey: ["hq-plans"] });
   }
+  const edit = (plan: Plan) => {
+    setNotice("");
+    navigate("/plans/" + plan.id);
+  };
+  const actions = (plan: Plan) => (
+    <div className="plans-row-actions">
+      <button onClick={() => edit(plan)} aria-label={"Editar " + plan.name}>
+        <PlanIcon name="edit" />
+        Editar
+      </button>
+      <button
+        className="plans-trash"
+        onClick={() => {
+          setNotice("");
+          setDeleting(plan);
+        }}
+        aria-label={"Excluir " + plan.name}
+      >
+        <PlanIcon name="trash" />
+      </button>
+    </div>
+  );
   return (
-    <section className="hq-catalog" aria-labelledby="plans-title">
-      <header className="hq-heading">
+    <section className="hq-catalog plans-page" aria-labelledby="plans-title">
+      <header className="plans-heading">
         <div>
-          <p className="hq-eyebrow">CATÁLOGO / PLANOS</p>
-          <h1 tabIndex={-1} id="plans-title">
+          <nav className="plans-breadcrumb" aria-label="Trilha">
+            Catálogo › Planos
+            {editor?.kind === "edit"
+              ? " › " + editor.plan.code
+              : editor?.kind === "create"
+                ? " › Cadastrar"
+                : ""}
+          </nav>
+          <h1 id="plans-title" tabIndex={-1}>
             {editor
               ? editor.kind === "create"
                 ? "Cadastrar plano"
-                : editor.kind === "delete"
-                  ? "Planos"
-                  : "Editar plano"
+                : "Editar plano"
               : "Planos"}
           </h1>
+          {!editor && (
+            <p>
+              Planos definem preço, sincronização, histórico, limites e módulos
+              das assinaturas.
+            </p>
+          )}
         </div>
+        {!editor && canWrite && (
+          <button
+            className="plans-primary"
+            onClick={() => {
+              setNotice("");
+              navigate("/plans/new");
+            }}
+          >
+            <PlanIcon name="plus" />
+            Cadastrar plano
+          </button>
+        )}
       </header>
-      <p>
-        Planos definem preço, sincronização, histórico, limites e módulos das
-        assinaturas.
-      </p>
-
       {!canWrite && <p role="status">Acesso de suporte: somente leitura.</p>}
       {notice && <p role="status">{notice}</p>}
-      {!editor && canWrite && (
-        <button
-          onClick={() => {
-            setNotice("");
-            navigate("/plans/new");
-          }}
-        >
-          Cadastrar plano
-        </button>
-      )}
-      {editor && canWrite && (
+      {editor && canWrite ? (
         <PlanEditor
-          key={editor.kind === "create" ? "new" : editor.plan.id + editor.kind}
+          key={editor.kind === "create" ? "new" : editor.plan.id}
           editor={editor}
           client={client}
           onDone={done}
-          onCancel={() => {
-            setEditor(null);
-            navigate("/plans");
+          onCancel={() => navigate("/plans")}
+          onDelete={
+            editor.kind === "edit" ? () => setDeleting(editor.plan) : undefined
+          }
+          onExpired={onExpired}
+        />
+      ) : (
+        <>
+          <div className="plans-filters">
+            <label className="plans-search">
+              <span className="auth-sr-only">Buscar planos</span>
+              <PlanIcon name="search" />
+              <input
+                placeholder="Buscar por nome ou código"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+              />
+            </label>
+            <div
+              className="plans-segments"
+              role="group"
+              aria-label="Situação dos planos"
+            >
+              {["Todos", "Ativos", "Desativados"].map((f) => (
+                <button
+                  key={f}
+                  aria-pressed={filter === f}
+                  onClick={() => setFilter(f)}
+                >
+                  {f}
+                </button>
+              ))}
+            </div>
+          </div>
+          {query.isPending && <p role="status">Carregando planos…</p>}
+          {query.isError && (
+            <div role="alert">
+              <p>{planMessage(query.error)}</p>
+              <button onClick={() => void query.refetch()}>
+                Tentar novamente
+              </button>
+            </div>
+          )}
+          {!query.isError && query.data && (
+            <>
+              <div className="plans-table-panel">
+                <div
+                  className="plans-table-scroll"
+                  tabIndex={0}
+                  role="region"
+                  aria-label="Catálogo de planos"
+                >
+                  <table>
+                    <caption className="auth-sr-only">
+                      Limites e módulos por plano. Valores em reais.
+                    </caption>
+                    <thead>
+                      <tr>
+                        {[
+                          "Plano",
+                          "Preço",
+                          "Sincronização",
+                          "Histórico",
+                          "Limites",
+                          "Módulos",
+                          "Situação",
+                          "Assinaturas",
+                          ...(canWrite ? ["Ações"] : []),
+                        ].map((h) => (
+                          <th key={h} scope="col">
+                            {h}
+                          </th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {filtered?.map((plan) => (
+                        <tr key={plan.id}>
+                          <th scope="row" title={"Revisão " + plan.version}>
+                            {plan.name}
+                            <small>{plan.code}</small>
+                          </th>
+                          <td>{money.format(plan.price_cents / 100)}</td>
+                          <td>{syncLabel(plan.sync_interval_seconds)}</td>
+                          <td>{plan.history_months} meses</td>
+                          <td>
+                            {plan.max_stores === null
+                              ? "Ilimitadas"
+                              : plan.max_stores +
+                                (plan.max_stores === 1
+                                  ? " loja"
+                                  : " lojas")}{" "}
+                            ·{" "}
+                            {plan.max_users === null
+                              ? "Ilimitados"
+                              : plan.max_users + " usuários"}
+                          </td>
+                          <td>
+                            <div className="plans-modules">
+                              {plan.modules.map((m) => (
+                                <Pill
+                                  key={m}
+                                  tone={m === "pulse" ? "warn" : "plan"}
+                                >
+                                  {m}
+                                  {m === "pulse" ? " · fase 2" : ""}
+                                </Pill>
+                              ))}
+                              {!plan.modules.length && "Nenhum"}
+                            </div>
+                          </td>
+                          <td>
+                            <Pill tone={plan.active ? "ok" : "neutral"}>
+                              {plan.active ? "Ativo" : "Desativado"}
+                            </Pill>
+                          </td>
+                          <td title="Contagem de assinaturas não disponibilizada pela API">
+                            —
+                          </td>
+                          {canWrite && <td>{actions(plan)}</td>}
+                        </tr>
+                      ))}
+                      {!filtered?.length && (
+                        <tr>
+                          <td
+                            className="plans-empty-cell"
+                            colSpan={canWrite ? 9 : 8}
+                          >
+                            {query.data.items.length
+                              ? "Nenhum plano corresponde aos filtros nesta página."
+                              : "Nenhum plano nesta página."}
+                          </td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+                <footer className="plans-table-footer">
+                  <span>
+                    {filtered?.length ?? 0} planos nesta página · ordenados por
+                    código
+                  </span>
+                  <nav aria-label="Paginação dos planos">
+                    {(history.length > 0 || query.data.next_cursor) && (
+                      <>
+                        <button
+                          disabled={!history.length || query.isFetching}
+                          onClick={() => {
+                            setAfter(history[history.length - 1]);
+                            setHistory(history.slice(0, -1));
+                          }}
+                        >
+                          Página anterior
+                        </button>
+                        <button
+                          disabled={!query.data.next_cursor || query.isFetching}
+                          onClick={() => {
+                            setHistory([...history, after]);
+                            setAfter(query.data.next_cursor ?? "");
+                          }}
+                        >
+                          Próxima página
+                        </button>
+                      </>
+                    )}
+                    <button
+                      className="plans-refresh"
+                      disabled={query.isFetching}
+                      onClick={() => void query.refetch()}
+                    >
+                      <PlanIcon name="refresh" />
+                      Atualizar lista
+                    </button>
+                  </nav>
+                </footer>
+              </div>
+              <div className="qg-plan-cards">
+                {filtered?.map((plan) => (
+                  <article className="qg-card" key={plan.id}>
+                    <strong>{plan.name}</strong>
+                    <code>{plan.code}</code>
+                    <p>
+                      <Pill tone={plan.active ? "ok" : "neutral"}>
+                        {plan.active ? "Ativo" : "Desativado"}
+                      </Pill>
+                    </p>
+                    <p>
+                      {money.format(plan.price_cents / 100)} ·{" "}
+                      {plan.history_months} meses ·{" "}
+                      {syncLabel(plan.sync_interval_seconds)}
+                    </p>
+                    <p>
+                      {plan.max_stores ?? "Ilimitadas"} lojas ·{" "}
+                      {plan.max_users ?? "Ilimitados"} usuários
+                    </p>
+                    <p>{plan.modules.join(", ") || "Nenhum módulo"}</p>
+                    {canWrite && actions(plan)}
+                  </article>
+                ))}
+              </div>
+            </>
+          )}
+        </>
+      )}
+      {deleting && canWrite && (
+        <PlanEditor
+          key={"delete-" + deleting.id}
+          editor={{ kind: "delete", plan: deleting }}
+          client={client}
+          onDone={(message) => {
+            document
+              .querySelectorAll<HTMLFormElement>("form[data-dirty=true]")
+              .forEach((form) => {
+                form.dataset.dirty = "false";
+              });
+            done(message);
           }}
+          onCancel={() => setDeleting(null)}
           onExpired={onExpired}
         />
       )}
-      {query.isPending && <p role="status">Carregando planos…</p>}
-      {query.isError && (
-        <div role="alert">
-          <p>{planMessage(query.error)}</p>
-          <button onClick={() => void query.refetch()}>Tentar novamente</button>
-        </div>
-      )}
-      {(!editor || editor.kind === "delete") && (
-        <div className="qg-filters">
-          <label>
-            Buscar planos
-            <input value={search} onChange={(e) => setSearch(e.target.value)} />
-          </label>
-          <div className="qg-segment" aria-label="Situação dos planos">
-            {["Todos", "Ativos", "Desativados"].map((f) => (
-              <button
-                key={f}
-                aria-pressed={filter === f}
-                onClick={() => setFilter(f)}
-              >
-                {f}
-              </button>
-            ))}
-          </div>
-          <span className="qg-filter-note">
-            Filtros nesta página de até 100 planos.
-          </span>
-        </div>
-      )}
-      {(!editor || editor.kind === "delete") &&
-        !query.isError &&
-        query.data && (
-          <>
-            {query.data.items.length === 0 ? (
-              <p>Nenhum plano nesta página.</p>
-            ) : (
-              <div
-                className="hq-table-wrap qg-plan-table"
-                tabIndex={0}
-                role="region"
-                aria-label="Catálogo de planos"
-              >
-                <table>
-                  <caption>
-                    Limites e módulos por plano. Valores em reais.
-                  </caption>
-                  <thead>
-                    <tr>
-                      <th scope="col">Plano</th>
-                      <th scope="col">Preço</th>
-                      <th scope="col">Sincronização</th>
-                      <th scope="col">Histórico</th>
-                      <th scope="col">Limites</th>
-                      <th scope="col">Módulos</th>
-                      <th scope="col">Situação</th>
-                      <th scope="col">Assinaturas</th>
-                      {canWrite && <th scope="col">Ações</th>}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {filtered?.map((plan) => (
-                      <tr key={plan.id}>
-                        <th scope="row">
-                          {plan.name}
-                          <small>
-                            {plan.code} · revisão {plan.version}
-                          </small>
-                        </th>
-                        <td>{money.format(plan.price_cents / 100)}</td>
-                        <td>
-                          {(plan.sync_interval_seconds / 60).toLocaleString(
-                            "pt-BR",
-                            { maximumFractionDigits: 4 },
-                          )}{" "}
-                          min
-                        </td>
-                        <td>{plan.history_months} meses</td>
-                        <td>
-                          {plan.max_stores ?? "Ilimitadas"} lojas
-                          <br />
-                          {plan.max_users ?? "Ilimitados"} usuários
-                        </td>
-                        <td>
-                          {plan.modules.map((m) => (
-                            <Pill key={m} tone="plan">
-                              {m}
-                              {m === "pulse" ? " · fase 2" : ""}
-                            </Pill>
-                          ))}
-                          {!plan.modules.length && "Nenhum"}
-                        </td>
-                        <td>
-                          <Pill tone={plan.active ? "ok" : "neutral"}>
-                            {plan.active ? "Ativo" : "Desativado"}
-                          </Pill>
-                        </td>
-                        <td title="Contagem de assinaturas não disponibilizada pela API">
-                          —
-                        </td>
-                        {canWrite && (
-                          <td className="hq-actions">
-                            <button
-                              disabled={!!editor}
-                              onClick={() => {
-                                setNotice("");
-                                navigate("/plans/" + plan.id);
-                              }}
-                              aria-label={`Editar ${plan.name}`}
-                            >
-                              Editar
-                            </button>
-                            <button
-                              disabled={!!editor}
-                              className="auth-secondary"
-                              onClick={() => {
-                                setNotice("");
-                                setEditor({ kind: "delete", plan });
-                              }}
-                              aria-label={`Excluir ${plan.name}`}
-                            >
-                              Excluir
-                            </button>
-                          </td>
-                        )}
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
-            <div className="qg-plan-cards">
-              {filtered?.map((plan) => (
-                <article className="qg-card" key={plan.id}>
-                  <strong>{plan.name}</strong>
-                  <code>{plan.code}</code>
-                  <p>
-                    <Pill tone={plan.active ? "ok" : "neutral"}>
-                      {plan.active ? "Ativo" : "Desativado"}
-                    </Pill>
-                  </p>
-                  <p>
-                    {money.format(plan.price_cents / 100)} ·{" "}
-                    {plan.history_months} meses ·{" "}
-                    {plan.sync_interval_seconds / 60} min
-                  </p>
-                  <p>
-                    {plan.max_stores ?? "Ilimitadas"} lojas ·{" "}
-                    {plan.max_users ?? "Ilimitados"} usuários
-                  </p>
-                  <p>{plan.modules.join(", ") || "Nenhum módulo"}</p>
-                  {canWrite && (
-                    <button
-                      onClick={() => navigate("/plans/" + plan.id)}
-                      aria-label={"Editar " + plan.name}
-                    >
-                      Editar
-                    </button>
-                  )}
-                </article>
-              ))}
-            </div>
-            {filtered?.length === 0 && query.data.items.length > 0 && (
-              <p>Nenhum plano corresponde aos filtros nesta página.</p>
-            )}
-            <nav className="hq-actions" aria-label="Paginação dos planos">
-              <button
-                disabled={!history.length || !!editor || query.isFetching}
-                onClick={() => {
-                  setAfter(history[history.length - 1]);
-                  setHistory(history.slice(0, -1));
-                }}
-              >
-                Página anterior
-              </button>
-              <button
-                disabled={
-                  !query.data.next_cursor || !!editor || query.isFetching
-                }
-                onClick={() => {
-                  setHistory([...history, after]);
-                  setAfter(query.data.next_cursor ?? "");
-                }}
-              >
-                Próxima página
-              </button>
-              <button
-                disabled={!!editor || query.isFetching}
-                onClick={() => void query.refetch()}
-              >
-                Atualizar lista
-              </button>
-            </nav>
-          </>
-        )}
     </section>
   );
 }
+
 function PlanEditor({
   editor,
   client,
   onDone,
   onCancel,
+  onDelete,
   onExpired,
 }: {
   editor: Editor;
   client: PlanClient;
   onDone: (message: string) => void;
   onCancel: () => void;
+  onDelete?: () => void;
   onExpired: () => void;
 }) {
   const original = editor.kind === "create" ? undefined : editor.plan;
@@ -435,7 +502,7 @@ function PlanEditor({
   const formRef = useRef<HTMLFormElement>(null);
   useEffect(() => {
     const warn = (e: BeforeUnloadEvent) => {
-      if (dirty && !submitting.current) {
+      if (formRef.current?.dataset.dirty === "true" && !submitting.current) {
         e.preventDefault();
         e.returnValue = "";
       }
@@ -444,11 +511,9 @@ function PlanEditor({
     return () => window.removeEventListener("beforeunload", warn);
   }, [dirty]);
   const controller = useRef(new AbortController());
-  const heading = useRef<HTMLHeadingElement>(null);
   const submitting = useRef(false);
   useEffect(() => {
     controller.current = new AbortController();
-    heading.current?.focus();
     const active = controller.current;
     return () => active.abort();
   }, []);
@@ -495,7 +560,10 @@ function PlanEditor({
     },
     onSuccess: () => {
       if (!controller.current.signal.aborted) {
-        if (formRef.current) formRef.current.dataset.dirty = "false";
+        if (formRef.current) {
+          formRef.current.dataset.dirty = "false";
+          formRef.current.dataset.saving = "false";
+        }
         setDirty(false);
         onDone(editor.kind === "delete" ? "Plano excluído." : "Plano salvo.");
       }
@@ -532,14 +600,7 @@ function PlanEditor({
     mutation.mutate(form);
   }
   const content = (
-    <section className="hq-editor" aria-labelledby="editor-title">
-      <h3 ref={heading} tabIndex={-1} id="editor-title">
-        {editor.kind === "create"
-          ? "Cadastrar plano"
-          : editor.kind === "edit"
-            ? "Editar plano"
-            : "Excluir plano"}
-      </h3>
+    <section className="plans-editor">
       {validation && <p role="alert">{validation}</p>}
       {mutation.isError && <p role="alert">{planMessage(mutation.error)}</p>}
       {mutation.error instanceof PlanFailure &&
@@ -560,6 +621,7 @@ function PlanEditor({
               type="button"
               onClick={() => {
                 setDirty(false);
+                if (formRef.current) formRef.current.dataset.dirty = "false";
                 onDone(
                   "Lista atualizada. Abra o plano para revisar a versão atual.",
                 );
@@ -591,21 +653,33 @@ function PlanEditor({
         )}
       <form
         ref={formRef}
-        data-dirty={dirty}
-        onChange={() => setDirty(true)}
+        className="plans-form"
+        data-dirty={editor.kind !== "delete" && dirty}
+        data-saving={mutation.isPending}
+        onChange={(e) => {
+          if (editor.kind !== "delete") {
+            e.currentTarget.dataset.dirty = "true";
+            setDirty(true);
+          }
+        }}
         onSubmit={submit}
       >
-        <fieldset disabled={mutation.isPending}>
+        <fieldset className="plans-fields" disabled={mutation.isPending}>
           {editor.kind === "delete" ? (
             <>
               <p>
-                Exclusão permanente de <strong>{original?.name}</strong>. Planos
-                com assinaturas não podem ser excluídos; desative-os.
+                A exclusão de <strong>{original?.name}</strong> é permanente e
+                fica registrada na auditoria.
+                <br />
+                Para confirmar, digite o código <code>{original?.code}</code>.
               </p>
-              <label>
-                Digite o código {original?.code} para confirmar
+              <label className="plans-delete-field">
+                Código do plano
                 <input
                   name="confirmation"
+                  aria-label={
+                    "Digite o código " + original?.code + " para confirmar"
+                  }
                   autoComplete="off"
                   required
                   maxLength={64}
@@ -616,208 +690,79 @@ function PlanEditor({
             </>
           ) : (
             <>
-              <div className="hq-form-grid">
-                <h2 className="qg-form-section">Identificação</h2>
-                <label>
-                  Código
-                  <input
-                    name="code"
-                    required
-                    pattern="[a-z0-9][a-z0-9_-]{0,63}"
-                    maxLength={64}
-                    readOnly={!!original}
-                    defaultValue={original?.code}
-                  />
-                  <small>
-                    Identificador imutável, em letras minúsculas, números, _ ou
-                    -.
-                  </small>
-                </label>
-                <label>
-                  Nome
-                  <input
-                    name="name"
-                    required
-                    maxLength={120}
-                    defaultValue={original?.name}
-                  />
-                </label>
-                <h2 className="qg-form-section">Preço e dados</h2>
-                <label>
-                  Preço (R$)
-                  <input
-                    name="price"
-                    required
-                    inputMode="decimal"
-                    placeholder="29,90"
-                    maxLength={11}
-                    defaultValue={
-                      original
-                        ? `${Math.floor(original.price_cents / 100)},${String(original.price_cents % 100).padStart(2, "0")}`
-                        : ""
-                    }
-                  />
-                </label>
-                <label>
-                  Intervalo de sincronização (minutos)
-                  <input
-                    name="sync"
-                    type="number"
-                    min={1 / 60}
-                    max={2147483647 / 60}
-                    step="any"
-                    required
-                    defaultValue={
-                      original ? original.sync_interval_seconds / 60 : undefined
-                    }
-                  />
-                </label>
-                <label>
-                  Histórico (meses)
-                  <input
-                    name="history"
-                    type="number"
-                    min={1}
-                    max={2147483647}
-                    step={1}
-                    required
-                    defaultValue={original?.history_months}
-                  />
-                </label>
-                <h2 className="qg-form-section">Limites</h2>
-                <label>
-                  Máximo de lojas (vazio = ilimitado)
-                  <input
-                    name="stores"
-                    type="number"
-                    min={1}
-                    max={2147483647}
-                    step={1}
-                    defaultValue={original?.max_stores ?? ""}
-                    disabled={unlimitedStores}
-                    required={!unlimitedStores}
-                  />
-                </label>
-                <label className="hq-check">
-                  <input
-                    type="checkbox"
-                    checked={unlimitedStores}
-                    onChange={(e) => setUnlimitedStores(e.target.checked)}
-                  />
-                  Ilimitado — lojas
-                </label>
-                <label>
-                  Máximo de usuários (vazio = ilimitado)
-                  <input
-                    name="users"
-                    type="number"
-                    min={1}
-                    max={2147483647}
-                    step={1}
-                    defaultValue={original?.max_users ?? ""}
-                    disabled={unlimitedUsers}
-                    required={!unlimitedUsers}
-                  />
-                </label>
-                <label className="hq-check">
-                  <input
-                    type="checkbox"
-                    checked={unlimitedUsers}
-                    onChange={(e) => setUnlimitedUsers(e.target.checked)}
-                  />
-                  Ilimitado — usuários
-                </label>
-              </div>
-              <fieldset>
-                <legend>Módulos liberados</legend>
-                {(["core", "realtime", "export", "pulse"] as const).map(
-                  (module) => (
-                    <label className="hq-check" key={module}>
-                      <input
-                        name="module"
-                        type="checkbox"
-                        value={module}
-                        disabled={module === "pulse"}
-                        defaultChecked={original?.modules.includes(module)}
-                      />
-                      {module}
-                      {module === "pulse" ? " (previsto para fase 2)" : ""}
-                    </label>
-                  ),
-                )}
-                {original?.modules.includes("pulse") && (
-                  <input type="hidden" name="module" value="pulse" />
-                )}
-                <p>
-                  Sem seleção, nenhum módulo é liberado. Pulse permanece
-                  previsto para fase 2; valores existentes são preservados.
-                </p>
-              </fieldset>
-              <h2 className="qg-form-section">Situação</h2>
-              <label className="hq-check">
-                <input
-                  name="active"
-                  type="checkbox"
-                  defaultChecked={original?.active ?? true}
-                />
-                Plano ativo
-              </label>
-              <p>
-                Alterações afetam as assinaturas vinculadas. Desativar preserva
-                as assinaturas existentes.
-              </p>
+              <PlanFields
+                original={original}
+                unlimitedStores={unlimitedStores}
+                unlimitedUsers={unlimitedUsers}
+                setUnlimitedStores={setUnlimitedStores}
+                setUnlimitedUsers={setUnlimitedUsers}
+              />
             </>
           )}
-          <div className="hq-actions">
-            {dirty && <Pill tone="warn">Alterações não salvas</Pill>}
-            <button
-              type="submit"
-              disabled={
-                mutation.isPending ||
-                (editor.kind === "delete" &&
-                  confirmation.toLowerCase() !== original?.code)
-              }
-            >
-              {mutation.isPending
-                ? "Salvando…"
-                : editor.kind === "delete"
-                  ? "Confirmar exclusão"
-                  : "Salvar plano"}
-            </button>
-            <button
-              type="button"
-              className="auth-secondary"
-              disabled={mutation.isPending}
-              onClick={() => {
-                if (
-                  !dirty ||
-                  window.confirm("Descartar alterações não salvas?")
-                ) {
-                  if (formRef.current) formRef.current.dataset.dirty = "false";
-                  onCancel();
+          <footer
+            className={
+              editor.kind === "delete"
+                ? "plans-dialog-actions"
+                : "plans-form-actions"
+            }
+          >
+            {onDelete && (
+              <button
+                type="button"
+                className="plans-outline-danger"
+                onClick={onDelete}
+              >
+                <PlanIcon name="trash" />
+                Excluir plano
+              </button>
+            )}
+            <div className="plans-action-right">
+              <button
+                type="button"
+                disabled={mutation.isPending}
+                onClick={onCancel}
+              >
+                Cancelar
+              </button>
+              <button
+                className={
+                  editor.kind === "delete" ? "plans-danger" : "plans-primary"
                 }
-              }}
-            >
-              Cancelar
-            </button>
-          </div>
+                type="submit"
+                disabled={
+                  mutation.isPending ||
+                  (editor.kind === "delete" &&
+                    confirmation.toLowerCase() !== original?.code)
+                }
+              >
+                {mutation.isPending
+                  ? editor.kind === "delete"
+                    ? "Excluindo…"
+                    : "Salvando…"
+                  : editor.kind === "delete"
+                    ? "Excluir plano"
+                    : "Salvar plano"}
+              </button>
+            </div>
+          </footer>
         </fieldset>
       </form>
     </section>
   );
   return editor.kind === "delete" ? (
-    <QGDialog
+    <PlanDialog
       title={
         mutation.error instanceof PlanFailure &&
         mutation.error.kind === "plan_in_use"
           ? "Não é possível excluir este plano"
           : "Excluir plano"
       }
-      destructive
-      onClose={onCancel}
+      onClose={() => {
+        if (!mutation.isPending) onCancel();
+      }}
     >
       {content}
-    </QGDialog>
+    </PlanDialog>
   ) : (
     content
   );

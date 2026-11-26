@@ -161,7 +161,7 @@ for (const support of [false, true]) {
         .getByLabel("Digite o código synthetic para confirmar")
         .fill("synthetic");
       await page
-        .getByRole("button", { name: "Confirmar exclusão", exact: true })
+        .getByRole("button", { name: "Excluir plano", exact: true })
         .click();
       await expect(page.getByText("Nenhum plano nesta página.")).toBeVisible();
       expect(mutations).toEqual(["POST", "PUT", "DELETE"]);
