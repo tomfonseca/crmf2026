@@ -58,7 +58,7 @@ jobs:
       - name: Capture synthetic auth mail locally
         run: |
           python scripts/tasks.py mail-dev
-          MAILPIT_TEST_URL=http://localhost:18025 go test -tags=integration ./internal/server/auth -run '^TestAuthMailCapture$' -count=1
+          MAILPIT_TEST_URL=http://localhost:18025 go test -tags=integration ./internal/server/auth -run '^Test(AuthMailCapture|PasswordResetKernelMailpitRoundTrip)$' -count=1
       - run: make security
       - run: docker build -f deploy/Dockerfile -t crmf-server:ci .
       - run: docker build -f deploy/vps/Dockerfile.web -t crmf-web-edge:ci .

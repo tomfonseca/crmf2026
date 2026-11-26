@@ -368,6 +368,16 @@ use disposable .invalid recipients, not operator accounts. See
 [scope, proof and next units](local-auth-mail.md); token issuance/consumption,
 HTTP/frontend flows and production ACS acceptance remain pending.
 
+## Password-reset proof kernel
+
+Control migrations 00015/00016 and the internal auth methods now bind one-use
+30-minute reset proofs to identity/realm/password epoch, reject replay/expiry
+and atomically change the password while preserving factors and revoking all
+sessions/challenges. The issuer remains private; tests use only disposable
+identities, including a real Mailpit round trip.
+See [proof contract and mandatory public-flow gates](password-reset-kernel.md).
+There is no public forgot/reset endpoint or frontend integration yet.
+
 ## Not delivered / next increments
 
 This is **M1 started, not M1 complete**. Authentication endpoints are available
