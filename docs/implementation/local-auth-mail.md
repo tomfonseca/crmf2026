@@ -61,16 +61,18 @@ Este módulo não está conectado ao Engine/HTTP ou aos formulários públicos.
 Forgot/reset/aceite de convite continuam indisponíveis; abrir uma dessas URLs
 não autentica ninguém. O frontend atual ainda descarta os tokens recebidos.
 
-Não há emissão/consumo de token, registro de usuário, senha alterada, sessão
-criada, grant, auditoria de convite/reset ou migração nesta entrega. Não importar
-ou resetar o administrador existente para testar o futuro fluxo.
+Este módulo de transporte não emite/consome tokens nem altera identidades.
+O [núcleo interno separado](password-reset-kernel.md) já implementa prova de
+recuperação no banco e tem teste Mailpit com identidade descartável; emissão
+continua privada, sem pedido público ou ligação dos formulários. Não importar
+ou resetar o administrador existente para testar o fluxo.
 
 Próximas unidades:
 
 - [ ] Emissão de recuperação com resposta uniforme, limites persistentes e
   prevenção de enumeração; não enviar se a conta/realm/política não autorizarem.
-- [ ] Consumo atômico, prazo de 30 min, uso único e revogação de sessões/desafios,
-  preservando passkeys e códigos de recuperação.
+- [x] Núcleo interno de consumo atômico, prazo de 30 min, uso único e revogação
+  de sessões/desafios, preservando passkeys e códigos de recuperação. Ainda sem HTTP/UI.
 - [ ] Contratos HTTP gerados e formulários que mantenham o token apenas em
   memória, removendo-o da URL antes de qualquer navegação externa.
 - [ ] Convite autorizado, quota de usuários/grants/lojas, validade de 72h e aceite

@@ -1,0 +1,3 @@
+# Bind password-reset proof without exposing an issuer
+
+Implement private, transactionally serialized password-reset issuance and consumption before exposing the public forgot-password flow: the latter must decouple account lookup/delivery from a uniform response and add identifier/global abuse controls. Persist only the opaque token's hash, bind realm/purpose/password epoch, and invalidate it on identity or grant changes; use the database clock and recheck expiry after password hashing. A successful email proof can replace the password and clear password lockout, but creates no session and preserves every passkey/recovery credential; existing security triggers revoke all sessions and challenges.

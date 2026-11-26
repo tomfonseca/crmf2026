@@ -19,3 +19,15 @@ type AuthPasskeyChallenge struct {
 	ExpiresAt  pgtype.Timestamptz
 	UsedAt     pgtype.Timestamptz
 }
+
+type AuthUserToken struct {
+	TokenHash     []byte
+	UserID        pgtype.UUID
+	Kind          string
+	ExpiresAt     pgtype.Timestamptz
+	UsedAt        pgtype.Timestamptz
+	CreatedAt     pgtype.Timestamptz
+	UpdatedAt     pgtype.Timestamptz
+	Realm         pgtype.Text
+	PasswordEpoch pgtype.Timestamptz
+}
