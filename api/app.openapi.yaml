@@ -437,7 +437,7 @@ components:
       allOf:
         - {$ref: '#/components/schemas/PlanFields'}
         - type: object
-          required: [code]
+          description: Omit code to assign an immutable server-generated identifier. Explicit lowercase codes remain supported for compatibility.
           properties:
             code: {type: string, pattern: '^[a-z0-9][a-z0-9_-]{0,63}$'}
     PlanUpdate:
@@ -451,7 +451,7 @@ components:
       allOf:
         - {$ref: '#/components/schemas/PlanInput'}
         - type: object
-          required: [id, version]
+          required: [id, version, code]
           properties:
             id: {type: string, format: uuid}
             version: {type: integer, format: int32, minimum: 1}

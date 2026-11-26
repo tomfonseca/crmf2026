@@ -25,6 +25,13 @@ func TestCatalogRejectsWithoutPrincipalBeforeDatabase(t *testing.T) {
 		t.Fatal(err)
 	}
 }
+func TestAutomaticPlanCode(t *testing.T) {
+	id := uuid.MustParse("00000000-0000-7000-8000-000000000001")
+	code := automaticPlanCode(id)
+	if code != "p_00000000000070008000000000000001" || !validPlanCode(code) {
+		t.Fatal("invalid automatic code")
+	}
+}
 func TestPlanValidation(t *testing.T) {
 	valid := func() PlanDetails {
 		return PlanDetails{Name: "Plano sintético", PriceCents: 1000, Active: true, SyncIntervalSeconds: 180, HistoryMonths: 12, Modules: []string{"core"}}

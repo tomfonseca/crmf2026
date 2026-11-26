@@ -15,6 +15,11 @@ ERP. No commercial plans, prices, tenants or subscriptions are seeded.
   collation. `next_cursor` is the last returned code when another page exists.
   Unknown/duplicate/malformed query filters are rejected.
 - `POST /v1/hq/plans`: all policy fields required; creates a UUIDv7 plan.
+  Omit `code` for automatic assignment: `p_` plus the complete UUID hex without
+  separators. It does not depend on the bounded listing, a browser counter or
+  the plan name. Explicit valid lowercase codes remain supported by the API for
+  compatibility; empty/null/uppercase codes are rejected if supplied. Responses
+  always contain the final code. Existing codes are never rewritten.
 - `PUT /v1/hq/plans/{id}`: full replacement of mutable policy fields plus
   required `version`. ID/code are immutable. Stale revisions return 409.
 - `DELETE /v1/hq/plans/{id}`: requires current `version` and exact code as
@@ -55,8 +60,10 @@ plans. Subscription reassignment and its eligibility checks are still pending.
 The authenticated QG owns its TanStack Query cache, which is not shared across
 authenticated mounts; unobserved query/mutation data has zero GC retention.
 401 remounts authentication and removes operational UI. Outages never become
-an empty/synthetic success. The editor uses immutable identity, explicit
-unlimited quotas, revision checks and a typed-code delete confirmation.
+an empty/synthetic success. The editor requests automatic codes: create shows a read-only **Gerado
+automaticamente** placeholder and omits `code` entirely from the POST. Editing shows the assigned immutable
+code. It retains explicit unlimited quotas, revision checks and a typed-code
+delete confirmation.
 Canceled/unmounted transport does not promise that an already committed server
 transaction was rolled back. Refresh before retrying an uncertain write.
 
@@ -77,6 +84,22 @@ Rebuild the local API with `python scripts/tasks.py auth-dev`, then frontend
 containers with `docker compose up -d --no-deps --build hq dash`.
 Open **http://localhost:5173/** and refresh; existing accounts/passkeys are kept.
 There is no need to rerun administrator bootstrap.
+
+## Automatic code verification
+
+Generated identifiers retain the complete UUIDv7 identity; existing database
+unique constraints remain authoritative. Concurrent requests do not calculate
+`max(code)+1`, reuse a client page or require migrations/new database privileges.
+This is automatic identity allocation, not idempotent creation: after an uncertain
+write, refresh the catalog before manually retrying. Automatic mutation retries
+remain disabled.
+
+Real HTTPS/PostgreSQL tests create plans concurrently without code and verify
+unique persisted codes, atomic actor audit, immutability on update, strict JSON
+and support denial. Existing manual-code, delete/subscription, revision and
+session tests still pass. Browser tests create without typing/sending a code,
+read the assigned code on edit and use it for deletion. No real catalog examples
+or operator identities are created by the browser fixtures.
 
 ## Remaining M1
 

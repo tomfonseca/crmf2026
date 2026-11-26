@@ -126,6 +126,18 @@ rejected codes, no silent normalization/no network for invalid creation and the
 reported Essencial payload with explicit `p01`. Full frontend suite: **70 unit /
 16 browser tests**, plus typecheck/lint/build.
 
+## Automatic plan codes
+
+Superseding the editable-code creation flow above, the real QG now requests
+server-generated identifiers. Create displays **Gerado automaticamente** in a
+read-only field, sends no `code`, then uses the authoritative returned value.
+Editing and deleting retain immutable-code/revision protections. Codes are
+`p_` plus the complete UUIDv7 hex, not guessed sequential values from a partial
+page. Existing codes are preserved. See [catalog policy](hq-plans.md) for explicit
+legacy-code API compatibility, concurrent allocation and uncertain-write limits.
+Current full frontend verification: **71 unit / 16 browser tests**; real
+PostgreSQL/HTTPS integration covers concurrent automatic allocation and audit.
+
 ## Routes and boundaries
 
 - `/` retains the existing plan-catalog entry; `/overview` opens the planned panel.

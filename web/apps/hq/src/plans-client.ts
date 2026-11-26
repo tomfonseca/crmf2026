@@ -121,7 +121,7 @@ export function createPlanClient(
       }),
     create: (body, signal) =>
       guarded(async () => {
-        if (!isPlanCode(body.code))
+        if (body.code !== undefined && !isPlanCode(body.code))
           throw new PlanFailure(400, "invalid_plan_code");
         const result = await api.POST("/v1/hq/plans", {
           ...mutation(signal),
