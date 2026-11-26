@@ -55,6 +55,14 @@ persiste razão social, cidade/UF, contatos, fuso e referência de cobrança, co
 versionada e sugestões automáticas ao informar o CNPJ (sem obrigar a consulta).
 `/__qg-design`, somente em desenvolvimento, reúne as 125 pranchetas.
 
+## Homologação web na VPS
+
+O [runbook da entrada web](docs/runbooks/vps-web-homologation.md) descreve a imagem
+production de QG/login com Caddy, ensaio em loopback e HTTPS após validação do DNS.
+A API fica explicitamente em **503** até a implantação segura de identidade e
+custódia; isto não publica o dashboard sintético como negócio nem conclui M1.
+A arquitetura de produção Azure permanece a da especificação.
+
 ## Prévia do dashboard (sem backend)
 
 ```sh

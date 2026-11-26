@@ -1,0 +1,32 @@
+# Build on the workstation/CI, never on the 1-vCPU homologation VPS.
+FROM node:22-bookworm-slim@sha256:be979e5523c76fa4d5ca4ebd3099078f220aa47ec39c48ad5b5df9314debd6eb AS build
+RUN corepack enable && corepack prepare pnpm@10.29.3 --activate
+WORKDIR /web
+COPY web/package.json web/pnpm-lock.yaml web/pnpm-workspace.yaml web/tsconfig.base.json ./
+COPY web/packages/api-client ./packages/api-client
+COPY web/packages/auth ./packages/auth
+COPY web/packages/ui ./packages/ui
+COPY web/packages/charts ./packages/charts
+COPY web/apps/hq ./apps/hq
+COPY web/apps/dash ./apps/dash
+ENV VITE_API_BASE_URL=https://api.crmfarma.app.br
+RUN pnpm install --frozen-lockfile && pnpm -r build
+
+# Upstream v2.11.9 bundles x/net v0.60.0 (CVE-2026-78661).
+# Rebuild its standard modules against checked-in, checksum-locked fixed deps.
+FROM golang:1.27.4-bookworm@sha256:ce59b41415e2524ae99926fe1f37ce48ba8c194dcbd2a56a65436cdcefa2bd34 AS proxy
+WORKDIR /proxy
+COPY deploy/vps/proxy/go.mod deploy/vps/proxy/go.sum ./
+RUN go mod download
+COPY deploy/vps/proxy/main.go ./
+RUN CGO_ENABLED=0 GOMAXPROCS=2 go build -p 2 -trimpath -ldflags="-s -w -X github.com/caddyserver/caddy/v2.CustomVersion=v2.11.9-crmf.1" -o /out/caddy .
+
+FROM caddy:2-alpine@sha256:003a97808e781aa9f7e75cc2f43d34d461099031faf5e20faefb9f61126836f0
+RUN mkdir -p /srv/qg /srv/dash /data /config && chown -R 10001:10001 /data /config
+COPY --from=build /web/apps/hq/dist/ /srv/qg/
+COPY --from=build /web/apps/dash/dist/ /srv/dash/
+COPY deploy/vps/Caddyfile /etc/caddy/Caddyfile
+COPY --from=proxy /out/caddy /usr/bin/caddy
+USER 10001:10001
+EXPOSE 80 443
+HEALTHCHECK --interval=5s --timeout=3s --start-period=5s --retries=6 CMD wget -q -O /dev/null http://127.0.0.1:2015/healthz || exit 1

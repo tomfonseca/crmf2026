@@ -57,10 +57,34 @@ jobs:
       - run: make integration
       - run: make security
       - run: docker build -f deploy/Dockerfile -t crmf-server:ci .
+      - run: docker build -f deploy/vps/Dockerfile.web -t crmf-web-edge:ci .
+      - name: Test production web edge on loopback
+        env:
+          CRMF_EDGE_IMAGE: crmf-web-edge:ci
+          QG_SITE: http://qg.crmfarma.app.br
+          DASH_SITE: http://dash.crmfarma.app.br
+          API_SITE: http://api.crmfarma.app.br
+        run: |
+          docker compose -p crmf-web-edge-ci -f deploy/vps/compose.web.yaml up -d --wait --wait-timeout 30
+          CRMF_WEB_EDGE_URL=http://127.0.0.1:18081 python -m unittest discover -s tests -p test_web_edge.py -v
+      - if: always()
+        name: Stop web-edge test container
+        env:
+          CRMF_EDGE_IMAGE: crmf-web-edge:ci
+        run: |
+          docker compose -p crmf-web-edge-ci -f deploy/vps/compose.web.yaml logs --tail=30
+          docker compose -p crmf-web-edge-ci -f deploy/vps/compose.web.yaml down
       - uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
         with:
           version: v0.76.2
           image-ref: crmf-server:ci
+          severity: HIGH,CRITICAL
+          ignore-unfixed: true
+          exit-code: "1"
+      - uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
+        with:
+          version: v0.76.2
+          image-ref: crmf-web-edge:ci
           severity: HIGH,CRITICAL
           ignore-unfixed: true
           exit-code: "1"
