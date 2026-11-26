@@ -21,11 +21,12 @@ var ErrRateLimited = errors.New("too many authentication attempts")
 // Engine owns credential proof and session issuance. The key protects durable
 // ceremony/credential state; authenticator private keys never reach the server.
 type Engine struct {
-	sessions  *Service
-	passwords *Passwords
-	secrets   cipher.AEAD
-	dummyHash string
-	passkeys  map[Realm]*webauthn.WebAuthn
+	sessions    *Service
+	passwords   *Passwords
+	secrets     cipher.AEAD
+	dummyHash   string
+	recoveryKey [32]byte
+	passkeys    map[Realm]*webauthn.WebAuthn
 }
 
 func (*Engine) String() string   { return "[redacted authentication engine]" }
@@ -66,7 +67,7 @@ func NewEngine(ctx context.Context, sessions *Service, key []byte, tenantOrigin,
 	if err != nil {
 		return nil, err
 	}
-	return &Engine{sessions: sessions, passwords: passwords, secrets: aead, dummyHash: hash, passkeys: providers}, nil
+	return &Engine{sessions: sessions, passwords: passwords, secrets: aead, dummyHash: hash, passkeys: providers, recoveryKey: recoveryMAC(key, "recovery-index-v1", "")}, nil
 }
 func (e *Engine) Login(ctx context.Context, email, password string, realm Realm, ip netip.Addr) (LoginResult, error) {
 	if err := e.reserveAttempt(ctx, ip); err != nil {

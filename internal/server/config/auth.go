@@ -12,10 +12,11 @@ type Auth struct {
 	Enabled, Development                                             bool
 	DatabaseURL, KeyFile, KeyVaultSecretURL, ManagedIdentityClientID string
 	TenantOrigin, PlatformOrigin                                     string
+	RecoveryMailpitURL                                               string
 	TrustedProxies                                                   []netip.Prefix
 }
 
-func loadAuth(lookup func(string) string) (Auth, error) {
+func LoadAuth(lookup func(string) string) (Auth, error) {
 	a := Auth{Development: lookup("APP_ENV") == "development"}
 	enabled := lookup("AUTH_ENABLED")
 	if enabled != "" && enabled != "true" && enabled != "false" {
@@ -54,6 +55,10 @@ func loadAuth(lookup func(string) string) (Auth, error) {
 			}
 			a.TrustedProxies = append(a.TrustedProxies, p.Masked())
 		}
+	}
+	a.RecoveryMailpitURL = lookup("AUTH_RECOVERY_MAILPIT_URL")
+	if a.RecoveryMailpitURL != "" && !a.Development {
+		return Auth{}, errors.New("local recovery is development-only; production provider is not configured")
 	}
 	return a, nil
 }

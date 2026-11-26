@@ -662,7 +662,7 @@ Autenticação e autorização são próprias: e-mail e senha, MFA por passkeys/
 | `POST /v1/auth/login` e `POST /v1/hq/auth/login` | E-mail e senha; devolvem sessão ou pedido de MFA |
 | `POST /v1/auth/passkey` e `POST /v1/hq/auth/passkey` | Prova WebAuthn (cadastro/assertion) ou código de recuperação de uso único; concluem o login |
 | `POST /v1/auth/logout` e `POST /v1/hq/auth/logout` | Encerram a sessão atual |
-| `POST /v1/auth/password/forgot` | Envia link de redefinição; sempre responde `202` |
+| `POST /v1/auth/password/forgot` e `POST /v1/hq/auth/password/forgot` | Enfileira sem lookup/envio síncrono; `202` vazio uniforme para contas desconhecidas/inelegíveis e limites. Erros de contrato/origem continuam `400`/`403`/`415`; indisponibilidade global retorna `503`, nunca aceite fictício (ADR0016). Captura local opt-in não substitui ACS/aceite público |
 | `POST /v1/auth/password/reset` | Define nova senha com o token do link |
 | `POST /v1/auth/invite/accept` | Define a senha inicial com o token do convite |
 | `GET` e `DELETE /v1/me/sessions` | Lista e encerra as próprias sessões |

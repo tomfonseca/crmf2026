@@ -39,6 +39,7 @@ import {
 } from "./screens";
 import { AccountSecurity } from "./AccountSecurity";
 import { PasswordReset } from "./PasswordReset";
+import { RecoveryRequest } from "./RecoveryRequest";
 import "@crmf/ui/styles.css";
 import "./auth.css";
 type State =
@@ -309,6 +310,22 @@ export function AuthPortal({
   };
   const publicScreen = publicScreens[path];
   const common = { realm, theme, toggle };
+  if (
+    publicScreen === "forgot" &&
+    client.requestRecovery &&
+    state.kind !== "passkey" &&
+    state.kind !== "recovery"
+  )
+    return (
+      <AuthFrame {...common}>
+        <RecoveryRequest
+          key={realm}
+          realm={realm}
+          request={client.requestRecovery}
+          onLogin={goLogin}
+        />
+      </AuthFrame>
+    );
   if (
     publicScreen === "reset" &&
     client.resetPassword &&

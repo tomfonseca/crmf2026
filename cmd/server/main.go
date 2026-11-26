@@ -37,11 +37,17 @@ func main() {
 
 func run(ctx context.Context, args []string, logger *slog.Logger) error {
 	if len(args) == 0 {
-		return errors.New("usage: server api | worker | provisioner | migrate --scope control|platform|queue | version")
+		return errors.New("usage: server api | worker | auth-mail | provisioner | migrate --scope control|platform|queue | version")
 	}
 	if args[0] == "version" {
 		fmt.Println(version)
 		return nil
+	}
+	if args[0] == "auth-mail" {
+		if len(args) != 1 {
+			return errors.New("auth-mail accepts no issuance or operator flags")
+		}
+		return runAuthMail(ctx, logger)
 	}
 	if args[0] == "provisioner" {
 		credentials, err := tenancy.CredentialsFromEnvironment(os.Getenv)
@@ -123,6 +129,12 @@ func run(ctx context.Context, args []string, logger *slog.Logger) error {
 			cancel()
 			return errors.New("initialize authentication engine")
 		}
+		recovery, closeRecovery, err := localRecovery(engine, cfg.Auth)
+		if err != nil {
+			cancel()
+			return err
+		}
+		defer closeRecovery()
 		catalog, err := app.NewPlanCatalog(startup, control)
 		if err != nil {
 			cancel()
@@ -140,7 +152,10 @@ func run(ctx context.Context, args []string, logger *slog.Logger) error {
 		}
 		cancel()
 		probes = append(probes, engine.Ping)
-		router, err = httpapi.NewAuthenticated(probes, logger, httpapi.AuthOptions{Backend: engine, Plans: catalog, Networks: networks, Stores: stores, Companies: app.NewCompanyLookup(), TenantOrigin: cfg.Auth.TenantOrigin, PlatformOrigin: cfg.Auth.PlatformOrigin, Development: cfg.Auth.Development, TrustedProxies: cfg.Auth.TrustedProxies})
+		if recovery != nil {
+			probes = append(probes, recovery.Ping)
+		}
+		router, err = httpapi.NewAuthenticated(probes, logger, httpapi.AuthOptions{Backend: engine, Recovery: recovery, Plans: catalog, Networks: networks, Stores: stores, Companies: app.NewCompanyLookup(), TenantOrigin: cfg.Auth.TenantOrigin, PlatformOrigin: cfg.Auth.PlatformOrigin, Development: cfg.Auth.Development, TrustedProxies: cfg.Auth.TrustedProxies})
 		if err != nil {
 			return errors.New("initialize authentication routes")
 		}

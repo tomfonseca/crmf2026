@@ -58,21 +58,22 @@ outras redes/serviços para contornar o problema.
 
 ## Explicitamente pendente
 
-Este módulo não está conectado ao Engine/HTTP ou aos formulários públicos.
-Pedido de recuperação e aceite de convite continuam indisponíveis. O
+O transporte isolado não faz mutações. O [serviço de recuperação local opt-in](recovery-request.md)
+agora conecta fila, HTTP, formulário e captura; aceite de convite e envio público
+ACS continuam indisponíveis. O
 [consumidor HTTP/form de reset](password-reset-web.md) já funciona com prova
-válida, sem criar sessão; ele não conecta o envio a um pedido público.
+válida, sem criar sessão; o novo serviço separado liga o pedido à entrega local.
 
 Este módulo de transporte não emite/consome tokens nem altera identidades.
 O [núcleo interno separado](password-reset-kernel.md) já implementa prova de
 recuperação no banco e tem teste Mailpit com identidade descartável; emissão
-continua privada, sem pedido/envio público. O formulário consome a prova, não
+continua privada, agora chamada pelo consumidor da fila local. O formulário consome a prova, não
 emite links. Não importar
 ou resetar o administrador existente para testar o fluxo.
 
 Próximas unidades:
 
-- [ ] Emissão de recuperação com resposta uniforme, limites persistentes e
+- [x] Recuperação local opt-in com resposta uniforme, limites persistentes e
   prevenção de enumeração; não enviar se a conta/realm/política não autorizarem.
 - [x] Núcleo interno de consumo atômico, prazo de 30 min, uso único e revogação
   de sessões/desafios, preservando passkeys e códigos de recuperação.
@@ -84,4 +85,4 @@ Próximas unidades:
   provedor; nunca reutilizar Mailpit ou development como fallback público.
 
 O Keycloak legado permanece inalterado até o cutover completo; este incremento
-não representa recuperação por e-mail funcional, convites completos ou M1 aceito.
+não representa aceite de e-mail externo, convites completos ou M1 aceito.

@@ -438,6 +438,21 @@ func (e PasskeyTenantParamsXCRMFRequest) Valid() bool {
 	}
 }
 
+// Defines values for RequestRecoveryTenantParamsXCRMFRequest.
+const (
+	RequestRecoveryTenantParamsXCRMFRequestN1 RequestRecoveryTenantParamsXCRMFRequest = "1"
+)
+
+// Valid indicates whether the value is a known member of the RequestRecoveryTenantParamsXCRMFRequest enum.
+func (e RequestRecoveryTenantParamsXCRMFRequest) Valid() bool {
+	switch e {
+	case RequestRecoveryTenantParamsXCRMFRequestN1:
+		return true
+	default:
+		return false
+	}
+}
+
 // Defines values for ResetPasswordTenantParamsXCRMFRequest.
 const (
 	ResetPasswordTenantParamsXCRMFRequestN1 ResetPasswordTenantParamsXCRMFRequest = "1"
@@ -492,6 +507,21 @@ const (
 func (e PasskeyPlatformParamsXCRMFRequest) Valid() bool {
 	switch e {
 	case PasskeyPlatformParamsXCRMFRequestN1:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for RequestRecoveryPlatformParamsXCRMFRequest.
+const (
+	RequestRecoveryPlatformParamsXCRMFRequestN1 RequestRecoveryPlatformParamsXCRMFRequest = "1"
+)
+
+// Valid indicates whether the value is a known member of the RequestRecoveryPlatformParamsXCRMFRequest enum.
+func (e RequestRecoveryPlatformParamsXCRMFRequest) Valid() bool {
+	switch e {
+	case RequestRecoveryPlatformParamsXCRMFRequestN1:
 		return true
 	default:
 		return false
@@ -1044,6 +1074,11 @@ type Problem struct {
 	Type   string `json:"type"`
 }
 
+// RecoveryRequestInput defines model for RecoveryRequestInput.
+type RecoveryRequestInput struct {
+	Email string `json:"email"`
+}
+
 // SessionPage defines model for SessionPage.
 type SessionPage struct {
 	Items      []OwnSession        `json:"items"`
@@ -1083,6 +1118,14 @@ type PasskeyTenantParams struct {
 // PasskeyTenantParamsXCRMFRequest defines parameters for PasskeyTenant.
 type PasskeyTenantParamsXCRMFRequest string
 
+// RequestRecoveryTenantParams defines parameters for RequestRecoveryTenant.
+type RequestRecoveryTenantParams struct {
+	XCRMFRequest RequestRecoveryTenantParamsXCRMFRequest `json:"X-CRMF-Request"`
+}
+
+// RequestRecoveryTenantParamsXCRMFRequest defines parameters for RequestRecoveryTenant.
+type RequestRecoveryTenantParamsXCRMFRequest string
+
 // ResetPasswordTenantParams defines parameters for ResetPasswordTenant.
 type ResetPasswordTenantParams struct {
 	XCRMFRequest ResetPasswordTenantParamsXCRMFRequest `json:"X-CRMF-Request"`
@@ -1114,6 +1157,14 @@ type PasskeyPlatformParams struct {
 
 // PasskeyPlatformParamsXCRMFRequest defines parameters for PasskeyPlatform.
 type PasskeyPlatformParamsXCRMFRequest string
+
+// RequestRecoveryPlatformParams defines parameters for RequestRecoveryPlatform.
+type RequestRecoveryPlatformParams struct {
+	XCRMFRequest RequestRecoveryPlatformParamsXCRMFRequest `json:"X-CRMF-Request"`
+}
+
+// RequestRecoveryPlatformParamsXCRMFRequest defines parameters for RequestRecoveryPlatform.
+type RequestRecoveryPlatformParamsXCRMFRequest string
 
 // ResetPasswordPlatformParams defines parameters for ResetPasswordPlatform.
 type ResetPasswordPlatformParams struct {
@@ -1302,6 +1353,9 @@ type LoginTenantJSONRequestBody = LoginInput
 // PasskeyTenantJSONRequestBody defines body for PasskeyTenant for application/json ContentType.
 type PasskeyTenantJSONRequestBody = PasskeyInput
 
+// RequestRecoveryTenantJSONRequestBody defines body for RequestRecoveryTenant for application/json ContentType.
+type RequestRecoveryTenantJSONRequestBody = RecoveryRequestInput
+
 // ResetPasswordTenantJSONRequestBody defines body for ResetPasswordTenant for application/json ContentType.
 type ResetPasswordTenantJSONRequestBody = PasswordResetInput
 
@@ -1310,6 +1364,9 @@ type LoginPlatformJSONRequestBody = LoginInput
 
 // PasskeyPlatformJSONRequestBody defines body for PasskeyPlatform for application/json ContentType.
 type PasskeyPlatformJSONRequestBody = PasskeyInput
+
+// RequestRecoveryPlatformJSONRequestBody defines body for RequestRecoveryPlatform for application/json ContentType.
+type RequestRecoveryPlatformJSONRequestBody = RecoveryRequestInput
 
 // ResetPasswordPlatformJSONRequestBody defines body for ResetPasswordPlatform for application/json ContentType.
 type ResetPasswordPlatformJSONRequestBody = PasswordResetInput
@@ -1377,6 +1434,9 @@ type ServerInterface interface {
 	// (POST /v1/auth/passkey)
 	PasskeyTenant(w http.ResponseWriter, r *http.Request, params PasskeyTenantParams)
 
+	// (POST /v1/auth/password/forgot)
+	RequestRecoveryTenant(w http.ResponseWriter, r *http.Request, params RequestRecoveryTenantParams)
+
 	// (POST /v1/auth/password/reset)
 	ResetPasswordTenant(w http.ResponseWriter, r *http.Request, params ResetPasswordTenantParams)
 
@@ -1388,6 +1448,9 @@ type ServerInterface interface {
 
 	// (POST /v1/hq/auth/passkey)
 	PasskeyPlatform(w http.ResponseWriter, r *http.Request, params PasskeyPlatformParams)
+
+	// (POST /v1/hq/auth/password/forgot)
+	RequestRecoveryPlatform(w http.ResponseWriter, r *http.Request, params RequestRecoveryPlatformParams)
 
 	// (POST /v1/hq/auth/password/reset)
 	ResetPasswordPlatform(w http.ResponseWriter, r *http.Request, params ResetPasswordPlatformParams)
@@ -1499,6 +1562,11 @@ func (_ Unimplemented) PasskeyTenant(w http.ResponseWriter, r *http.Request, par
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
+// (POST /v1/auth/password/forgot)
+func (_ Unimplemented) RequestRecoveryTenant(w http.ResponseWriter, r *http.Request, params RequestRecoveryTenantParams) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
 // (POST /v1/auth/password/reset)
 func (_ Unimplemented) ResetPasswordTenant(w http.ResponseWriter, r *http.Request, params ResetPasswordTenantParams) {
 	w.WriteHeader(http.StatusNotImplemented)
@@ -1516,6 +1584,11 @@ func (_ Unimplemented) LogoutPlatform(w http.ResponseWriter, r *http.Request, pa
 
 // (POST /v1/hq/auth/passkey)
 func (_ Unimplemented) PasskeyPlatform(w http.ResponseWriter, r *http.Request, params PasskeyPlatformParams) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// (POST /v1/hq/auth/password/forgot)
+func (_ Unimplemented) RequestRecoveryPlatform(w http.ResponseWriter, r *http.Request, params RequestRecoveryPlatformParams) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
@@ -1826,6 +1899,51 @@ func (siw *ServerInterfaceWrapper) PasskeyTenant(w http.ResponseWriter, r *http.
 	handler.ServeHTTP(w, r)
 }
 
+// RequestRecoveryTenant operation middleware
+func (siw *ServerInterfaceWrapper) RequestRecoveryTenant(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params RequestRecoveryTenantParams
+
+	headers := r.Header
+
+	// ------------- Required header parameter "X-CRMF-Request" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("X-CRMF-Request")]; found {
+		var XCRMFRequest RequestRecoveryTenantParamsXCRMFRequest
+		n := len(valueList)
+		if n != 1 {
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "X-CRMF-Request", Count: n})
+			return
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "X-CRMF-Request", valueList[0], &XCRMFRequest, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true, Type: "string", Format: ""})
+		if err != nil {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "X-CRMF-Request", Err: err})
+			return
+		}
+
+		params.XCRMFRequest = XCRMFRequest
+
+	} else {
+		err := fmt.Errorf("Header parameter X-CRMF-Request is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "X-CRMF-Request", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.RequestRecoveryTenant(w, r, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
 // ResetPasswordTenant operation middleware
 func (siw *ServerInterfaceWrapper) ResetPasswordTenant(w http.ResponseWriter, r *http.Request) {
 
@@ -1997,6 +2115,51 @@ func (siw *ServerInterfaceWrapper) PasskeyPlatform(w http.ResponseWriter, r *htt
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.PasskeyPlatform(w, r, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// RequestRecoveryPlatform operation middleware
+func (siw *ServerInterfaceWrapper) RequestRecoveryPlatform(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params RequestRecoveryPlatformParams
+
+	headers := r.Header
+
+	// ------------- Required header parameter "X-CRMF-Request" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("X-CRMF-Request")]; found {
+		var XCRMFRequest RequestRecoveryPlatformParamsXCRMFRequest
+		n := len(valueList)
+		if n != 1 {
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "X-CRMF-Request", Count: n})
+			return
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "X-CRMF-Request", valueList[0], &XCRMFRequest, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true, Type: "string", Format: ""})
+		if err != nil {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "X-CRMF-Request", Err: err})
+			return
+		}
+
+		params.XCRMFRequest = XCRMFRequest
+
+	} else {
+		err := fmt.Errorf("Header parameter X-CRMF-Request is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "X-CRMF-Request", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.RequestRecoveryPlatform(w, r, params)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -3242,6 +3405,12 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 	}
 
 	r.Group(func(r chi.Router) {
+		r.Post(options.BaseURL+"/v1/auth/password/forgot", wrapper.RequestRecoveryTenant)
+	})
+	r.Group(func(r chi.Router) {
+		r.Post(options.BaseURL+"/v1/hq/auth/password/forgot", wrapper.RequestRecoveryPlatform)
+	})
+	r.Group(func(r chi.Router) {
 		r.Post(options.BaseURL+"/v1/auth/password/reset", wrapper.ResetPasswordTenant)
 	})
 	r.Group(func(r chi.Router) {
@@ -3358,76 +3527,81 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 // const string: with thousands of chunks the chained `+` fold is several
 // times slower for the Go compiler than parsing a slice literal.
 var swaggerSpec = []string{
-	"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",
+	"7H1bcxu3kv9XQc3/PMT1H150STamnhTHSXzWtnTsuHbrqLQscKZJIsIAYwAjmVbpu281gOFceZVEUVm9",
+	"ieQM0Oj+9RUN6DaIZJJKAcLoYHAbpFTRBAwo++nNpw+/fYKvGWiDH5kIBsEUaAwqCANBEwgGwX938KlO",
+	"/lgYKPiaMQVxMDAqgzDQ0RQSiu+DyJJgcBEcBJdhYGYpvq6NYmIS3N3d4Zs6lUKDm5sayuXkrVJS4edI",
+	"CgPC0kHTlLOIGiZFL1VyxCH5/39pKfC3YrZ/KBgHg+D/9YoV9tyvunfu3nLTxqAjxVIcLhgE78Q15Swm",
+	"TKSZIT8c9/uvQpIJmpkpCIPTQoxfH7wKyViqEYtjEPjF0auQJExrJib48fhVSLShHHpx5siFHhOdTAP+",
+	"+voVkQqHvaaM0xEH8sOP/aNXwV0YfARzI9VVTuIOl+5nJsrJkij4CyJcbpXUAN/0w+Fsp5mZnmUmkoiH",
+	"2yBVMgVlmBNjmo04i4ZXMMNP1fn++fnsY0eDYpSz7xCT/4IRjiVIpMAuESfOiZH2LX1CIJ1CAopyQkVM",
+	"FFCedEYyE3HQABVCKpLXoGbDSMagmyScCegYlgABoSTnCQhDchgSKfgsCANmILGvNkb3X1Cl6Aw/a0NN",
+	"pstQr8AmCIOUan0Fs+FcScKgmLn4tkU/yop1kc9UPCdHKCsk4q2IP4PWTIp3CGGLmjhmuGDKz0vCGVOu",
+	"IazJS7tXhyzGT2OpEmqCQZBlLA5WElW8205YvtBtCEPO3UhlyUrot/cgJmYaDA76h8dhkDAx/2IVlfOB",
+	"2mj841+fjVQWx5Tzs3EwuFiuTv6F3xjwWAd3YR3/a/ExDIRTvaEzqreLH9A8m7Q+YEBQYYZrzncNSjMp",
+	"Ks8yYY4OA8tMlmRJmZVMGJiAavDSDT6fubaOGtXFrE3OXxa896xsWJKImVlN+If9fsvaUNVrD/60CiNh",
+	"ACotKy5n4ttwxCYtqpi7viYpK6ZoMQ+RYdfIKCb8n23ToYH6LsU2U2bj+kur1MNyzy8xdEy3w5TIcMwK",
+	"lxkhL8tC0R9EmTbBeG1ZxatLwfcljal5QPV/ID1boThAOcq2PnkTb/LqXq7lXYy+zMyaU00U9RHk3Fsu",
+	"Y1s+0O/4WpsntW69THnKqUEOzu1Nq6ZoFMaQxVVKVlrD+uyb2dJMg9oKk/mL+XLL9Ic5S5fJwbGvIQwl",
+	"ebsT0cA5qGFuIBeyb/Ol2CnbSH0vJ2yrQAQSynjNeB0drrZ4DxYnOALC5fGCD5lbvJVI/2rl8QQEKGpW",
+	"GoV+0yiE60YTHCaUL44lUk7FuuC2zy4eSckx47BK3YuUxj7tXrxmNlhsGqmvGWQuWFaQUjuV1ZAYPdGY",
+	"Mt4aIOcpyXCByf3peCV3F8ZWTRoNJi1BWDhwnekURGzpjqiIgLeT2RZA+eioJLXQ4acQVVkQc3pa2Njg",
+	"QgVwSxC8jYrmGE+pMaBEMAj+5+K08+9+5/Xl7cHh3YX94/DuH6shumFUsxGAt4Go40YJEuUl0s73fuf1",
+	"8PL2KDzut62u7lBXi3eJYM4L+jcQTUwN3XLJa4Us/ZUhi6VgWcgfBm0EbLbMEeOcickwyrSRydwNr04R",
+	"1s8lhKGRGbZ5o+VvLIJ244UYxjTjZrgsym++xHTK6Wz9WRRMmDagIF7/nc2ThwpZzUmr+USFU3VWt/Al",
+	"bBV3G7DOboQvgWxq0RRQA/GQmgr8MSewZaI2AxNlSvnqnP9tJCUHKvBH+JYyBXqjAdc0bCzmMNxmfE61",
+	"GWoAsdFbydg6FTZmELettc2xldhZm7ZJfoVXBVdrE7dJ+5wyJPIDGJqbvVoo+XhCaEYGGAW4kCXT4GL7",
+	"a3ll/3J04F/MFZmpqSzpIQJx+8j89VKoUGJCOxNtYXIbI5zXS5vV1c/ttV2bvVBOsP6LJV4qCHzDujYz",
+	"BMvnHGyZPK/dEsxXToiAa1CEkj/P/jwPwrJZ+vng9eFmsf2c5EWswID/zZSKyVZuyYN3uH0uEgYCbtZ/",
+	"f3VVp05RbYJlfPgEGrYq2d5zCWFg5BWI2pvHR5X38GMt/vTxWefy9vhojfDMTbIOPzgV61eG8Ok8ptqy",
+	"KPyQRdoiH7DZf3shCWleVH71mU6rl5sybaSaDRMpzFRvTK9V5iEOAeu+fDF/OwxExnlw6UfJNKj7DSLj",
+	"jEO1gJTb9kgq8NUa7zfgWyqVCcIgzbheUL0tF5fCIBPsawbv3NBGZdBeTz5Yp9ShWATDKN+73bCWoGci",
+	"GuJndU35UEMkRazvizUfy5UpKyfJrVM28FPBQ1mshXQW6eeGBecS4O/Cuvc6S5ixvocYSajWbCLQVbEk",
+	"yYzdstWgrkF1fIINMWHWs40ZqC55m3s0Lm9ARVSDHUsThQGuIDpLEToQ4y4yQdqoYSPGmZl1g4ZD8RW7",
+	"Zhp6eVGYu3740yKDt0DZNy131/j1BLXu0rb4omJ3E+qGmQUVUffF7SoXgb/mwyzd9/jkYxbfDvFQhc/D",
+	"H4/XK1e20eRToXM62bSKMDeAaxX1S1mXM8beyB30+zUraMObb2YYZUpLVQHMekGuHbi5VlvijjLFzOwz",
+	"EuVWce63Dt5MKecgJjDvZYmkvGJQ9LIMh39IbTqRSsbDfMNhGM1fK1aRsv+Embc59qlSurn2yG3j/Wl3",
+	"Hjaj1O9WLKXTjbsJlW7U5ljIZCbGshntf+iTqd2JItiZAtr2Z3w4IPJGkFIfBJOiS04rn4kXri7lAShH",
+	"NJlizCaZq1+eECGJayghrrSg5m0ibz+dk68ZKAa6O1fVge1gIqdF0ww5PX9XioYGQb/b7/aRQzIFQVMW",
+	"DIKj7kG3bwv/PpjpuWV9x78nYPUZtcQO+C4OBn4D7ntQa2E67PeXtO9s1rbjpmjr2jlXMgKtCdOEcvSz",
+	"d/ahnq2YL6b5k/v5SUh+I4VRkhNM10dUQ0iooHxmWKTn31n0/MLliOAOK50AoQpzQhpNXRNSGPzYP9pl",
+	"e9RpDtOYxGCL/SKaIdurvVGW+dcHPYR8j+P2l3VW0vXQVYf8VHQv1VTkhGCUgX/pfFpipkAox3giJmeK",
+	"TZiwTKp24BHXoIdKUBW43Yn7M9fqcqPfAqdfPNIrNwLeXTpjDNr8IuPZg8GltFN4VzX4Pkp+NKCWG9ja",
+	"5F63VTrj5oTIlH7NMDa8AqEtOLFfjCgwmRIQE6pzI/aHMekZ/ubsrS5VfXeJ308tbX1V0DW7/Lw3DQYX",
+	"l3Vcy8zsDbBlZh4M2RWQHTeX9sYJkUQcKNoCpDRVoEEgT30PXG/ujUle/3uOQr+tBw4Xl3fh7V0VC76n",
+	"cT/A4OuYe2znKpXWF0u3v6AvReEXly2Yx0JhbyzVRC4xhP/CZgbLLxu9YgVkqqSQmSY0imQmsEAgr7IU",
+	"aYwBAzg165IvgmGKQA77h4SJiGdYOcjElZA3oscEcDZhIw49hXsYnCUMV6kgYilDJnXJ71yOKK/Gzz3t",
+	"IylsosgUaC9C8mP/iDCRBzWGz4gcz8mDb0wbEBF0yXsZ4Zg0NShspolMTYeJkOC+n9S2KOJqIAYtJK66",
+	"qaFeOHmmvMea2prMr6Wxh00g5BKlEQqRQzyBBIQJiZDGiUklPpsZY5kpZ38JFk+kTfmJiHknviITiy4+",
+	"q5xgYMLQqxVxw1xvFGhYojZvpNBZAoSWG/yJFPnOkAaDWaYcd8kn61/RZeTOVxfeV4fON6trRH1kpNKh",
+	"O14AVh3dC13yTuuMisiCGgWCdV0NMRnNiJkyTUDEqWTCtMFZg8m3Svbc7dR2c9aCcksElA/l5HBCRkre",
+	"aFAkqkZGJ2SsQE8Jl7kPp2JW5FAffjvNa6ECItCaPjnCLaJCkoOUpJKzaBYSOkLUWTPbehamBe3Tr/uZ",
+	"AJ4XxaeXFPAlMNouBZx+3dcs8AHh/ZIHlkPiRqG7lgnmkNjHZHCvbd5LOvhssL8gISxDf62cMB+v6HBy",
+	"ofMJ0TQBkrVnCi6CspFI5OrnGlnt9mm65KP0XMbVYWw1miFBK/OvvVaOXWRgFr3PO7VqIHBFdlUCIOVJ",
+	"OZ3KKxW21y5mNqXXJN+xtLiSyidQmtB5ArU8Ldp7A/xIiZHLf4p0gmeaeAfps6L5JH+nxAdpoIKB7t3i",
+	"OYe7hXuQ723l6419fNYEh92jxl3YYofan5tYfMfE5mdR7i4f0cO2nrFo2cN1m9qOcTOis8kEtIuE8tKh",
+	"IWOmsfzmeqEdNTXYtFEyX1qvdrHEWiFeWawJlAT5dEHdByiZk0cT3Pyo60tctFFOUAXMfqUD7gKKvXZG",
+	"9TsyXhKCZwz8vO99QYnbteQXTjcXc5ecGpmwyEaBqlndtpAvKtwnRYXba5u22YBtCHSRSFMV3NmGZxWf",
+	"lY9j3DtAi+xg8UmVsb5EYxm8oKi9R4hFmbMI7g3VfPmOXRxcQ3DddOaXCu25+azefbQtTs5uRI6KOSh+",
+	"YDEkqUQiX53UYUHYmORH1v4WCAnbAz1kDG5GFjrDhNshc6kkGv6QUEMSqQ056Pe75N2v2rfujUGBiHBP",
+	"zp/lqppc5z9aKrtM5w0oejH6bLKAHaCzIlugYwMqKKcHq/qMHzMXKPdhtwjwfYmtJMkPM/7NzE3KqTM0",
+	"7fkg01jBF3pb8daufHpo6d6nOx7XFdytbITfsvG9IcEvKZ5aOej3iWU5qql2p1bsiRapYlAn+SEU4vQ3",
+	"7rSUwpbnlJVbGtc2LXlAVItJbFXJ8mkv45DiQN86XuXgQSduLRpwKkgKSjNtfNBCs5gZDGvmpxdonDBB",
+	"diLXmpb3bll8tyym+NV+/6Ty3uRMb6lFp+kX336jkbGqRvwFao91mrN8kLNEUbtN2CL0+SJ0NsIvRhC7",
+	"BTn5VQC2Cxuxshbob85aVAlcw9X7w1lVWLozcXtthhyJuy4OLLVDmSWpZoXs/bfEI9Y5GR9P3DAzJcf9",
+	"1zs0SsX54oWxh7/NTz9WdBm2D1S+QHN3oep9ghnPqCc759fA4C9YQIS42u9KIgcY23lrgEMCBq+T4JQl",
+	"+onDnJyD+2hiKpd37jjYmSOrKWP7A/G1LmdCmCBcRpid26TUuquvmTR0p86qbmPmkU+rofkdzELhP4qX",
+	"e7wDfotl9WYKViyWIXlP+MxVLssqugstXOzkdyiHcJ80+2nih2VwqZjtPJawQULkkaTA3XR4UqApokJI",
+	"LDVdA/E3TT+NrvdSdwXVcp3391Q9B61vvc5odaG+eg9Xy70TLVUvakD7azbyopevIroiIW752V/xIATD",
+	"bfEueZukZkbcoCQBKjR6eKZ1ZkOAGLpP5t3xIAHsVNa7syxVVKSokTLT/pqyxWL98uXdryg9sFJzdNtL",
+	"T4QU0CW2/UNBh4q4o29oioyRhsyr7dGsGwzwep6F96Q9UGZdHSysLHC79PrgPkrXcuXLaeePf3Y+nnf+",
+	"fYjdLD+336x6D21tuTFs8YVRbVY8BqKneN+DFBGExDUX/cchmcpM6RMyxiDNqqnGwhVxqiNVL2EiM+7I",
+	"vxRgf7PS8D/Y/cwPR0QBgsL6iPxADmFJyhnE3ae1/L1b/8dwRdHLnVbatYFoGbSgd+fWZ3UJKtPekFe2",
+	"ZPN43hkISmKwGxL4SOTrcmgndgcEl7gvryn4rqutawr7lPZ/LIKszdL+h07zfbRHUjzN6sJEVwwF28vo",
+	"IkV0M/6qpsdvk1ue7eeM28dsv3IB+Pq91Q85d/sWpM/zc1mjBYgzZfew/pKj0IYUtuxuTyijtFXOqh12",
+	"RXob4L1BcVn3krSzdrP3/5nss7buHaefbbPX45ckARXh1bTzVETT63tsfTwouBRWL8v9ZPXIwqjZQkPz",
+	"nDG1wS7duv9dY3U2sPTfJuyNlTwlAm4INQbjYptUYb5sjxF5uzlvtiHuvk1/YGh3MN6btvH54fyXpvG9",
+	"ulCohJR97Bff4zsdXrrF/x6IfzaN4s/gfpOXNvFt+jaXY3SzDvG9Npgv/eEPAY097Q5fhLyX3vC9tTH2",
+	"IXWdSypTPBgEU2PSQa/HZUT5VGoz+Ln/cx/vf//fAQA=",
 }
 
 // decodeSpec returns the embedded OpenAPI spec as raw JSON bytes,

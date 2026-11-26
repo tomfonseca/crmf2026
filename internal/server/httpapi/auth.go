@@ -30,6 +30,7 @@ type AuthBackend interface {
 	CancelChallenge(context.Context, string, auth.Realm) error
 }
 type AuthOptions struct {
+	Recovery  RecoveryRequestBackend
 	Backend   AuthBackend
 	Plans     PlanBackend
 	Networks  NetworkBackend
@@ -90,6 +91,10 @@ func authRoute(path string) (auth.Realm, string, bool) {
 		return auth.Platform, "PUT, DELETE", true
 	}
 	switch path {
+	case "/v1/auth/password/forgot":
+		return auth.Tenant, "POST", true
+	case "/v1/hq/auth/password/forgot":
+		return auth.Platform, "POST", true
 	case "/v1/auth/password/reset":
 		return auth.Tenant, "POST", true
 	case "/v1/hq/auth/password/reset":

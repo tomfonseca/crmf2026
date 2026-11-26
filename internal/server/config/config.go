@@ -34,7 +34,7 @@ func Load(lookup func(string) string) (Config, error) {
 			return Config{}, fmt.Errorf("invalid PostgreSQL connection URL")
 		}
 	}
-	auth, err := loadAuth(lookup)
+	auth, err := LoadAuth(lookup)
 	if err != nil {
 		return Config{}, err
 	}
