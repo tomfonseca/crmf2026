@@ -1,0 +1,98 @@
+{
+	admin off
+	servers {
+		protocols h1 h2
+		max_header_size 16KB
+		timeouts {
+			read_header 10s
+			read_body 15s
+			write 30s
+			idle 60s
+		}
+	}
+}
+
+(security) {
+	header {
+		-Server
+		?Cache-Control "no-store"
+		X-Content-Type-Options "nosniff"
+		Referrer-Policy "no-referrer"
+		X-Frame-Options "DENY"
+		Strict-Transport-Security "max-age=86400"
+		Permissions-Policy "camera=(), microphone=(), geolocation=()"
+		Content-Security-Policy "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src https://api.crmfarma.app.br; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'"
+	}
+}
+
+(static_app) {
+	import security
+	@private path /.git* /.env* /__* /src/* /node_modules/* /@* /vite*
+	handle @private {
+		respond "Not found" 404
+	}
+	handle /assets/* {
+		header Cache-Control "public, max-age=31536000, immutable"
+		file_server
+	}
+	handle {
+		try_files {path} /index.html
+		file_server
+	}
+}
+
+{$QG_SITE:https://qg.crmfarma.app.br} {
+	root * /srv/qg
+	import static_app
+}
+
+{$DASH_SITE:https://dash.crmfarma.app.br} {
+	import security
+	root * /srv/dash
+	@private path /.git* /.env* /__* /src/* /node_modules/* /@* /vite*
+	handle @private {
+		respond "Not found" 404
+	}
+	handle /assets/* {
+		header Cache-Control "public, max-age=31536000, immutable"
+		file_server
+	}
+	@login path /login /login/*
+	handle @login {
+		try_files {path} /index.html
+		file_server
+	}
+	handle / {
+		redir * /login 302
+	}
+	handle {
+		# Local synthetic dashboards are not a production-data fallback.
+		respond "Indicadores reais ainda indisponiveis neste ambiente." 503
+	}
+}
+
+{$API_SITE:https://api.crmfarma.app.br} {
+	import security
+	header Content-Type "application/problem+json"
+	header Vary "Origin"
+	@trusted {
+		header Origin "https://qg.crmfarma.app.br"
+		header Origin "https://dash.crmfarma.app.br"
+	}
+	header @trusted {
+		Access-Control-Allow-Origin "{http.request.header.Origin}"
+		Access-Control-Allow-Credentials "true"
+	}
+	# No proxy target, bootstrap, mock login, bearer transport or invented readiness.
+	respond "{\"type\":\"deployment_pending\",\"title\":\"API ainda nao implantada com identidade e custodia de producao\",\"status\":503}" 503
+}
+
+http:// {
+	respond "Not found" 404
+}
+
+http://:2015 {
+	bind 127.0.0.1
+	respond /healthz "web_edge_only" 200
+	respond "Not found" 404
+}
