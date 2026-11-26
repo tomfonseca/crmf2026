@@ -1,7 +1,9 @@
 # M1 — QG Redes and isolated provisioning jobs
 
 Increment 11 adds Redes alongside Planos. It does not complete M1 or implement
-stores, pairing, customer invitations, sales ingestion or analytic facts.
+pairing, customer invitations, sales ingestion or analytic facts. Real store
+configuration was subsequently added in [the store increment](hq-stores.md),
+including the network Lojas tab; telemetry is still unavailable.
 
 The [commercial-profile increment](network-profiles.md) now persists and edits
 all eight commercial fields and supplies authenticated CNPJ suggestions. Older

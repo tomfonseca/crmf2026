@@ -298,11 +298,13 @@ export function NetworkDetail({
   canWrite,
   route,
   navigate,
+  storesPanel,
 }: {
   network: Network;
   canWrite: boolean;
   route: string;
   navigate: (path: string) => void;
+  storesPanel?: ReactNode;
 }) {
   const raw = new URLSearchParams(route.split("?")[1]).get("aba");
   const active = tabs.some(([id]) => id === raw) ? raw : "dados";
@@ -536,17 +538,19 @@ export function NetworkDetail({
               )
             }
           >
-            <PlannedTable
-              columns={[
-                "Loja",
-                "Cidade/UF",
-                "ERP",
-                "Dados",
-                "Dispositivo",
-                "Última atualização",
-              ]}
-              note="Lojas e consumo do limite do plano ainda não disponibilizados."
-            />
+            {storesPanel ?? (
+              <PlannedTable
+                columns={[
+                  "Loja",
+                  "Cidade/UF",
+                  "ERP",
+                  "Dados",
+                  "Dispositivo",
+                  "Última atualização",
+                ]}
+                note="Lojas e consumo do limite do plano ainda não disponibilizados."
+              />
+            )}
           </NetworkCard>
         )}
         {active === "usuarios" && (

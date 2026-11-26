@@ -1,6 +1,71 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { expect, test, vi } from "vitest";
-import { StoreScreens } from "./StoreScreens";
+import { StoreScreens, type StoreRecord } from "./StoreScreens";
+const configuredStore: StoreRecord = {
+  id: "00000000-0000-7000-8000-000000000001",
+  networkId: "00000000-0000-7000-8000-000000000002",
+  networkSlug: "synthetic",
+  networkName: "Rede sintética",
+  code: "S001",
+  name: "Loja sintética",
+  city: "",
+  uf: "",
+  timezone: "America/Sao_Paulo",
+  active: true,
+  version: 1,
+};
+test("known store configuration does not manufacture health, unpaired device or empty batches", () => {
+  render(
+    <StoreScreens
+      route={`/stores/${configuredStore.id}`}
+      records={[configuredStore]}
+      connected
+      navigate={vi.fn()}
+      canWrite
+    />,
+  );
+  for (const text of [
+    "Saudável",
+    "Offline",
+    "Nenhum dispositivo pareado",
+    "Sem dados recebidos",
+    "Nenhum lote nesta prévia visual.",
+  ])
+    expect(screen.queryByText(text, { exact: true })).not.toBeInTheDocument();
+  expect(
+    screen.getByText("Consulta de lotes ainda não disponível."),
+  ).toBeVisible();
+});
+test("editing freezes revision and clears navigation flags before success callback", async () => {
+  const onSave = vi.fn().mockResolvedValue({ ...configuredStore, version: 2 });
+  const onSaved = vi.fn(() => {
+    const form = document.querySelector("form.stores-form");
+    expect(form).toHaveAttribute("data-dirty", "false");
+    expect(form).toHaveAttribute("data-saving", "false");
+  });
+  const props = {
+    route: `/stores/${configuredStore.id}/edit`,
+    navigate: vi.fn(),
+    canWrite: true,
+    connected: true,
+    onSave,
+    onSaved,
+  };
+  const view = render(<StoreScreens {...props} records={[configuredStore]} />);
+  fireEvent.change(screen.getByLabelText("Nome", { exact: true }), {
+    target: { value: "Nome editado" },
+  });
+  view.rerender(
+    <StoreScreens
+      {...props}
+      records={[{ ...configuredStore, name: "Edição concorrente", version: 8 }]}
+    />,
+  );
+  fireEvent.click(screen.getByRole("button", { name: "Salvar loja" }));
+  await waitFor(() => expect(onSaved).toHaveBeenCalledOnce());
+  expect(onSave.mock.calls[0][1].version).toBe(1);
+  expect(onSave.mock.calls[0][0].name).toBe("Nome editado");
+});
 import { StorePreview } from "./StorePreview";
 test("missing store service is not an empty catalog, healthy integration or zero count", () => {
   render(<StoreScreens route="/stores" navigate={vi.fn()} canWrite />);

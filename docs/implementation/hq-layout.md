@@ -45,8 +45,8 @@ The development-only `/__qg-design` catalogue contains all **125 QG boards**
 | QG-Plano-Form, QG-Plano-Conflito, QG-Plano-Excluir | Real catalog operations; preview comparisons are illustrative, not an API enhancement |
 | QG-Redes, QG-Rede-Nova | Real listing/creation/preparation summary |
 | QG-Rede-Preparacao | Detailed step layout only; no invented per-step progress or invitation readiness |
-| QG-Rede, QG-Rede-Acao | Data/subscription/limits/stores/first-admin/billing layouts and lifecycle dialogs; mutations disabled |
-| QG-Lojas, QG-Loja-Form, QG-Loja | Store list/form/detail and health layouts; no store quota/backend implementation claimed |
+| QG-Rede, QG-Rede-Acao | Real commercial-profile editing and filtered store configuration; other lifecycle/subscription/limits/invite/billing actions unavailable |
+| QG-Lojas, QG-Loja-Form, QG-Loja | Real authenticated configuration catalog/create/edit/inactivate with transactional quota; health/agent/batches unavailable |
 | QG-Loja-Pareamento, QG-Loja-Reinstalar | Code/instructions/replacement layouts; no actual pairing code, MSI or revocation issued |
 | QG-Dispositivos, QG-Dispositivo | Health/resources/streams/commands and confirmation dialogs; commands disabled |
 | QG-Envios, QG-Lote | Monitor/timeline/detail/stages/attempts/quarantine layouts; no real ingest/reprocessing |
@@ -165,7 +165,7 @@ PostgreSQL/HTTPS integration covers concurrent automatic allocation and audit.
    convention, not the design's hyphen example. No migration or credential naming
    rule is changed by a layout task.
 2. Current APIs do not expose subscription counts, update actor/revision on
-   conflict, commercial contacts, billing history, policy/health telemetry or
+   conflict, billing history, policy/health telemetry or
    provisioning substeps. Show unavailable information; do not guess.
 3. Full client-wide search is not implemented by filtering one bounded page.
 4. Support command/reprocessing authorization remains undecided. Neither support

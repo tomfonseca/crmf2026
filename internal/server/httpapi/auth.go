@@ -33,6 +33,7 @@ type AuthOptions struct {
 	Backend   AuthBackend
 	Plans     PlanBackend
 	Networks  NetworkBackend
+	Stores    StoreBackend
 	Companies interface {
 		Lookup(context.Context, string) (app.NetworkProfile, error)
 	}
@@ -54,6 +55,12 @@ func NewAuthenticated(probes []Probe, logger *slog.Logger, options AuthOptions) 
 	return newRouter(probes, logger, &options), nil
 }
 func authRoute(path string) (auth.Realm, string, bool) {
+	if path == "/v1/hq/stores" {
+		return auth.Platform, "GET, POST", true
+	}
+	if strings.HasPrefix(path, "/v1/hq/stores/") {
+		return auth.Platform, "GET, PUT", true
+	}
 	if strings.HasPrefix(path, "/v1/hq/companies/") {
 		return auth.Platform, "GET", true
 	}

@@ -44,8 +44,9 @@ passkey, recuperação, Minha conta e telas previstas de senha/convite. No QG de
 O [novo layout do QG](docs/implementation/hq-layout.md) preserva Planos/Redes
 reais e monta as demais telas operacionais como **Previsto**, sem dados fictícios
 na sessão real. As [telas de Lojas](docs/implementation/hq-stores.md) têm lista,
-formulário e detalhe próprios; CRUD e telemetria continuam previstos, sem simular
-salvamento. O [cadastro comercial de Redes](docs/implementation/network-profiles.md)
+formulário e detalhe integrados ao cadastro real, com edição/inativação,
+revisão, auditoria e limite de lojas transacional. Telemetria e pareamento continuam
+previstos, sem simular agente instalado. O [cadastro comercial de Redes](docs/implementation/network-profiles.md)
 persiste razão social, cidade/UF, contatos, fuso e referência de cobrança, com edição
 versionada e sugestões automáticas ao informar o CNPJ (sem obrigar a consulta).
 `/__qg-design`, somente em desenvolvimento, reúne as 125 pranchetas.
@@ -106,7 +107,7 @@ Isso evita misturar dependências nativas Windows e Linux nos containers.
   de [limites efetivos](docs/implementation/effective-limits.md) já resolve plano
   e overrides pelo contexto autenticado, ainda sem integração nas futuras rotas
   de negócio. Veja [estado e próximos incrementos](docs/implementation/m1-control.md).
-- Ainda não implementado: fluxos complementares de autenticação, gestão de lojas/pareamento
+- Ainda não implementado: fluxos complementares de autenticação, pareamento de lojas/pareamento
   e aceite completo de provisionamento/isolamento por tenant (M1),
   conector real (M2), coleta/ingestão/MSI (M3), jobs de ingestão River e agregados (M4),
   interfaces finais, design system completo e permissões integradas (M5/M6),

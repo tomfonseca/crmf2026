@@ -371,6 +371,72 @@ paths:
             application/json:
               schema: {$ref: '#/components/schemas/Network'}
         default: {$ref: '#/components/responses/NetworkProblem'}
+  /v1/hq/stores:
+    get:
+      operationId: listHQStores
+      security: [{PlatformSession: []}]
+      parameters:
+        - {name: after, in: query, schema: {type: string, format: uuid}}
+        - {name: tenant_id, in: query, schema: {type: string, format: uuid}}
+      responses:
+        '200':
+          description: Bounded configuration catalog; no telemetry claims
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items]
+                properties:
+                  items: {type: array, maxItems: 100, items: {$ref: '#/components/schemas/HQStore'}}
+                  next_cursor: {type: string, format: uuid}
+        default: {$ref: '#/components/responses/CatalogError'}
+    post:
+      operationId: createHQStore
+      security: [{PlatformSession: []}]
+      parameters: [{$ref: '#/components/parameters/CRMFRequest'}]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/HQStoreInput'}
+      responses:
+        '201':
+          description: Store reserved within locked live plan quota and audited
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/HQStore'}
+        default: {$ref: '#/components/responses/CatalogError'}
+  /v1/hq/stores/{id}:
+    get:
+      operationId: getHQStore
+      security: [{PlatformSession: []}]
+      parameters:
+        - {name: id, in: path, required: true, schema: {type: string, format: uuid}}
+      responses:
+        '200':
+          description: Checked store identity and configuration
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/HQStore'}
+        default: {$ref: '#/components/responses/CatalogError'}
+    put:
+      operationId: updateHQStore
+      security: [{PlatformSession: []}]
+      parameters:
+        - {name: id, in: path, required: true, schema: {type: string, format: uuid}}
+        - {$ref: '#/components/parameters/CRMFRequest'}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/HQStoreUpdate'}
+      responses:
+        '200':
+          description: Configuration updated with checked revision; identity cannot move network
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/HQStore'}
+        default: {$ref: '#/components/responses/CatalogError'}
   /v1/hq/companies/{cnpj}:
     get:
       operationId: lookupCompany
@@ -427,6 +493,42 @@ components:
     TenantChallenge: {type: apiKey, in: cookie, name: __Host-crmf_tenant_challenge}
     PlatformChallenge: {type: apiKey, in: cookie, name: __Host-crmf_platform_challenge}
   schemas:
+    HQStoreFields:
+      type: object
+      required: [code, name, city, uf, timezone, erp, status]
+      properties:
+        code: {type: string, minLength: 1, maxLength: 64}
+        name: {type: string, minLength: 1, maxLength: 200}
+        city: {type: string, maxLength: 200}
+        uf: {type: string, maxLength: 2}
+        timezone: {type: string, minLength: 1, maxLength: 200}
+        erp: {type: string, enum: [linx_big]}
+        status: {type: string, enum: [active, inactive]}
+    HQStoreInput:
+      allOf:
+        - {$ref: '#/components/schemas/HQStoreFields'}
+        - type: object
+          required: [tenant_id]
+          properties:
+            tenant_id: {type: string, format: uuid}
+    HQStoreUpdate:
+      allOf:
+        - {$ref: '#/components/schemas/HQStoreFields'}
+        - type: object
+          required: [version]
+          properties:
+            version: {type: integer, format: int32, minimum: 1}
+    HQStore:
+      allOf:
+        - {$ref: '#/components/schemas/HQStoreFields'}
+        - type: object
+          required: [id, tenant_id, network_name, network_slug, version]
+          properties:
+            id: {type: string, format: uuid}
+            tenant_id: {type: string, format: uuid}
+            network_name: {type: string}
+            network_slug: {type: string}
+            version: {type: integer, format: int32, minimum: 1}
     NetworkProfileInput:
       type: object
       additionalProperties: false

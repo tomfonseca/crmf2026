@@ -272,6 +272,38 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/hq/stores": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["listHQStores"];
+        put?: never;
+        post: operations["createHQStore"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/hq/stores/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["getHQStore"];
+        put: operations["updateHQStore"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/hq/companies/{cnpj}": {
         parameters: {
             query?: never;
@@ -308,6 +340,35 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        HQStoreFields: {
+            code: string;
+            name: string;
+            city: string;
+            uf: string;
+            timezone: string;
+            /** @enum {string} */
+            erp: "linx_big";
+            /** @enum {string} */
+            status: "active" | "inactive";
+        };
+        HQStoreInput: components["schemas"]["HQStoreFields"] & {
+            /** Format: uuid */
+            tenant_id: string;
+        };
+        HQStoreUpdate: components["schemas"]["HQStoreFields"] & {
+            /** Format: int32 */
+            version: number;
+        };
+        HQStore: components["schemas"]["HQStoreFields"] & {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            tenant_id: string;
+            network_name: string;
+            network_slug: string;
+            /** Format: int32 */
+            version: number;
+        };
         NetworkProfileInput: {
             display_name: string;
             registered_name: string;
@@ -1024,6 +1085,113 @@ export interface operations {
                 };
             };
             default: components["responses"]["NetworkProblem"];
+        };
+    };
+    listHQStores: {
+        parameters: {
+            query?: {
+                after?: string;
+                tenant_id?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Bounded configuration catalog; no telemetry claims */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["HQStore"][];
+                        /** Format: uuid */
+                        next_cursor?: string;
+                    };
+                };
+            };
+            default: components["responses"]["CatalogError"];
+        };
+    };
+    createHQStore: {
+        parameters: {
+            query?: never;
+            header: {
+                "X-CRMF-Request": components["parameters"]["CRMFRequest"];
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["HQStoreInput"];
+            };
+        };
+        responses: {
+            /** @description Store reserved within locked live plan quota and audited */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HQStore"];
+                };
+            };
+            default: components["responses"]["CatalogError"];
+        };
+    };
+    getHQStore: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Checked store identity and configuration */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HQStore"];
+                };
+            };
+            default: components["responses"]["CatalogError"];
+        };
+    };
+    updateHQStore: {
+        parameters: {
+            query?: never;
+            header: {
+                "X-CRMF-Request": components["parameters"]["CRMFRequest"];
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["HQStoreUpdate"];
+            };
+        };
+        responses: {
+            /** @description Configuration updated with checked revision; identity cannot move network */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HQStore"];
+                };
+            };
+            default: components["responses"]["CatalogError"];
         };
     };
     lookupCompany: {

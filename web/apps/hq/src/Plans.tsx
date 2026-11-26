@@ -24,6 +24,7 @@ import {
 } from "./PlanPresentation";
 import { Networks } from "./Networks";
 import { Stores } from "./Stores";
+import { type StoreClient } from "./stores-client";
 import type { NetworkClient } from "./networks-client";
 import { Shell, type WorkspaceActions } from "./Shell";
 import { useQGRoute } from "./routing";
@@ -58,6 +59,7 @@ export function parsePrice(value: string): number {
 }
 export function CatalogHost(props: {
   networks?: NetworkClient;
+  stores?: StoreClient;
   client: PlanClient;
   onExpired: () => void;
   theme: string;
@@ -100,6 +102,7 @@ export function CatalogHost(props: {
         props.networks ? (
           <Networks
             client={props.networks}
+            stores={props.stores}
             route={path}
             navigate={navigate}
             plans={props.client}
@@ -110,6 +113,7 @@ export function CatalogHost(props: {
           />
         ) : /^\/stores(?:\/new|\/[^/?]+(?:\/edit)?)?(?:\?.*)?$/.test(path) ? (
           <Stores
+            client={props.stores}
             route={path}
             navigate={navigate}
             networks={props.networks}
