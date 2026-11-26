@@ -376,7 +376,9 @@ and atomically change the password while preserving factors and revoking all
 sessions/challenges. The issuer remains private; tests use only disposable
 identities, including a real Mailpit round trip.
 See [proof contract and mandatory public-flow gates](password-reset-kernel.md).
-There is no public forgot/reset endpoint or frontend integration yet.
+The [realm-specific reset consumer and form](password-reset-web.md) now use
+this kernel. Public forgot request/delivery remains disabled; issuance is private.
+See the [full authentication/authorization closure checklist](authentication-completion.md).
 
 ## Not delivered / next increments
 

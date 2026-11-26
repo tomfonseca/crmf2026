@@ -90,6 +90,10 @@ func authRoute(path string) (auth.Realm, string, bool) {
 		return auth.Platform, "PUT, DELETE", true
 	}
 	switch path {
+	case "/v1/auth/password/reset":
+		return auth.Tenant, "POST", true
+	case "/v1/hq/auth/password/reset":
+		return auth.Platform, "POST", true
 	case "/v1/me/password":
 		return auth.Tenant, "POST", true
 	case "/v1/hq/me/password":

@@ -5,7 +5,9 @@
 O método **privado** issuePasswordReset e Engine.ResetPassword implementam
 emissão/consumo transacionais no schema auth. Não há rota, CLI, botão ou job
 automático para emitir links por id de usuário. Pedido público de recuperação,
-proteção contra enumeração, entrega operacional e formulários continuam pendentes.
+proteção contra enumeração e entrega operacional continuam pendentes. O
+[consumidor HTTP e formulário](password-reset-web.md) já usam este kernel nos
+dois realms, sem expor o emissor.
 Não use SQL/bootstrap para obter link ou recuperar o administrador existente.
 
 - Token criptograficamente aleatório de 32 bytes, canônico base64url, com SHA-256
@@ -74,7 +76,7 @@ recuperação humana do operador ou TLS público.
   não expor o emissor privado ou enviar link a um destinatário escolhido no corpo.
 - [ ] Política explícita de falha/crash/entrega incerta: sem retry/reemissão cega
   que substitua tokens ou prometa rollback de e-mail já aceito.
-- [ ] HTTP com JSON estrito, CSRF/origem exatos, no-store, cookies limpos e erros
+- [x] HTTP com JSON estrito, CSRF/origem exatos, no-store, cookies limpos e erros
   redigidos; frontend com token somente em memória e remoção imediata da URL.
 - [ ] ACS com identidade gerenciada/domínio validado e aceite do provedor.
 - [ ] Convites/grants/quota de usuários e aceite separado, sem sessão automática.
