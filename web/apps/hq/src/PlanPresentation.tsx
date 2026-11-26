@@ -1,5 +1,5 @@
-import { useEffect, useId, useRef, type ReactNode } from "react";
-import type { Plan } from "./plans-client";
+import { useEffect, useId, useRef, useState, type ReactNode } from "react";
+import { PLAN_CODE_PATTERN, type Plan } from "./plans-client";
 import { Pill } from "./OperationalScreens";
 export function PlanIcon({
   name,
@@ -106,6 +106,7 @@ export function PlanFields({
   setUnlimitedStores: (v: boolean) => void;
   setUnlimitedUsers: (v: boolean) => void;
 }) {
+  const [codeError, setCodeError] = useState("");
   return (
     <div className="plans-form-grid">
       <Card title="Identificação">
@@ -115,16 +116,38 @@ export function PlanFields({
             id="plan-code"
             name="code"
             required
-            pattern="[a-z0-9][a-z0-9_-]{0,63}"
+            pattern={PLAN_CODE_PATTERN}
             maxLength={64}
             readOnly={!!original}
             defaultValue={original?.code}
-            aria-describedby="plan-code-help"
+            aria-invalid={codeError ? true : undefined}
+            aria-describedby={
+              codeError ? "plan-code-help plan-code-error" : "plan-code-help"
+            }
+            onChange={() => setCodeError("")}
+            onInvalid={(e) => {
+              e.preventDefault();
+              setCodeError(
+                e.currentTarget.validity.valueMissing
+                  ? "Informe o código do plano."
+                  : "Use letras minúsculas, números, _ ou -, começando por letra ou número. Ex.: p01.",
+              );
+              e.currentTarget.focus();
+            }}
           />
+          {codeError && (
+            <small
+              id="plan-code-error"
+              role="alert"
+              className="plans-code-error"
+            >
+              {codeError}
+            </small>
+          )}
           <small id="plan-code-help">
             {original
               ? "O código é imutável."
-              : "Identificador imutável, em letras minúsculas, números, _ ou -."}
+              : "Identificador imutável, em letras minúsculas, números, _ ou -. Ex.: p01."}
           </small>
         </div>
         <div className="plans-field">
