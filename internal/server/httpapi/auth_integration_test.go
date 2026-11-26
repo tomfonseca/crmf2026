@@ -20,6 +20,7 @@ import (
 	"github.com/crmf/crmf/internal/server/auth"
 	"github.com/crmf/crmf/internal/server/httpapi/appcontract"
 	"github.com/crmf/crmf/internal/server/migrate"
+	"github.com/crmf/crmf/internal/server/provisionqueue"
 	"github.com/crmf/crmf/internal/testpasskey"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
@@ -40,6 +41,10 @@ func newHTTPFixture(t *testing.T, required bool) *httpFixture {
 	ctx := context.Background()
 	adminURL := "postgres://crmf_migrator:crmf_local_migrator_only@localhost:55432/crmf_control?sslmode=disable"
 	if err := migrate.Up(ctx, adminURL, "control"); err != nil {
+		t.Fatal(err)
+	}
+	// Every fixture prepares its own dependencies; never rely on another test or a warm database.
+	if err := provisionqueue.Migrate(ctx, adminURL); err != nil {
 		t.Fatal(err)
 	}
 	admin, err := pgx.Connect(ctx, adminURL)
