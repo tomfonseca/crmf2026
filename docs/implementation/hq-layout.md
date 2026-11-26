@@ -60,6 +60,22 @@ completed M1 store/pairing, M4 ingestion, M6 operational acceptance or M7 OTA**.
 Releases/connectors/internal-users/audit are navigation placeholders, not extra
 screen designs invented beyond the supplied ZIP.
 
+## Menu icon correction
+
+The shell now maps every navigation entry explicitly to the supplied SVG geometry,
+including Documentation and the topbar controls. No generic building fallback or
+font/Unicode icon substitutes remain. The SVGs use the reference viewBox, 1.75px
+rounded stroke, inherited currentColor and 20px/16px dimensions. Decorative SVGs
+are hidden from assistive technology; links retain accessible names when compact.
+Documentation remains available as an icon in the collapsed sidebar and regains
+its label in the mobile drawer. The search magnifier has reserved text padding.
+
+Independent reference-geometry tests reproduced the original mismatch before the
+fix. Browser checks cover exact navigation paths, actual size/color, light/dark,
+collapse, mobile, documentation accessibility and non-overlapping search text.
+The complete frontend suite passes with **67 unit and 15 browser tests**. This
+correction changes no authentication, permissions, API or backend capability.
+
 ## Routes and boundaries
 
 - `/` retains the existing plan-catalog entry; `/overview` opens the planned panel.
