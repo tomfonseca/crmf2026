@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { NetworkEditor } from "./NetworkEditor";
+import { NetworkStoreRows } from "./NetworkStoreRows";
+import { type StoreClient } from "./stores-client";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useScope } from "@crmf/auth";
 import {
@@ -22,6 +24,7 @@ import "./networks.css";
 export function Networks({
   client,
   plans,
+  stores,
   onExpired,
   onPlans,
   route = "/tenants",
@@ -29,6 +32,7 @@ export function Networks({
 }: {
   client: NetworkClient;
   plans: PlanClient;
+  stores?: StoreClient;
   onExpired: () => void;
   onPlans: () => void;
   route?: string;
@@ -193,6 +197,16 @@ export function Networks({
             ) : (
               <NetworkDetail
                 network={selected}
+                storesPanel={
+                  stores ? (
+                    <NetworkStoreRows
+                      client={stores}
+                      tenantId={selected.id}
+                      navigate={navigate}
+                      onExpired={onExpired}
+                    />
+                  ) : undefined
+                }
                 canWrite={canWrite}
                 route={route}
                 navigate={navigate}

@@ -330,6 +330,16 @@ fields are delivered in [network profiles](network-profiles.md). No provisioning
 identity rewrite, customer invitation, active gateway integration or store service
 is implied. M1 remains partial.
 
+## Real store configuration and transactional MaxStores
+
+Forward migration 00012 (revision) and 00013 (duplicate-index cleanup), plus
+authenticated QG list/get/create/edit/inactivate now
+persist store configuration with revision/audit, immutable network and locked live
+plan quota. Inactive stores count; no physical deletion. Network store tabs use
+checked filtered real records. Health/device/batch fields remain unavailable.
+See [store contract, locking and tests](hq-stores.md). Pairing, invitations and
+other pending M1 services are not implied.
+
 ## Not delivered / next increments
 
 This is **M1 started, not M1 complete**. Authentication endpoints are available

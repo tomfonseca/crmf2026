@@ -8,6 +8,7 @@ import {
 import { CatalogHost } from "./Plans";
 import { createPlanClient } from "./plans-client";
 import { createNetworkClient } from "./networks-client";
+import { createStoreClient } from "./stores-client";
 import { QGPreview } from "./QGPreview";
 
 function configuredClients() {
@@ -17,6 +18,7 @@ function configuredClients() {
       auth: createAuthClient(base, "platform", import.meta.env.DEV),
       plans: createPlanClient(base, import.meta.env.DEV),
       networks: createNetworkClient(base, import.meta.env.DEV),
+      stores: createStoreClient(base, import.meta.env.DEV),
     };
   } catch {
     return null;
@@ -43,6 +45,7 @@ export function App() {
         <CatalogHost
           client={clients.plans}
           networks={clients.networks}
+          stores={clients.stores}
           onExpired={expire}
           theme={theme}
           toggleTheme={toggleTheme}

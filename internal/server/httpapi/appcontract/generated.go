@@ -41,6 +41,138 @@ func (e AuthOutcomeStatus) Valid() bool {
 	}
 }
 
+// Defines values for HQStoreErp.
+const (
+	HQStoreErpLinxBig HQStoreErp = "linx_big"
+)
+
+// Valid indicates whether the value is a known member of the HQStoreErp enum.
+func (e HQStoreErp) Valid() bool {
+	switch e {
+	case HQStoreErpLinxBig:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for HQStoreStatus.
+const (
+	HQStoreStatusActive   HQStoreStatus = "active"
+	HQStoreStatusInactive HQStoreStatus = "inactive"
+)
+
+// Valid indicates whether the value is a known member of the HQStoreStatus enum.
+func (e HQStoreStatus) Valid() bool {
+	switch e {
+	case HQStoreStatusActive:
+		return true
+	case HQStoreStatusInactive:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for HQStoreFieldsErp.
+const (
+	HQStoreFieldsErpLinxBig HQStoreFieldsErp = "linx_big"
+)
+
+// Valid indicates whether the value is a known member of the HQStoreFieldsErp enum.
+func (e HQStoreFieldsErp) Valid() bool {
+	switch e {
+	case HQStoreFieldsErpLinxBig:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for HQStoreFieldsStatus.
+const (
+	HQStoreFieldsStatusActive   HQStoreFieldsStatus = "active"
+	HQStoreFieldsStatusInactive HQStoreFieldsStatus = "inactive"
+)
+
+// Valid indicates whether the value is a known member of the HQStoreFieldsStatus enum.
+func (e HQStoreFieldsStatus) Valid() bool {
+	switch e {
+	case HQStoreFieldsStatusActive:
+		return true
+	case HQStoreFieldsStatusInactive:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for HQStoreInputErp.
+const (
+	HQStoreInputErpLinxBig HQStoreInputErp = "linx_big"
+)
+
+// Valid indicates whether the value is a known member of the HQStoreInputErp enum.
+func (e HQStoreInputErp) Valid() bool {
+	switch e {
+	case HQStoreInputErpLinxBig:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for HQStoreInputStatus.
+const (
+	HQStoreInputStatusActive   HQStoreInputStatus = "active"
+	HQStoreInputStatusInactive HQStoreInputStatus = "inactive"
+)
+
+// Valid indicates whether the value is a known member of the HQStoreInputStatus enum.
+func (e HQStoreInputStatus) Valid() bool {
+	switch e {
+	case HQStoreInputStatusActive:
+		return true
+	case HQStoreInputStatusInactive:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for HQStoreUpdateErp.
+const (
+	HQStoreUpdateErpLinxBig HQStoreUpdateErp = "linx_big"
+)
+
+// Valid indicates whether the value is a known member of the HQStoreUpdateErp enum.
+func (e HQStoreUpdateErp) Valid() bool {
+	switch e {
+	case HQStoreUpdateErpLinxBig:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for HQStoreUpdateStatus.
+const (
+	HQStoreUpdateStatusActive   HQStoreUpdateStatus = "active"
+	HQStoreUpdateStatusInactive HQStoreUpdateStatus = "inactive"
+)
+
+// Valid indicates whether the value is a known member of the HQStoreUpdateStatus enum.
+func (e HQStoreUpdateStatus) Valid() bool {
+	switch e {
+	case HQStoreUpdateStatusActive:
+		return true
+	case HQStoreUpdateStatusInactive:
+		return true
+	default:
+		return false
+	}
+}
+
 // Defines values for HealthStatus.
 const (
 	Ok HealthStatus = "ok"
@@ -100,22 +232,22 @@ func (e NetworkProvisionStatus) Valid() bool {
 
 // Defines values for NetworkStatus.
 const (
-	Active    NetworkStatus = "active"
-	Cancelled NetworkStatus = "cancelled"
-	Suspended NetworkStatus = "suspended"
-	Trial     NetworkStatus = "trial"
+	NetworkStatusActive    NetworkStatus = "active"
+	NetworkStatusCancelled NetworkStatus = "cancelled"
+	NetworkStatusSuspended NetworkStatus = "suspended"
+	NetworkStatusTrial     NetworkStatus = "trial"
 )
 
 // Valid indicates whether the value is a known member of the NetworkStatus enum.
 func (e NetworkStatus) Valid() bool {
 	switch e {
-	case Active:
+	case NetworkStatusActive:
 		return true
-	case Cancelled:
+	case NetworkStatusCancelled:
 		return true
-	case Suspended:
+	case NetworkStatusSuspended:
 		return true
-	case Trial:
+	case NetworkStatusTrial:
 		return true
 	default:
 		return false
@@ -383,6 +515,36 @@ func (e UpdatePlanParamsXCRMFRequest) Valid() bool {
 	}
 }
 
+// Defines values for CreateHQStoreParamsXCRMFRequest.
+const (
+	CreateHQStoreParamsXCRMFRequestN1 CreateHQStoreParamsXCRMFRequest = "1"
+)
+
+// Valid indicates whether the value is a known member of the CreateHQStoreParamsXCRMFRequest enum.
+func (e CreateHQStoreParamsXCRMFRequest) Valid() bool {
+	switch e {
+	case CreateHQStoreParamsXCRMFRequestN1:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for UpdateHQStoreParamsXCRMFRequest.
+const (
+	UpdateHQStoreParamsXCRMFRequestN1 UpdateHQStoreParamsXCRMFRequest = "1"
+)
+
+// Valid indicates whether the value is a known member of the UpdateHQStoreParamsXCRMFRequest enum.
+func (e UpdateHQStoreParamsXCRMFRequest) Valid() bool {
+	switch e {
+	case UpdateHQStoreParamsXCRMFRequestN1:
+		return true
+	default:
+		return false
+	}
+}
+
 // Defines values for CreateNetworkParamsXCRMFRequest.
 const (
 	CreateNetworkParamsXCRMFRequestN1 CreateNetworkParamsXCRMFRequest = "1"
@@ -460,6 +622,81 @@ type AuthOutcomeStatus string
 type EnrollmentInput struct {
 	Password string `json:"password"`
 }
+
+// HQStore defines model for HQStore.
+type HQStore struct {
+	City        string             `json:"city"`
+	Code        string             `json:"code"`
+	Erp         HQStoreErp         `json:"erp"`
+	Id          openapi_types.UUID `json:"id"`
+	Name        string             `json:"name"`
+	NetworkName string             `json:"network_name"`
+	NetworkSlug string             `json:"network_slug"`
+	Status      HQStoreStatus      `json:"status"`
+	TenantId    openapi_types.UUID `json:"tenant_id"`
+	Timezone    string             `json:"timezone"`
+	Uf          string             `json:"uf"`
+	Version     int32              `json:"version"`
+}
+
+// HQStoreErp defines model for HQStore.Erp.
+type HQStoreErp string
+
+// HQStoreStatus defines model for HQStore.Status.
+type HQStoreStatus string
+
+// HQStoreFields defines model for HQStoreFields.
+type HQStoreFields struct {
+	City     string              `json:"city"`
+	Code     string              `json:"code"`
+	Erp      HQStoreFieldsErp    `json:"erp"`
+	Name     string              `json:"name"`
+	Status   HQStoreFieldsStatus `json:"status"`
+	Timezone string              `json:"timezone"`
+	Uf       string              `json:"uf"`
+}
+
+// HQStoreFieldsErp defines model for HQStoreFields.Erp.
+type HQStoreFieldsErp string
+
+// HQStoreFieldsStatus defines model for HQStoreFields.Status.
+type HQStoreFieldsStatus string
+
+// HQStoreInput defines model for HQStoreInput.
+type HQStoreInput struct {
+	City     string             `json:"city"`
+	Code     string             `json:"code"`
+	Erp      HQStoreInputErp    `json:"erp"`
+	Name     string             `json:"name"`
+	Status   HQStoreInputStatus `json:"status"`
+	TenantId openapi_types.UUID `json:"tenant_id"`
+	Timezone string             `json:"timezone"`
+	Uf       string             `json:"uf"`
+}
+
+// HQStoreInputErp defines model for HQStoreInput.Erp.
+type HQStoreInputErp string
+
+// HQStoreInputStatus defines model for HQStoreInput.Status.
+type HQStoreInputStatus string
+
+// HQStoreUpdate defines model for HQStoreUpdate.
+type HQStoreUpdate struct {
+	City     string              `json:"city"`
+	Code     string              `json:"code"`
+	Erp      HQStoreUpdateErp    `json:"erp"`
+	Name     string              `json:"name"`
+	Status   HQStoreUpdateStatus `json:"status"`
+	Timezone string              `json:"timezone"`
+	Uf       string              `json:"uf"`
+	Version  int32               `json:"version"`
+}
+
+// HQStoreUpdateErp defines model for HQStoreUpdate.Erp.
+type HQStoreUpdateErp string
+
+// HQStoreUpdateStatus defines model for HQStoreUpdate.Status.
+type HQStoreUpdateStatus string
 
 // Health defines model for Health.
 type Health struct {
@@ -721,6 +958,28 @@ type UpdatePlanParams struct {
 // UpdatePlanParamsXCRMFRequest defines parameters for UpdatePlan.
 type UpdatePlanParamsXCRMFRequest string
 
+// ListHQStoresParams defines parameters for ListHQStores.
+type ListHQStoresParams struct {
+	After    *openapi_types.UUID `form:"after,omitempty" json:"after,omitempty"`
+	TenantId *openapi_types.UUID `form:"tenant_id,omitempty" json:"tenant_id,omitempty"`
+}
+
+// CreateHQStoreParams defines parameters for CreateHQStore.
+type CreateHQStoreParams struct {
+	XCRMFRequest CreateHQStoreParamsXCRMFRequest `json:"X-CRMF-Request"`
+}
+
+// CreateHQStoreParamsXCRMFRequest defines parameters for CreateHQStore.
+type CreateHQStoreParamsXCRMFRequest string
+
+// UpdateHQStoreParams defines parameters for UpdateHQStore.
+type UpdateHQStoreParams struct {
+	XCRMFRequest UpdateHQStoreParamsXCRMFRequest `json:"X-CRMF-Request"`
+}
+
+// UpdateHQStoreParamsXCRMFRequest defines parameters for UpdateHQStore.
+type UpdateHQStoreParamsXCRMFRequest string
+
 // ListNetworksParams defines parameters for ListNetworks.
 type ListNetworksParams struct {
 	After *string `form:"after,omitempty" json:"after,omitempty"`
@@ -787,6 +1046,12 @@ type DeletePlanJSONRequestBody DeletePlanJSONBody
 // UpdatePlanJSONRequestBody defines body for UpdatePlan for application/json ContentType.
 type UpdatePlanJSONRequestBody = PlanUpdate
 
+// CreateHQStoreJSONRequestBody defines body for CreateHQStore for application/json ContentType.
+type CreateHQStoreJSONRequestBody = HQStoreInput
+
+// UpdateHQStoreJSONRequestBody defines body for UpdateHQStore for application/json ContentType.
+type UpdateHQStoreJSONRequestBody = HQStoreUpdate
+
 // CreateNetworkJSONRequestBody defines body for CreateNetwork for application/json ContentType.
 type CreateNetworkJSONRequestBody = NetworkInput
 
@@ -846,6 +1111,18 @@ type ServerInterface interface {
 
 	// (PUT /v1/hq/plans/{id})
 	UpdatePlan(w http.ResponseWriter, r *http.Request, id openapi_types.UUID, params UpdatePlanParams)
+
+	// (GET /v1/hq/stores)
+	ListHQStores(w http.ResponseWriter, r *http.Request, params ListHQStoresParams)
+
+	// (POST /v1/hq/stores)
+	CreateHQStore(w http.ResponseWriter, r *http.Request, params CreateHQStoreParams)
+
+	// (GET /v1/hq/stores/{id})
+	GetHQStore(w http.ResponseWriter, r *http.Request, id openapi_types.UUID)
+
+	// (PUT /v1/hq/stores/{id})
+	UpdateHQStore(w http.ResponseWriter, r *http.Request, id openapi_types.UUID, params UpdateHQStoreParams)
 
 	// (GET /v1/hq/tenants)
 	ListNetworks(w http.ResponseWriter, r *http.Request, params ListNetworksParams)
@@ -941,6 +1218,26 @@ func (_ Unimplemented) DeletePlan(w http.ResponseWriter, r *http.Request, id ope
 
 // (PUT /v1/hq/plans/{id})
 func (_ Unimplemented) UpdatePlan(w http.ResponseWriter, r *http.Request, id openapi_types.UUID, params UpdatePlanParams) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// (GET /v1/hq/stores)
+func (_ Unimplemented) ListHQStores(w http.ResponseWriter, r *http.Request, params ListHQStoresParams) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// (POST /v1/hq/stores)
+func (_ Unimplemented) CreateHQStore(w http.ResponseWriter, r *http.Request, params CreateHQStoreParams) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// (GET /v1/hq/stores/{id})
+func (_ Unimplemented) GetHQStore(w http.ResponseWriter, r *http.Request, id openapi_types.UUID) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// (PUT /v1/hq/stores/{id})
+func (_ Unimplemented) UpdateHQStore(w http.ResponseWriter, r *http.Request, id openapi_types.UUID, params UpdateHQStoreParams) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
@@ -1552,6 +1849,177 @@ func (siw *ServerInterfaceWrapper) UpdatePlan(w http.ResponseWriter, r *http.Req
 	handler.ServeHTTP(w, r)
 }
 
+// ListHQStores operation middleware
+func (siw *ServerInterfaceWrapper) ListHQStores(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params ListHQStoresParams
+
+	// ------------- Optional query parameter "after" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "after", r.URL.Query(), &params.After, runtime.BindQueryParameterOptions{Type: "string", Format: "uuid"})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "after"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "after", Err: err})
+		}
+		return
+	}
+
+	// ------------- Optional query parameter "tenant_id" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "tenant_id", r.URL.Query(), &params.TenantId, runtime.BindQueryParameterOptions{Type: "string", Format: "uuid"})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "tenant_id"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "tenant_id", Err: err})
+		}
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.ListHQStores(w, r, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// CreateHQStore operation middleware
+func (siw *ServerInterfaceWrapper) CreateHQStore(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params CreateHQStoreParams
+
+	headers := r.Header
+
+	// ------------- Required header parameter "X-CRMF-Request" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("X-CRMF-Request")]; found {
+		var XCRMFRequest CreateHQStoreParamsXCRMFRequest
+		n := len(valueList)
+		if n != 1 {
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "X-CRMF-Request", Count: n})
+			return
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "X-CRMF-Request", valueList[0], &XCRMFRequest, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true, Type: "string", Format: ""})
+		if err != nil {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "X-CRMF-Request", Err: err})
+			return
+		}
+
+		params.XCRMFRequest = XCRMFRequest
+
+	} else {
+		err := fmt.Errorf("Header parameter X-CRMF-Request is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "X-CRMF-Request", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.CreateHQStore(w, r, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// GetHQStore operation middleware
+func (siw *ServerInterfaceWrapper) GetHQStore(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "id" -------------
+	var id openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", chi.URLParam(r, "id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: r.URL.RawPath == ""})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetHQStore(w, r, id)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// UpdateHQStore operation middleware
+func (siw *ServerInterfaceWrapper) UpdateHQStore(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "id" -------------
+	var id openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", chi.URLParam(r, "id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: r.URL.RawPath == ""})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
+		return
+	}
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params UpdateHQStoreParams
+
+	headers := r.Header
+
+	// ------------- Required header parameter "X-CRMF-Request" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("X-CRMF-Request")]; found {
+		var XCRMFRequest UpdateHQStoreParamsXCRMFRequest
+		n := len(valueList)
+		if n != 1 {
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "X-CRMF-Request", Count: n})
+			return
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "X-CRMF-Request", valueList[0], &XCRMFRequest, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true, Type: "string", Format: ""})
+		if err != nil {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "X-CRMF-Request", Err: err})
+			return
+		}
+
+		params.XCRMFRequest = XCRMFRequest
+
+	} else {
+		err := fmt.Errorf("Header parameter X-CRMF-Request is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "X-CRMF-Request", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.UpdateHQStore(w, r, id, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
 // ListNetworks operation middleware
 func (siw *ServerInterfaceWrapper) ListNetworks(w http.ResponseWriter, r *http.Request) {
 
@@ -1969,6 +2437,18 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 		r.Post(options.BaseURL+"/v1/hq/tenants/{id}/retry", wrapper.RetryNetwork)
 	})
 	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/v1/hq/stores", wrapper.ListHQStores)
+	})
+	r.Group(func(r chi.Router) {
+		r.Post(options.BaseURL+"/v1/hq/stores", wrapper.CreateHQStore)
+	})
+	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/v1/hq/stores/{id}", wrapper.GetHQStore)
+	})
+	r.Group(func(r chi.Router) {
+		r.Put(options.BaseURL+"/v1/hq/stores/{id}", wrapper.UpdateHQStore)
+	})
+	r.Group(func(r chi.Router) {
 		r.Get(options.BaseURL+"/v1/hq/companies/{cnpj}", wrapper.LookupCompany)
 	})
 	r.Group(func(r chi.Router) {
@@ -1983,54 +2463,59 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 // const string: with thousands of chunks the chained `+` fold is several
 // times slower for the Go compiler than parsing a slice literal.
 var swaggerSpec = []string{
-	"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",
-	"AA==",
+	"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",
+	"QoVMzJSxw58GPw3wmuz/BgA=",
 }
 
 // decodeSpec returns the embedded OpenAPI spec as raw JSON bytes,

@@ -89,7 +89,7 @@ test("store reference boards share the actual presentation at desktop/mobile and
   expect(requests).toEqual([]);
   expect(errors).toEqual([]);
 });
-test("support store deep links remain read only and never request store data", async ({
+test("support store deep links remain read only and never request unchecked identities", async ({
   page,
 }) => {
   const requests: string[] = [];
@@ -130,5 +130,7 @@ test("support store deep links remain read only and never request store data", a
         0,
       );
   }
-  expect(requests.every((r) => r === "GET /v1/hq/me")).toBe(true);
+  expect(
+    requests.every((r) => ["GET /v1/hq/me", "GET /v1/hq/stores"].includes(r)),
+  ).toBe(true);
 });

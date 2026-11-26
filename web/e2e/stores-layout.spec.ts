@@ -1,7 +1,7 @@
 import { expect, test } from "@playwright/test";
 const origin = "http://localhost:5177";
 const id = "00000000-0000-7000-8000-000000000001";
-test("authenticated store screens preserve drafts and never simulate persistence or telemetry", async ({
+test("store API outage preserves drafts and never becomes an empty catalog or fabricated telemetry", async ({
   page,
 }) => {
   const requests: string[] = [];
@@ -10,7 +10,16 @@ test("authenticated store screens preserve drafts and never simulate persistence
       path = new URL(req.url()).pathname;
     requests.push(req.method() + " " + path);
     expect(req.method()).toBe("GET");
-    expect(["/v1/hq/me", "/v1/hq/tenants"]).toContain(path);
+    expect(["/v1/hq/me", "/v1/hq/tenants", "/v1/hq/stores"]).toContain(path);
+    if (path === "/v1/hq/stores")
+      return route.fulfill({
+        status: 503,
+        headers: {
+          "Access-Control-Allow-Origin": origin,
+          "Access-Control-Allow-Credentials": "true",
+        },
+        json: { type: "store_unavailable" },
+      });
     return route.fulfill({
       headers: {
         "Access-Control-Allow-Origin": origin,
@@ -53,7 +62,7 @@ test("authenticated store screens preserve drafts and never simulate persistence
     "Última atualização",
   ]);
   await expect(
-    page.getByText("Consulta de lojas ainda não disponível.", { exact: true }),
+    page.getByText("Não foi possível carregar as lojas.", { exact: false }),
   ).toBeVisible();
   await expect(page.getByText(/0 lojas/)).toHaveCount(0);
   await page
@@ -69,7 +78,7 @@ test("authenticated store screens preserve drafts and never simulate persistence
   await page.getByLabel("Nome", { exact: true }).fill("Rascunho de loja");
   await expect(
     page.getByRole("button", { name: "Salvar loja", exact: true }),
-  ).toBeDisabled();
+  ).toBeEnabled();
   await page.getByRole("button", { name: "Cancelar", exact: true }).click();
   await expect(page.getByRole("alertdialog")).toContainText("nesta loja");
   await page.getByRole("button", { name: "Continuar editando" }).click();

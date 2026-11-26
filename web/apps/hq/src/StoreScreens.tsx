@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { PlanIcon } from "./PlanPresentation";
+import { storeMessage } from "./stores-client";
 import "./stores.css";
 
 export type StoreHealth = "ok" | "late" | "offline" | "no-sales" | "no-data";
@@ -14,9 +15,10 @@ export type StoreRecord = {
   uf: string;
   timezone: string;
   active: boolean;
-  health: StoreHealth;
+  health?: StoreHealth;
+  version?: number;
   lastUpdate?: string;
-  agent: null | {
+  agent?: null | {
     id: string;
     system: string;
     version: string;
@@ -25,14 +27,28 @@ export type StoreRecord = {
     heartbeat: string;
     lastBatch: string;
   };
-  batches: {
+  batches?: {
     id: string;
     flow: string;
     window: string;
     status: "Processado" | "Falhou" | "Em processamento";
   }[];
 };
-export type StoreNetwork = { id: string; name: string; slug: string };
+export type StoreNetwork = {
+  id: string;
+  name: string;
+  slug: string;
+  defaultTimezone?: string;
+};
+export type StoreDraft = {
+  networkId: string;
+  code: string;
+  name: string;
+  city: string;
+  uf: string;
+  timezone: string;
+  active: boolean | null;
+};
 export type StoreScreenProps = {
   route: string;
   navigate: (path: string) => void;
@@ -46,6 +62,15 @@ export type StoreScreenProps = {
   title?: string;
   variant?: string;
   preview?: boolean;
+  connected?: boolean;
+  pagination?: ReactNode;
+  onReloadStores?: () => void;
+  onSave?: (
+    input: StoreDraft,
+    record: StoreRecord | undefined,
+    signal: AbortSignal,
+  ) => Promise<StoreRecord>;
+  onSaved?: (record: StoreRecord) => void;
 };
 const healthLabels: Record<StoreHealth, string> = {
   ok: "Saudável",
@@ -71,7 +96,8 @@ export function StoreBadge({
 }) {
   return <span className={`stores-badge stores-${tone}`}>{children}</span>;
 }
-function Health({ health }: { health: StoreHealth }) {
+function Health({ health }: { health?: StoreHealth }) {
+  if (!health) return <span title="Telemetria ainda indisponível">—</span>;
   return (
     <StoreBadge tone={healthTones[health]}>{healthLabels[health]}</StoreBadge>
   );
@@ -238,7 +264,7 @@ export function StoreScreens(props: StoreScreenProps) {
       {isNew || edit ? (
         canWrite ? (
           <StoreEditor
-            key={route}
+            key={route + ":" + (record?.id ?? "unknown")}
             {...props}
             record={isNew && preview ? records[0] : record}
             edit={edit}
@@ -273,7 +299,7 @@ export function StoreScreens(props: StoreScreenProps) {
               )
             }
           />
-          {record ? (
+          {record?.health ? (
             <Notice tone={healthTones[record.health]}>
               <strong>{healthLabels[record.health]}.</strong>{" "}
               {record.agent
@@ -320,7 +346,10 @@ export function StoreScreens(props: StoreScreenProps) {
                   ],
                   [
                     "Cidade/UF",
-                    record ? record.city + "/" + record.uf : unavailable,
+                    record
+                      ? [record.city, record.uf].filter(Boolean).join("/") ||
+                        unavailable
+                      : unavailable,
                   ],
                   ["Fuso", record?.timezone ?? unavailable],
                   ["ERP", record ? "Linx Big" : unavailable],
@@ -395,7 +424,7 @@ export function StoreScreens(props: StoreScreenProps) {
                   </tr>
                 </thead>
                 <tbody>
-                  {record?.batches.map((batch) => (
+                  {record?.batches?.map((batch) => (
                     <tr key={batch.id}>
                       <th scope="row">{batch.id}</th>
                       <td>{batch.flow}</td>
@@ -418,9 +447,9 @@ export function StoreScreens(props: StoreScreenProps) {
                 </tbody>
               </table>
             </div>
-            {!record?.batches.length && (
+            {!record?.batches?.length && (
               <div className="stores-empty">
-                {record
+                {preview && record
                   ? "Nenhum lote nesta prévia visual."
                   : "Consulta de lotes ainda não disponível."}
               </div>
@@ -428,9 +457,9 @@ export function StoreScreens(props: StoreScreenProps) {
           </StoreCard>
           {!preview && (
             <Notice>
-              Previsto: consulta/edição da loja, dispositivos, pareamento e
-              lotes ainda não integrados. Nenhum dado foi criado a partir deste
-              endereço.
+              {props.connected
+                ? "Configuração consultada no controle. Dispositivos, pareamento, telemetria e lotes ainda não integrados."
+                : "Previsto: consulta/edição da loja, dispositivos, pareamento e lotes ainda não integrados. Nenhum dado foi criado a partir deste endereço."}
             </Notice>
           )}
           {preview && variant === "situacao-sem-dados" && (
@@ -451,6 +480,9 @@ function StoreList({
   title,
   variant = "",
   preview = false,
+  connected = false,
+  pagination,
+  onReloadStores,
 }: StoreScreenProps) {
   const [search, setSearch] = useState(
     variant === "busca-sem-resultado" ? "busca sem correspondência" : "",
@@ -524,7 +556,7 @@ function StoreList({
         <label>
           Dados
           <select
-            disabled={state === "unavailable"}
+            disabled={state === "unavailable" || connected}
             value={health}
             onChange={(e) => setHealth(e.target.value)}
           >
@@ -540,7 +572,11 @@ function StoreList({
       {state === "error" && (
         <Notice tone="danger" role="alert">
           Não foi possível carregar as lojas.{" "}
-          <PlannedAction>Tentar novamente</PlannedAction>
+          {onReloadStores ? (
+            <button onClick={onReloadStores}>Tentar novamente</button>
+          ) : (
+            <PlannedAction>Tentar novamente</PlannedAction>
+          )}
         </Notice>
       )}
       <div className="stores-table-panel">
@@ -571,9 +607,7 @@ function StoreList({
                       <small>{r.code}</small>
                     </th>
                     <td>{r.networkName}</td>
-                    <td>
-                      {r.city}/{r.uf}
-                    </td>
+                    <td>{[r.city, r.uf].filter(Boolean).join("/") || "—"}</td>
                     <td>Linx Big</td>
                     <td>
                       <Health health={r.health} />
@@ -581,10 +615,12 @@ function StoreList({
                     <td>
                       {r.agent ? (
                         "v" + r.agent.version
-                      ) : (
+                      ) : r.agent === null ? (
                         <StoreBadge tone="warn">
                           Aguardando pareamento
                         </StoreBadge>
+                      ) : (
+                        "—"
                       )}
                     </td>
                     <td>{r.lastUpdate ?? "—"}</td>
@@ -638,7 +674,7 @@ function StoreList({
         <footer className="stores-table-footer">
           <span>
             {state === "loaded" || state === "empty"
-              ? `${items.length} lojas · ${new Set(items.map((r) => r.networkId)).size} redes`
+              ? `${items.length} lojas · ${new Set(items.map((r) => r.networkId)).size} redes${connected ? " nesta página" : ""}`
               : "Contagens não disponíveis"}
           </span>
           <span>
@@ -646,11 +682,13 @@ function StoreList({
             “Offline” = sem heartbeat há mais de 10 min.
           </span>
         </footer>
+        {pagination}
       </div>
       {!preview && (
         <p className="stores-help">
-          Cadastro, edição e consulta de lojas previstos. O formulário permite
-          conferir o preenchimento, mas não salva dados.
+          {connected
+            ? "Cadastro e edição conectados. Busca e rede filtram esta página. Telemetria, dispositivos e última atualização permanecem indisponíveis; situação da loja é configuração, não saúde do agente."
+            : "Cadastro, edição e consulta de lojas previstos. O formulário permite conferir o preenchimento, mas não salva dados."}
         </p>
       )}
     </>
@@ -689,7 +727,20 @@ function StoreEditor({
   title,
   variant = "",
   preview = false,
+  connected = false,
+  onSave,
+  onSaved,
 }: StoreScreenProps & { record?: StoreRecord; edit: boolean }) {
+  const original = useRef(record);
+  const form = useRef<HTMLFormElement>(null),
+    controller = useRef<AbortController | null>(null),
+    submitting = useRef(false);
+  const [pending, setPending] = useState(false),
+    [error, setError] = useState("");
+  useEffect(() => {
+    controller.current = new AbortController();
+    return () => controller.current?.abort();
+  }, []);
   const initial = useRef({
     networkId: record?.networkId ?? "",
     code: record?.code ?? "",
@@ -701,7 +752,7 @@ function StoreEditor({
   });
   const [input, setInput] = useState(initial.current);
   const dirty = JSON.stringify(input) !== JSON.stringify(initial.current);
-  const saving = preview && variant === "salvando";
+  const saving = pending || (preview && variant === "salvando");
   const unknown = edit && !record;
   useEffect(() => {
     if (preview) return;
@@ -750,11 +801,45 @@ function StoreEditor({
         </Notice>
       )}
       <form
+        ref={form}
         className="stores-form"
         data-dirty={!preview && dirty}
         data-saving={!preview && saving}
         data-draft-label="nesta loja"
-        onSubmit={(event) => event.preventDefault()}
+        onSubmit={async (event) => {
+          event.preventDefault();
+          if (
+            !onSave ||
+            submitting.current ||
+            unknown ||
+            !controller.current ||
+            input.active === null
+          )
+            return;
+          const own = controller.current;
+          submitting.current = true;
+          setPending(true);
+          setError("");
+          if (form.current) form.current.dataset.saving = "true";
+          try {
+            const saved = await onSave(input, original.current, own.signal);
+            if (own.signal.aborted) return;
+            initial.current = { ...input };
+            if (form.current) {
+              form.current.dataset.dirty = "false";
+              form.current.dataset.saving = "false";
+            }
+            onSaved?.(saved);
+          } catch (e) {
+            if (!own.signal.aborted) setError(storeMessage(e));
+          } finally {
+            submitting.current = false;
+            if (!own.signal.aborted) {
+              setPending(false);
+              if (form.current) form.current.dataset.saving = "false";
+            }
+          }
+        }}
       >
         <fieldset className="stores-fields" disabled={unknown || saving}>
           <div className="stores-grid stores-form-grid">
@@ -767,7 +852,13 @@ function StoreEditor({
                   value={input.networkId}
                   disabled={edit || networkState !== "ready"}
                   onChange={(e) =>
-                    setInput((v) => ({ ...v, networkId: e.target.value }))
+                    setInput((v) => ({
+                      ...v,
+                      networkId: e.target.value,
+                      timezone:
+                        networks.find((n) => n.id === e.target.value)
+                          ?.defaultTimezone || v.timezone,
+                    }))
                   }
                 >
                   <option value="">
@@ -796,6 +887,7 @@ function StoreEditor({
                 Código da loja <span aria-hidden="true">*</span>
                 <input
                   id="store-code"
+                  maxLength={64}
                   aria-label="Código da loja"
                   required
                   value={input.code}
@@ -812,6 +904,7 @@ function StoreEditor({
                 Nome <span aria-hidden="true">*</span>
                 <input
                   id="store-name"
+                  maxLength={200}
                   aria-label="Nome"
                   required
                   value={input.name}
@@ -838,6 +931,7 @@ function StoreEditor({
                 <label>
                   UF
                   <select
+                    aria-label="UF"
                     value={input.uf}
                     onChange={(e) =>
                       setInput((v) => ({ ...v, uf: e.target.value }))
@@ -861,7 +955,12 @@ function StoreEditor({
                   }
                 >
                   {unknown && <option value="">Não disponível</option>}
-                  {zones.map((z) => (
+                  {Array.from(
+                    new Set([
+                      ...(input.timezone ? [input.timezone] : []),
+                      ...zones,
+                    ]),
+                  ).map((z) => (
                     <option key={z} value={z}>
                       {z}
                       {z === "America/Sao_Paulo" ? " (Brasília)" : ""}
@@ -906,19 +1005,26 @@ function StoreEditor({
                   <option value="inactive">Inativa</option>
                 </select>
                 <small id="store-status-help">
-                  Loja inativa não recebe novos lotes nem aparece no Dash.
-                  {!preview &&
-                    " A aplicação dessa política depende dos serviços ainda previstos."}
+                  {preview
+                    ? "Loja inativa não recebe novos lotes nem aparece no Dash."
+                    : connected
+                      ? "A situação é gravada no controle de acesso. Loja inativa continua contando no limite do plano. Coleta e ingestão ainda não estão implementadas."
+                      : "Loja inativa não recebe novos lotes nem aparece no Dash. A aplicação dessa política depende dos serviços ainda previstos."}
                 </small>
               </label>
             </StoreCard>
           </div>
         </fieldset>
-        {!preview && (
+        {!preview && !connected && (
           <Notice>
             Cadastro e edição previstos: não há serviço de salvamento de lojas
             conectado. O preenchimento fica só nesta tela e será perdido ao
             sair. Nenhum pareamento será gerado.
+          </Notice>
+        )}
+        {error && (
+          <Notice tone="danger" role="alert">
+            {error}
           </Notice>
         )}
         <footer className="stores-form-actions">
@@ -933,8 +1039,18 @@ function StoreEditor({
           </button>
           <button
             className="plans-primary"
-            disabled
-            title="Previsto · salvamento ainda não disponibilizado"
+            disabled={
+              !onSave ||
+              saving ||
+              unknown ||
+              !input.networkId ||
+              input.active === null
+            }
+            title={
+              !onSave
+                ? "Previsto · salvamento ainda não disponibilizado"
+                : undefined
+            }
           >
             {saving ? "Salvando…" : "Salvar loja"}
           </button>
