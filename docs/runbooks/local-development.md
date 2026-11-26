@@ -130,5 +130,18 @@ volumes to regain access. A deliberate administrator-recovery procedure is
 still pending. Integration tests never reset a real marker; their disposable
 synthetic marker cleanup uses the local test migrator only.
 
+## Local auth-email capture (separate opt-in)
+
+Run `python scripts/tasks.py mail-dev` to start only Mailpit at
+http://localhost:18025. It does not change the running API, administrator,
+passkeys, secrets or databases. No external relay is configured; messages live
+in the container's temporary filesystem, capped at 100/1h. Do not publish this
+UI/API, connect production email or enable SMTP forwarding.
+
+See [local email contract and test](../implementation/local-auth-mail.md).
+Templates and delivery are implemented; forgot/reset/invite HTTP/frontend and
+production ACS delivery remain pending. The legacy Keycloak stays unchanged
+until the complete cutover.
+
 All dependencies are locked by go.sum, pnpm-lock.yaml and Terraform lockfiles.
 Generated files are committed; `make gen` must produce no diff in CI.

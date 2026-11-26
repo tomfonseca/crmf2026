@@ -73,6 +73,14 @@ def dev():
     print("Ready: API :8080 | QG :5173 | Dash :5174 | OIDC :18080")
 
 
+def mail_dev():
+    # Only starts the isolated local capture service, not API/ERP/auth bootstrap.
+    run("docker", "compose", "-f", "compose.yaml", "-f", "compose.mail.yaml",
+        "up", "-d", "--wait", "--wait-timeout", "60", "mailpit")
+    wait_http("http://localhost:18025/readyz", seconds=15)
+    print("Local mail capture: http://localhost:18025; no external delivery or auth links issued.")
+
+
 def auth_dev():
     # Explicit one-time local provisioning, never an API startup fallback.
     import base64
@@ -167,7 +175,7 @@ def check():
 
 
 if __name__ == "__main__":
-    commands = {"dev": dev, "auth-dev": auth_dev, "stop": lambda: run("docker", "compose", "stop"), "test": test,
+    commands = {"dev": dev, "auth-dev": auth_dev, "mail-dev": mail_dev, "stop": lambda: run("docker", "compose", "stop"), "test": test,
                 "integration": integration, "gen": gen, "lint": lint, "fmt": fmt,
                 "agent": agent, "build": build, "check": check, "security": security}
     if len(sys.argv) != 2 or sys.argv[1] not in commands:

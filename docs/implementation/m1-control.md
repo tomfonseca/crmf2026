@@ -359,6 +359,15 @@ references never expose bearer tokens. See [contract, evidence and limits](accou
 Email recovery, invitations and additional-passkey management remain pending.
 No migration or operator credential change is required.
 
+## Local auth-email foundation
+
+Mailpit is available through the explicit mail-dev command, alongside pt-BR
+invite/reset templates and a development-only sender with fixed realm origins,
+redacted errors, bounded delivery and no automatic retry. Real capture tests
+use disposable .invalid recipients, not operator accounts. See
+[scope, proof and next units](local-auth-mail.md); token issuance/consumption,
+HTTP/frontend flows and production ACS acceptance remain pending.
+
 ## Not delivered / next increments
 
 This is **M1 started, not M1 complete**. Authentication endpoints are available

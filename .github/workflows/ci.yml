@@ -55,6 +55,10 @@ jobs:
       - run: git diff --exit-code -- internal web/packages/api-client/src
       - run: make lint test build agent
       - run: make integration
+      - name: Capture synthetic auth mail locally
+        run: |
+          python scripts/tasks.py mail-dev
+          MAILPIT_TEST_URL=http://localhost:18025 go test -tags=integration ./internal/server/auth -run '^TestAuthMailCapture$' -count=1
       - run: make security
       - run: docker build -f deploy/Dockerfile -t crmf-server:ci .
       - run: docker build -f deploy/vps/Dockerfile.web -t crmf-web-edge:ci .
@@ -88,7 +92,14 @@ jobs:
           severity: HIGH,CRITICAL
           ignore-unfixed: true
           exit-code: "1"
+      - uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
+        with:
+          version: v0.76.2
+          image-ref: axllent/mailpit:v1.34.0@sha256:23a2ef85bc50853ab3093645d1d64679afd8887e89da5e48a88940c172591a4e
+          severity: HIGH,CRITICAL
+          ignore-unfixed: true
+          exit-code: "1"
       - if: always()
-        run: docker compose logs --tail=50
+        run: docker compose -f compose.yaml -f compose.mail.yaml logs --tail=50
       - if: always()
-        run: docker compose down
+        run: docker compose -f compose.yaml -f compose.mail.yaml down
