@@ -2,6 +2,7 @@ package app
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"math"
 
@@ -30,6 +31,7 @@ type Network struct {
 	PlanID                                                   uuid.UUID
 	SchemaVersion                                            int64
 	Generation                                               int32
+	Profile                                                  *ProfileVersion
 }
 type NetworkPage struct {
 	Items      []Network
@@ -74,6 +76,13 @@ func networkState(ready bool, state string) string {
 }
 func (n *Networks) state(ctx context.Context, tx pgx.Tx, row control.NetworkBySlugRow) (Network, error) {
 	result := networkRow(row)
+	profile, e := loadProfile(ctx, tx, result.ID)
+	if e != nil {
+		return Network{}, e
+	}
+	if profile.Version > 0 {
+		result.Profile = &profile
+	}
 	if row.ProvisionState == "ready" && row.SchemaVersion > 0 {
 		result.ProvisionStatus = "ready"
 		return result, nil
@@ -130,13 +139,19 @@ func (n *Networks) List(ctx context.Context, after string) (NetworkPage, error) 
 	if len(rows) > 100 {
 		page.NextCursor = page.Items[len(page.Items)-1].Slug
 	}
+	if err := n.loadProfiles(ctx, page.Items); err != nil {
+		return NetworkPage{}, err
+	}
 	return page, nil
 }
 func (n *Networks) Create(ctx context.Context, in tenancy.ProvisionInput) (Network, error) {
+	return n.CreateWithProfile(ctx, in, NetworkProfile{})
+}
+func (n *Networks) CreateWithProfile(ctx context.Context, in tenancy.ProvisionInput, profile NetworkProfile) (Network, error) {
 	if err := RequirePlatform(ctx, true); err != nil {
 		return Network{}, err
 	}
-	if !tenancy.ValidateProvisionInput(in) {
+	if !tenancy.ValidateProvisionInput(in) || !validProfile(profile) {
 		return Network{}, ErrNetworkInvalid
 	}
 	tx, err := n.pool.Begin(ctx)
@@ -153,7 +168,16 @@ func (n *Networks) Create(ctx context.Context, in tenancy.ProvisionInput) (Netwo
 		if existing.LegalName != in.LegalName || existing.Cnpj != in.CNPJ || uuid.UUID(existing.PlanID.Bytes) != in.PlanID || existing.Generation < 1 {
 			return Network{}, ErrNetworkConflict
 		}
-		return n.state(ctx, tx, existing) // Exact retries never enqueue duplicate work.
+		saved, e := loadProfile(ctx, tx, uuid.UUID(existing.ID.Bytes))
+		if e != nil {
+			return Network{}, e
+		}
+		if saved.Data != profile {
+			return Network{}, ErrNetworkConflict
+		}
+		result, e := n.state(ctx, tx, existing)
+		result.Profile = &saved
+		return result, e // Exact retries never enqueue duplicate work.
 	}
 	if !errors.Is(err, pgx.ErrNoRows) {
 		return Network{}, ErrNetworkUnavailable
@@ -179,13 +203,23 @@ func (n *Networks) Create(ctx context.Context, in tenancy.ProvisionInput) (Netwo
 	if q.ReserveTenantSubscription(ctx, control.ReserveTenantSubscriptionParams{ID: planUUID(subscription), TenantID: planUUID(id), PlanID: planUUID(in.PlanID)}) != nil || q.ReserveTenantProvisioning(ctx, planUUID(id)) != nil {
 		return Network{}, ErrNetworkUnavailable
 	}
+	raw, e := json.Marshal(profile)
+	if e != nil {
+		return Network{}, ErrNetworkInvalid
+	}
+	if _, e = tx.Exec(ctx, "INSERT INTO core.network_profiles(tenant_id,data) VALUES($1,$2)", id, raw); e != nil {
+		return Network{}, ErrNetworkUnavailable
+	}
+	if e = auditProfile(ctx, tx, id, 1); e != nil {
+		return Network{}, e
+	}
 	if err := n.enqueue(ctx, tx, id, 1, in); err != nil {
 		return Network{}, err
 	}
 	if tx.Commit(ctx) != nil {
 		return Network{}, ErrNetworkUnavailable
 	}
-	return Network{ID: id, Slug: in.Slug, LegalName: in.LegalName, CNPJ: in.CNPJ, Status: "trial", PlanName: plan.Name, PlanID: in.PlanID, ProvisionStatus: "queued", Generation: 1}, nil
+	return Network{ID: id, Slug: in.Slug, LegalName: in.LegalName, CNPJ: in.CNPJ, Status: "trial", PlanName: plan.Name, PlanID: in.PlanID, ProvisionStatus: "queued", Generation: 1, Profile: &ProfileVersion{Data: profile, Version: 1}}, nil
 }
 func (n *Networks) Retry(ctx context.Context, id uuid.UUID, generation int32) (Network, error) {
 	if err := RequirePlatform(ctx, true); err != nil {

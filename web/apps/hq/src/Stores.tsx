@@ -37,7 +37,11 @@ export function Stores({
   const options =
     available.data?.pages
       .flatMap((page) => page.items)
-      .map((n) => ({ id: n.id, name: n.legal_name, slug: n.slug })) ?? [];
+      .map((n) => ({
+        id: n.id,
+        name: n.profile?.data.display_name || n.legal_name,
+        slug: n.slug,
+      })) ?? [];
   return (
     <StoreScreens
       route={route}

@@ -371,6 +371,38 @@ paths:
             application/json:
               schema: {$ref: '#/components/schemas/Network'}
         default: {$ref: '#/components/responses/NetworkProblem'}
+  /v1/hq/companies/{cnpj}:
+    get:
+      operationId: lookupCompany
+      security: [{PlatformSession: []}]
+      parameters:
+        - {name: cnpj, in: path, required: true, schema: {type: string, pattern: '^[A-Z0-9]{12}[0-9]{2}$'}}
+      responses:
+        '200':
+          description: Public company suggestions only; not fiscal verification
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/NetworkProfileInput'}
+        default: {$ref: '#/components/responses/NetworkProblem'}
+  /v1/hq/tenants/{id}/profile:
+    put:
+      operationId: updateNetworkProfile
+      security: [{PlatformSession: []}]
+      parameters:
+        - {name: id, in: path, required: true, schema: {type: string, format: uuid}}
+        - {$ref: '#/components/parameters/CRMFRequest'}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/NetworkProfile'}
+      responses:
+        '200':
+          description: Commercial metadata saved and audited
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/NetworkProfile'}
+        default: {$ref: '#/components/responses/NetworkProblem'}
 components:
   responses:
     NetworkProblem:
@@ -395,6 +427,26 @@ components:
     TenantChallenge: {type: apiKey, in: cookie, name: __Host-crmf_tenant_challenge}
     PlatformChallenge: {type: apiKey, in: cookie, name: __Host-crmf_platform_challenge}
   schemas:
+    NetworkProfileInput:
+      type: object
+      additionalProperties: false
+      required: [display_name, registered_name, city, uf, contact_name, contact_email, default_timezone, billing_customer_id]
+      properties:
+        display_name: {type: string, maxLength: 200}
+        registered_name: {type: string, maxLength: 200}
+        city: {type: string, maxLength: 200}
+        uf: {type: string, maxLength: 2}
+        contact_name: {type: string, maxLength: 200}
+        contact_email: {type: string, maxLength: 200}
+        default_timezone: {type: string, maxLength: 200}
+        billing_customer_id: {type: string, maxLength: 200}
+    NetworkProfile:
+      type: object
+      additionalProperties: false
+      required: [data, version]
+      properties:
+        data: {$ref: '#/components/schemas/NetworkProfileInput'}
+        version: {type: integer, format: int32, minimum: 0}
     NetworkInput:
       type: object
       additionalProperties: false
@@ -404,6 +456,7 @@ components:
         legal_name: {type: string, minLength: 1, maxLength: 200}
         cnpj: {type: string, pattern: '^[A-Z0-9]{12}[0-9]{2}$'}
         plan_id: {type: string, format: uuid}
+        profile: {$ref: '#/components/schemas/NetworkProfileInput'}
     Network:
       type: object
       required: [id, slug, legal_name, cnpj, plan_id, plan_name, status, provision_status, schema_version, generation]
@@ -418,6 +471,7 @@ components:
         provision_status: {type: string, enum: [queued, preparing, ready, failed]}
         schema_version: {type: integer, format: int64, minimum: 0}
         generation: {type: integer, format: int32, minimum: 0}
+        profile: {$ref: '#/components/schemas/NetworkProfile'}
     PlanFields:
       type: object
       required: [name, price_cents, active, sync_interval_seconds, history_months, max_stores, max_users, modules]

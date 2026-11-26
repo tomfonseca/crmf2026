@@ -142,7 +142,7 @@ test("Redes matches reference composition, setup and five addressable tabs", asy
   await page.getByRole("button", { name: "Tema claro", exact: true }).click();
   await expect(
     page.getByLabel("Nome do contato", { exact: true }),
-  ).toBeDisabled();
+  ).toBeEnabled();
   await page
     .getByLabel("Nome da rede", { exact: true })
     .fill("Rascunho não salvo");

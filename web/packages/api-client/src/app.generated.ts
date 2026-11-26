@@ -272,16 +272,64 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/hq/companies/{cnpj}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["lookupCompany"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/hq/tenants/{id}/profile": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: operations["updateNetworkProfile"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        NetworkProfileInput: {
+            display_name: string;
+            registered_name: string;
+            city: string;
+            uf: string;
+            contact_name: string;
+            contact_email: string;
+            default_timezone: string;
+            billing_customer_id: string;
+        };
+        NetworkProfile: {
+            data: components["schemas"]["NetworkProfileInput"];
+            /** Format: int32 */
+            version: number;
+        };
         NetworkInput: {
             slug: string;
             legal_name: string;
             cnpj: string;
             /** Format: uuid */
             plan_id: string;
+            profile?: components["schemas"]["NetworkProfileInput"];
         };
         Network: {
             /** Format: uuid */
@@ -300,6 +348,7 @@ export interface components {
             schema_version: number;
             /** Format: int32 */
             generation: number;
+            profile?: components["schemas"]["NetworkProfile"];
         };
         PlanFields: {
             name: string;
@@ -972,6 +1021,58 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Network"];
+                };
+            };
+            default: components["responses"]["NetworkProblem"];
+        };
+    };
+    lookupCompany: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                cnpj: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Public company suggestions only; not fiscal verification */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NetworkProfileInput"];
+                };
+            };
+            default: components["responses"]["NetworkProblem"];
+        };
+    };
+    updateNetworkProfile: {
+        parameters: {
+            query?: never;
+            header: {
+                "X-CRMF-Request": components["parameters"]["CRMFRequest"];
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["NetworkProfile"];
+            };
+        };
+        responses: {
+            /** @description Commercial metadata saved and audited */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NetworkProfile"];
                 };
             };
             default: components["responses"]["NetworkProblem"];
