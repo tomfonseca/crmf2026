@@ -1,0 +1,12 @@
+{{.Subject}}
+
+{{.Introduction}}
+
+{{.Action}}:
+{{.Link}}
+
+O link é de uso único e tem validade de {{.Lifetime}} a partir da solicitação.
+Definir a senha não inicia uma sessão nem remove suas passkeys.
+
+Se você não esperava esta mensagem, ignore-a. Nunca compartilhe este link.
+CRMF · Ambiente local de desenvolvimento

@@ -1,0 +1,31 @@
+# Local capture only. Not for Azure/VPS/public use; never relays external mail.
+services:
+  mailpit:
+    image: axllent/mailpit:v1.34.0@sha256:23a2ef85bc50853ab3093645d1d64679afd8887e89da5e48a88940c172591a4e
+    user: "10001:10001"
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    mem_limit: 128m
+    pids_limit: 64
+    command:
+      - --database=/tmp/mailpit.db
+      - --max=100
+      - --max-age=1h
+      - --max-message-size=1
+      - --listen=0.0.0.0:8025
+      - --smtp=127.0.0.1:1025
+      - --allowed-hosts=localhost,127.0.0.1,mailpit
+      - --disable-version-check
+      - --block-remote-css-and-fonts
+      - --quiet
+    ports: ["127.0.0.1:18025:8025"]
+    tmpfs: ["/tmp:size=32m,mode=1777"]
+    networks: [mail-capture]
+    healthcheck:
+      test: ["CMD", "/mailpit", "readyz"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+networks:
+  mail-capture: {}

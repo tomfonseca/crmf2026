@@ -1,0 +1,3 @@
+# Separate local mail capture from the auth token lifecycle
+
+Use an explicit development-only Mailpit HTTP capture and embedded pt-BR templates to validate delivery independently of identity mutations. The capture never issues/consumes tokens, creates sessions or supplies a production fallback; auth links use a realm-specific fixed localhost origin and an in-memory-consumable fragment rather than an HTTP query, with their frontend/transactional lifecycle still pending. Keep the existing administrator, passkeys, custody and legacy Keycloak untouched; production delivery remains ACS with managed identity and provider acceptance.

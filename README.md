@@ -41,7 +41,10 @@ Veja [fluxos e limites da autenticação web](docs/implementation/authentication
 e [novo layout de autenticação](docs/implementation/authentication-layout.md): login,
 passkey, recuperação e Minha conta. A [segurança da própria conta](docs/implementation/account-security.md)
 já permite trocar a senha com prova da senha atual e consultar/encerrar suas
-sessões, preservando passkeys. Recuperação por e-mail e convites continuam previstos. No QG de
+sessões, preservando passkeys. Recuperação por e-mail e convites continuam previstos.
+A [base de e-mail local](docs/implementation/local-auth-mail.md), com Mailpit e
+modelos pt-BR, já permite testar a captura sem emitir tokens ou alterar contas:
+`python scripts/tasks.py mail-dev` (http://localhost:18025). No QG de
 **desenvolvimento**, `/__auth-design` permite conferir as 94 variações visuais.
 O [novo layout do QG](docs/implementation/hq-layout.md) preserva Planos/Redes
 reais e monta as demais telas operacionais como **Previsto**, sem dados fictícios
