@@ -150,8 +150,12 @@ PostgreSQL/HTTPS integration covers concurrent automatic allocation and audit.
   Missing records offer explicit pagination; a route parameter never proves
   existence. Unsupported tab services/actions remain **Previsto**. See
   [network layout scope and evidence](hq-networks.md#reference-aligned-network-screens).
-- `/stores[/new|/:id[/edit|/pairing|/reinstall]]`,
-  `/devices[/:id]`, `/batches[/:id]`: planned layouts, authenticated, actions disabled.
+- `/stores`, `/stores/new`, `/stores/:id`, `/stores/:id/edit`: reference-aligned
+  [store presentation](hq-stores.md), with a real network selector but no store
+  CRUD/telemetry service. New drafts are editable; saving is explicitly disabled.
+  Missing data is unavailable, not an empty catalog or a verified route identity.
+- `/stores/:id/pairing`, `/stores/:id/reinstall`, `/devices[/:id]`, `/batches[/:id]`:
+  planned layouts, authenticated, write actions disabled.
 - `/__qg-design`: Vite development only; preview inventory/route excluded from
   production build. No public registration, business mock fallback or impersonation.
 

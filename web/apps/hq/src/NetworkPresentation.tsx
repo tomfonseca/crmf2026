@@ -498,7 +498,13 @@ export function NetworkDetail({
         {active === "lojas" && (
           <NetworkCard
             title="Lojas"
-            action={canWrite && planned("Cadastrar loja")}
+            action={
+              canWrite && (
+                <button onClick={() => navigate("/stores/new")}>
+                  Cadastrar loja
+                </button>
+              )
+            }
           >
             <PlannedTable
               columns={[

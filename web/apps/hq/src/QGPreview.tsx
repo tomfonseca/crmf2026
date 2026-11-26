@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useAuthTheme } from "@crmf/auth";
 import { Shell } from "./Shell";
 import { OperationalScreen } from "./OperationalScreens";
+import { StorePreview } from "./StorePreview";
 import { qgPreviewCases } from "./qg-preview-cases";
 const families: Record<string, string> = {
   "QG-Painel": "overview",
@@ -50,21 +51,49 @@ export function QGPreview() {
         <span>125 variações · não usa API nem fornece acesso autenticado.</span>
       </div>
       <Shell
-        path="/overview"
+        path={
+          ["QG-Lojas", "QG-Loja-Form", "QG-Loja"].includes(base)
+            ? "/stores"
+            : "/overview"
+        }
         navigate={() => {}}
         theme={effective}
         toggleTheme={toggleTheme}
         support={raw === "papel-suporte"}
       >
-        <OperationalScreen
-          key={file}
-          family={families[base]}
-          variant={variant}
-          preview
-          support={raw === "papel-suporte"}
-          title={entry.title}
-          navigate={() => {}}
-        />
+        {["QG-Lojas", "QG-Loja-Form", "QG-Loja"].includes(base) ? (
+          <StorePreview
+            base={base}
+            variant={variant}
+            title={entry.title}
+            support={raw === "papel-suporte"}
+            navigate={(path) =>
+              setFile(
+                path === "/stores/new"
+                  ? "QG-Loja-Form.html"
+                  : path.endsWith("/edit")
+                    ? "QG-Loja-Form--modo-editar.html"
+                    : path === "/stores"
+                      ? "QG-Lojas.html"
+                      : path.startsWith("/stores/")
+                        ? "QG-Loja.html"
+                        : path.startsWith("/batches")
+                          ? "QG-Envios.html"
+                          : "QG-Rede.html",
+              )
+            }
+          />
+        ) : (
+          <OperationalScreen
+            key={file}
+            family={families[base]}
+            variant={variant}
+            preview
+            support={raw === "papel-suporte"}
+            title={entry.title}
+            navigate={() => {}}
+          />
+        )}
       </Shell>
     </div>
   );

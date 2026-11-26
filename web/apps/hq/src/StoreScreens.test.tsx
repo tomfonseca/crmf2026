@@ -1,0 +1,96 @@
+import { render, screen } from "@testing-library/react";
+import { expect, test, vi } from "vitest";
+import { StoreScreens } from "./StoreScreens";
+import { StorePreview } from "./StorePreview";
+test("missing store service is not an empty catalog, healthy integration or zero count", () => {
+  render(<StoreScreens route="/stores" navigate={vi.fn()} canWrite />);
+  expect(
+    screen.getByText("Consulta de lojas ainda não disponível."),
+  ).toBeVisible();
+  expect(screen.queryByText("Nenhuma loja cadastrada")).not.toBeInTheDocument();
+  expect(screen.queryByText(/0 lojas/)).not.toBeInTheDocument();
+  expect(screen.getAllByRole("columnheader")).toHaveLength(7);
+  expect(
+    screen.queryByText("Saudável", { selector: "span" }),
+  ).not.toBeInTheDocument();
+});
+test("unknown edit never adopts identity from the URL", () => {
+  render(
+    <StoreScreens
+      route="/stores/not-a-verified-id/edit"
+      navigate={vi.fn()}
+      canWrite
+    />,
+  );
+  expect(screen.getByLabelText("Nome", { exact: true })).toHaveValue("");
+  expect(screen.getByLabelText("Fuso horário", { exact: true })).toHaveValue(
+    "",
+  );
+  expect(screen.getByLabelText("Situação", { exact: true })).toHaveValue("");
+  expect(screen.getByLabelText("Nome", { exact: true })).toBeDisabled();
+  expect(screen.getByRole("button", { name: "Salvar loja" })).toBeDisabled();
+  expect(screen.queryByText("not-a-verified-id")).not.toBeInTheDocument();
+});
+test("unknown store never means unpaired, offline or no sales", () => {
+  render(
+    <StoreScreens route="/stores/unverified" navigate={vi.fn()} canWrite />,
+  );
+  for (const label of [
+    "Saudável",
+    "Offline",
+    "Sem dados recebidos",
+    "Nenhum dispositivo pareado",
+    "Sem vendas · integração ok",
+  ])
+    expect(screen.queryByText(label, { exact: true })).not.toBeInTheDocument();
+  expect(
+    screen.getByText(/A ausência de integração não confirma/),
+  ).toBeVisible();
+  expect(screen.queryByText("unverified")).not.toBeInTheDocument();
+});
+test("support cannot fill a direct create form", () => {
+  render(
+    <StoreScreens route="/stores/new" navigate={vi.fn()} canWrite={false} />,
+  );
+  expect(screen.queryByRole("textbox")).not.toBeInTheDocument();
+  expect(
+    screen.queryByRole("button", { name: "Salvar loja" }),
+  ).not.toBeInTheDocument();
+  expect(screen.getByText("Acesso de suporte: somente leitura.")).toBeVisible();
+});
+for (const [variant, label] of [
+  ["situacao-offline", "Offline."],
+  ["situacao-sem-vendas", "Sem vendas · integração ok."],
+  ["situacao-sem-dados", "Sem dados recebidos."],
+])
+  test(`explicit development preview ${variant} has no operative mutation`, () => {
+    render(
+      <StorePreview
+        base="QG-Loja"
+        title="Loja de demonstração"
+        variant={variant}
+        support={false}
+        navigate={vi.fn()}
+      />,
+    );
+    expect(screen.getByText(label, { exact: true })).toBeVisible();
+    for (const button of screen.getAllByRole("button", {
+      name: /Reinstalar agente|Gerar código de pareamento/,
+    }))
+      expect(button).toBeDisabled();
+    if (variant === "situacao-offline")
+      expect(screen.getByText("há 20 min", { exact: true })).toBeVisible();
+  });
+test("limit warning remains an explicit development state and cannot save", () => {
+  render(
+    <StorePreview
+      base="QG-Loja-Form"
+      title="Cadastrar loja"
+      variant="limite-atingido"
+      support={false}
+      navigate={vi.fn()}
+    />,
+  );
+  expect(screen.getByRole("alert")).toHaveTextContent("nesta prévia");
+  expect(screen.getByRole("button", { name: "Salvar loja" })).toBeDisabled();
+});
