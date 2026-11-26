@@ -25,6 +25,11 @@ export interface AccountClient {
 export interface AuthClient {
   readonly account?: AccountClient;
   readonly realm?: Realm;
+  resetPassword?(
+    token: string,
+    next: string,
+    signal?: AbortSignal,
+  ): Promise<void>;
   identity(signal?: AbortSignal): Promise<Identity | null>;
   login(
     email: string,
@@ -93,6 +98,7 @@ export function createAuthClient(
       ? ({
           sessions: "/v1/hq/me/sessions",
           password: "/v1/hq/me/password",
+          reset: "/v1/hq/auth/password/reset",
           me: "/v1/hq/me",
           login: "/v1/hq/auth/login",
           passkey: "/v1/hq/auth/passkey",
@@ -101,6 +107,7 @@ export function createAuthClient(
       : ({
           sessions: "/v1/me/sessions",
           password: "/v1/me/password",
+          reset: "/v1/auth/password/reset",
           me: "/v1/me",
           login: "/v1/auth/login",
           passkey: "/v1/auth/passkey",
@@ -157,6 +164,15 @@ export function createAuthClient(
     /^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/;
   return {
     realm,
+    resetPassword: (token, next, signal) =>
+      guarded(async () => {
+        await accountMutation(() =>
+          api.POST(routes.reset, {
+            ...mutationOptions(signal),
+            body: { token, new_password: next },
+          }),
+        );
+      }),
     account: {
       sessions: (after, signal) =>
         guarded(async () => {

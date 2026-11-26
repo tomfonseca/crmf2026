@@ -45,7 +45,7 @@ still changes no operator password, passkey, bootstrap marker or ERP data.
 | Acesso-Bloqueado | Generic denial/rate-limit guidance; no account enumeration or remaining lock time |
 | Auth-Indisponivel | Retry without granting demo/private access |
 | EsqueciSenha | Layout available; sending disabled and explicitly Previsto until reset/email API exists |
-| NovaSenha | Layout available; saving disabled until secure one-use link validation/reset API exists |
+| NovaSenha | [Real reset consumer](password-reset-web.md); canonical fragment captured in memory, URL scrubbed; server validates proof on submit |
 | Convite-Aceite | Layout available; no identity/role/email is asserted from an unvalidated link |
 | Link-Invalido | Generic public guidance; precise expired/used/invalid variations are visual previews only |
 | Conta, QG-Conta | Current identity, read-only profile, real password/session APIs; passkey management Previsto |
@@ -59,12 +59,12 @@ codes. The QG's mandatory passkey policy stays explicit. Additional/removable
 passkeys, optional enrollment settings and recovery regeneration remain disabled.
 The existing Sair action still revokes the current session.
 
-Forgot/reset/invitation flows **do not** simulate HTTP 202, email delivery,
-token validation, password updates, session revocation or activation. Incoming
-reset/invitation query/hash values are discarded from the current browser entry;
-they are not parsed as trusted claims or sent to an unimplemented API. Future
-backend implementation still needs digests, single-use tokens, 30min/72h expiry,
-anti-enumeration, rate limits, email delivery, revocation and audit.
+Forgot/invitation flows **do not** simulate HTTP 202, delivery or activation;
+their incoming tokens remain discarded. Reset consumption now calls its real
+HTTP endpoint: a well-shaped fragment is only an opaque proof candidate, never
+a trusted identity or assertion that the link is valid. Unknown write outcomes
+cannot be retried, and successful reset creates no session. Public request,
+anti-enumeration, delivery and invitation lifecycle remain pending.
 
 ## Entry points
 

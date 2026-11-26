@@ -14,7 +14,8 @@
   representa isolamento completo de saída da rede; não publicar esta captura.
 - Modelos pt-BR texto/HTML em `internal/server/auth/templates`, sem assets
   externos. Convite: 72 horas; redefinição: 30 minutos. A validade efetiva ainda
-  depende do futuro emissor/consumidor transacional, não do envio ou template.
+  depende do ciclo transacional, não do envio/template. Reset já tem kernel e
+  consumidor; o ciclo de convite permanece pendente.
 - `auth.NewLocalMailer` exige development explícito, destino HTTP com porta em
   localhost/127.0.0.1/mailpit e origens de frontend localhost distintas.
   Não aceita origem de cabeçalho HTTP, endereço remoto ou fallback de produção.
@@ -58,13 +59,15 @@ outras redes/serviços para contornar o problema.
 ## Explicitamente pendente
 
 Este módulo não está conectado ao Engine/HTTP ou aos formulários públicos.
-Forgot/reset/aceite de convite continuam indisponíveis; abrir uma dessas URLs
-não autentica ninguém. O frontend atual ainda descarta os tokens recebidos.
+Pedido de recuperação e aceite de convite continuam indisponíveis. O
+[consumidor HTTP/form de reset](password-reset-web.md) já funciona com prova
+válida, sem criar sessão; ele não conecta o envio a um pedido público.
 
 Este módulo de transporte não emite/consome tokens nem altera identidades.
 O [núcleo interno separado](password-reset-kernel.md) já implementa prova de
 recuperação no banco e tem teste Mailpit com identidade descartável; emissão
-continua privada, sem pedido público ou ligação dos formulários. Não importar
+continua privada, sem pedido/envio público. O formulário consome a prova, não
+emite links. Não importar
 ou resetar o administrador existente para testar o fluxo.
 
 Próximas unidades:
@@ -72,8 +75,8 @@ Próximas unidades:
 - [ ] Emissão de recuperação com resposta uniforme, limites persistentes e
   prevenção de enumeração; não enviar se a conta/realm/política não autorizarem.
 - [x] Núcleo interno de consumo atômico, prazo de 30 min, uso único e revogação
-  de sessões/desafios, preservando passkeys e códigos de recuperação. Ainda sem HTTP/UI.
-- [ ] Contratos HTTP gerados e formulários que mantenham o token apenas em
+  de sessões/desafios, preservando passkeys e códigos de recuperação.
+- [x] Contratos HTTP gerados e formulário de reset que mantenha o token apenas em
   memória, removendo-o da URL antes de qualquer navegação externa.
 - [ ] Convite autorizado, quota de usuários/grants/lojas, validade de 72h e aceite
   transacional sem sessão automática.

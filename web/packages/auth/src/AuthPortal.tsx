@@ -38,6 +38,7 @@ import {
   type StaticScreen,
 } from "./screens";
 import { AccountSecurity } from "./AccountSecurity";
+import { PasswordReset } from "./PasswordReset";
 import "@crmf/ui/styles.css";
 import "./auth.css";
 type State =
@@ -308,6 +309,29 @@ export function AuthPortal({
   };
   const publicScreen = publicScreens[path];
   const common = { realm, theme, toggle };
+  if (
+    publicScreen === "reset" &&
+    client.resetPassword &&
+    state.kind !== "passkey" &&
+    state.kind !== "recovery"
+  )
+    return (
+      <AuthFrame {...common}>
+        <PasswordReset
+          realm={realm}
+          reset={client.resetPassword}
+          onAttempt={() => {
+            // A late identity response must not restore pre-reset scope.
+            pending.current?.abort();
+            locked.current = false;
+            setBusy(false);
+            setState({ kind: "login" });
+            setError("");
+          }}
+          onLogin={goLogin}
+        />
+      </AuthFrame>
+    );
   if (publicScreen && state.kind !== "passkey" && state.kind !== "recovery")
     return (
       <AuthFrame {...common}>

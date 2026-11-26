@@ -115,7 +115,8 @@ Isso evita misturar dependências nativas Windows e Linux nos containers.
   `crmfctl user create-admin`, com senha no terminal e MFA no primeiro login;
   o QG autenticado já tem [gestão real de planos](docs/implementation/hq-plans.md),
   com limites, módulos, revisões e auditoria; convites e
-  redefinição de senha ainda pendem. O [núcleo de provisionamento](docs/implementation/tenant-provisioning.md)
+  envio de recuperação ainda pendem. O [consumo de link e formulário de nova senha](docs/implementation/password-reset-web.md)
+  já redefine a senha sem remover fatores ou criar sessão; o emissor permanece privado. O [núcleo de provisionamento](docs/implementation/tenant-provisioning.md)
   já cria schema/role por rede via CLI de operador, aplica migrações e oferece
   pools por contexto autenticado. O [QG Redes](docs/implementation/hq-networks.md)
   já cadastra redes e acompanha fila, preparação, prontidão e nova tentativa,
@@ -149,6 +150,7 @@ HTML ficam fora deste repositório público. Consulte os limites de acesso em
 
 ## Documentação de referência
 
+- [Fechamento de autenticação/autorização](docs/implementation/authentication-completion.md): critérios e lacunas de login, passkeys, recuperação e planos.
 - [M1 — controle e identidade](docs/implementation/m1-control.md): incrementos entregues, verificações e próximos passos.
 - [Spec de implementação — fase 1](<CRMF — Spec de implementação (fase 1).md>): arquitetura, escopo e marcos.
 - [Evidências ERP e limites de publicação](docs/data/README.md): artefatos privados necessários para trabalhos de mapeamento e análise.

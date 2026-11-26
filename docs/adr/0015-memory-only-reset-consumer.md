@@ -1,0 +1,3 @@
+# Consume reset proofs without exposing issuance
+
+Expose only realm-specific, strict-CSRF password-reset consumption and a browser form that holds a canonical fragment in memory, removes it from history immediately and discards stale identity responses before submitting. Credential proof remains in the existing transaction kernel; the browser never interprets link syntax as identity, creates a session or removes MFA. Known policy/rate rejection may preserve the proof, but ambiguous writes are terminal in that view and cannot be automatically retried. Keep request/issuance/delivery disabled until a decoupled anti-enumeration path and abuse controls exist, rather than manufacturing a synchronous forgot-password endpoint or an operator token issuer.

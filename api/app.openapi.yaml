@@ -6,6 +6,44 @@ info:
 servers:
   - url: http://localhost:8080
 paths:
+  /v1/auth/password/reset:
+    post:
+      operationId: resetPasswordTenant
+      security: []
+      description: Consume a realm-bound one-use reset proof. Revoke all sessions/challenges, preserve factors, create no session. Issuance is not exposed by this endpoint.
+      parameters: [{$ref: '#/components/parameters/CRMFRequest'}]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/PasswordResetInput'}
+      responses:
+        '204':
+          description: Password reset; browser cookies cleared; fresh login and any required MFA remain necessary
+        default:
+          description: Invalid proof, password policy, abuse limit or unavailable
+          content:
+            application/problem+json:
+              schema: {$ref: '#/components/schemas/Problem'}
+  /v1/hq/auth/password/reset:
+    post:
+      operationId: resetPasswordPlatform
+      security: []
+      description: Platform realm reset proof only; never disables platform MFA or creates a session.
+      parameters: [{$ref: '#/components/parameters/CRMFRequest'}]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/PasswordResetInput'}
+      responses:
+        '204':
+          description: Password reset; fresh password plus passkey login required
+        default:
+          description: Invalid proof, password policy, abuse limit or unavailable
+          content:
+            application/problem+json:
+              schema: {$ref: '#/components/schemas/Problem'}
   /v1/me/password:
     post:
       operationId: changePasswordTenant
@@ -660,6 +698,13 @@ components:
     TenantChallenge: {type: apiKey, in: cookie, name: __Host-crmf_tenant_challenge}
     PlatformChallenge: {type: apiKey, in: cookie, name: __Host-crmf_platform_challenge}
   schemas:
+    PasswordResetInput:
+      type: object
+      additionalProperties: false
+      required: [token, new_password]
+      properties:
+        token: {type: string, minLength: 43, maxLength: 43, pattern: '^[A-Za-z0-9_-]{43}$'}
+        new_password: {type: string, minLength: 12, maxLength: 1024}
     PasswordChangeInput:
       type: object
       additionalProperties: false
