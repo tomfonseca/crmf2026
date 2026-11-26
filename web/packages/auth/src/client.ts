@@ -25,6 +25,7 @@ export interface AccountClient {
 export interface AuthClient {
   readonly account?: AccountClient;
   readonly realm?: Realm;
+  requestRecovery?(email: string, signal?: AbortSignal): Promise<void>;
   resetPassword?(
     token: string,
     next: string,
@@ -98,6 +99,7 @@ export function createAuthClient(
       ? ({
           sessions: "/v1/hq/me/sessions",
           password: "/v1/hq/me/password",
+          forgot: "/v1/hq/auth/password/forgot",
           reset: "/v1/hq/auth/password/reset",
           me: "/v1/hq/me",
           login: "/v1/hq/auth/login",
@@ -107,6 +109,7 @@ export function createAuthClient(
       : ({
           sessions: "/v1/me/sessions",
           password: "/v1/me/password",
+          forgot: "/v1/auth/password/forgot",
           reset: "/v1/auth/password/reset",
           me: "/v1/me",
           login: "/v1/auth/login",
@@ -164,6 +167,15 @@ export function createAuthClient(
     /^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/;
   return {
     realm,
+    requestRecovery: (email, signal) =>
+      guarded(async () => {
+        const result = await api.POST(routes.forgot, {
+          ...mutationOptions(signal),
+          body: { email },
+        });
+        if (result.response.status !== 202)
+          throw new AuthFailure(result.response.status, result.error?.type);
+      }),
     resetPassword: (token, next, signal) =>
       guarded(async () => {
         await accountMutation(() =>

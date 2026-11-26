@@ -51,6 +51,9 @@ func (e *Engine) reserveAttempt(ctx context.Context, ip netip.Addr) error {
 // PruneExpiredState removes stale IP buckets and expired proofs; schedule
 // it before deployment. No bucket in the sliding window can be removed.
 func (e *Engine) PruneExpiredState(ctx context.Context) error {
+	if err := e.pruneRecoveryQueue(ctx); err != nil {
+		return err
+	}
 	if err := authdb.New(e.sessions.pool).PruneUserTokens(ctx, timestamp(e.sessions.now().UTC().Add(-24*time.Hour))); err != nil {
 		return storageError(ctx)
 	}

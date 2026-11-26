@@ -6,6 +6,44 @@ info:
 servers:
   - url: http://localhost:8080
 paths:
+  /v1/auth/password/forgot:
+    post:
+      operationId: requestRecoveryTenant
+      security: []
+      description: Queue only; no synchronous account lookup or delivery. Uniform 202 includes unknown/ineligible/rate-limited recipients. Global configuration/storage failures return 503 independently of account existence. Local capture is opt-in, disposable identities only.
+      parameters: [{$ref: '#/components/parameters/CRMFRequest'}]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/RecoveryRequestInput'}
+      responses:
+        '202':
+          description: Uniform acknowledgement, not confirmation of an account or delivery
+        default:
+          description: Invalid request or globally unavailable intake
+          content:
+            application/problem+json:
+              schema: {$ref: '#/components/schemas/Problem'}
+  /v1/hq/auth/password/forgot:
+    post:
+      operationId: requestRecoveryPlatform
+      security: []
+      description: Platform recovery intake; same uniform acknowledgement and abuse controls as tenant. No cookie or MFA bypass.
+      parameters: [{$ref: '#/components/parameters/CRMFRequest'}]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/RecoveryRequestInput'}
+      responses:
+        '202':
+          description: Uniform acknowledgement only
+        default:
+          description: Invalid request or globally unavailable intake
+          content:
+            application/problem+json:
+              schema: {$ref: '#/components/schemas/Problem'}
   /v1/auth/password/reset:
     post:
       operationId: resetPasswordTenant
@@ -698,6 +736,12 @@ components:
     TenantChallenge: {type: apiKey, in: cookie, name: __Host-crmf_tenant_challenge}
     PlatformChallenge: {type: apiKey, in: cookie, name: __Host-crmf_platform_challenge}
   schemas:
+    RecoveryRequestInput:
+      type: object
+      additionalProperties: false
+      required: [email]
+      properties:
+        email: {type: string, maxLength: 254}
     PasswordResetInput:
       type: object
       additionalProperties: false

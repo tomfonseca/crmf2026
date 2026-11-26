@@ -4,8 +4,8 @@
 
 O método **privado** issuePasswordReset e Engine.ResetPassword implementam
 emissão/consumo transacionais no schema auth. Não há rota, CLI, botão ou job
-automático para emitir links por id de usuário. Pedido público de recuperação,
-proteção contra enumeração e entrega operacional continuam pendentes. O
+automático para emitir links por id de usuário. O [pedido/fila com captura local opt-in](recovery-request.md) agora chama o emissor
+somente no consumidor. Entrega pública ACS e aceite operacional continuam pendentes. O
 [consumidor HTTP e formulário](password-reset-web.md) já usam este kernel nos
 dois realms, sem expor o emissor.
 Não use SQL/bootstrap para obter link ou recuperar o administrador existente.
@@ -36,7 +36,7 @@ Não use SQL/bootstrap para obter link ou recuperar o administrador existente.
 - Emissão e consumo têm auditoria na mesma transação, somente alvo UUID e realm.
   Ator NULL representa recuperação por link, não uma sessão autenticada.
 - PruneExpiredState também remove tokens expirados há mais de um dia. Continua
-  sendo necessário agendar essa manutenção antes de habilitar em operação.
+  agendado na API/auth-mail com contexto limitado, a cada5min.
 
 ## Migrações e permissões
 
@@ -70,11 +70,11 @@ recuperação humana do operador ou TLS público.
 
 ## Próximas unidades obrigatórias
 
-- [ ] Pedido público com resposta uniforme e processamento desacoplado, para não
+- [x] Pedido local opt-in com resposta uniforme e processamento desacoplado, para não
   revelar existência por conteúdo, status, latência de lookup ou envio.
-- [ ] Limites persistentes por identificador/IP/global e fila/entrega limitadas;
+- [x] Limites persistentes por identificador/IP/global e fila/entrega limitadas;
   não expor o emissor privado ou enviar link a um destinatário escolhido no corpo.
-- [ ] Política explícita de falha/crash/entrega incerta: sem retry/reemissão cega
+- [x] Política explícita de falha/crash/entrega incerta: sem retry/reemissão cega
   que substitua tokens ou prometa rollback de e-mail já aceito.
 - [x] HTTP com JSON estrito, CSRF/origem exatos, no-store, cookies limpos e erros
   redigidos; frontend com token somente em memória e remoção imediata da URL.

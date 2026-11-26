@@ -21,7 +21,7 @@ class AuthDevTests(unittest.TestCase):
             self.assertFalse((Path(directory) / ".tools/local-secrets/mfa.key").exists())
 
     def test_missing_key_with_passkey_state_is_not_replaced(self):
-        for table in ("passkey_credentials", "passkey_challenges"):
+        for table in ("passkey_credentials", "passkey_challenges", "recovery_requests", "recovery_limits"):
             with self.subTest(table=table), tempfile.TemporaryDirectory() as directory:
                 def scalar(command, **kwargs):
                     sql = command[-1]

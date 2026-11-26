@@ -1,0 +1,28 @@
+# Explicit development capture, NEVER production/VPS. Requires compose.auth.yaml
+# and compose.mail.yaml. Does not bootstrap/recover an operator or use a relay.
+services:
+  api:
+    environment:
+      AUTH_RECOVERY_MAILPIT_URL: http://mailpit:8025
+    networks: [default, mail-capture]
+  auth-mail:
+    image: crmf-server:dev
+    command: [auth-mail]
+    environment:
+      APP_ENV: development
+      AUTH_ENABLED: "true"
+      AUTH_DATABASE_URL: postgres://crmf_auth:crmf_local_auth_only@postgres:5432/crmf_control?sslmode=disable
+      AUTH_KEY_FILE: /run/secrets/auth_mfa_key
+      AUTH_TENANT_ORIGIN: http://localhost:5174
+      AUTH_PLATFORM_ORIGIN: http://localhost:5173
+      AUTH_RECOVERY_MAILPIT_URL: http://mailpit:8025
+    secrets: [auth_mfa_key]
+    networks: [default, mail-capture]
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    mem_limit: 192m
+    pids_limit: 64
+    restart: "no"
+    stop_grace_period: 20s
+    # No published port, migration/analytics URL, tenant custody or volume.

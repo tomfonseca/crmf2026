@@ -1,8 +1,8 @@
 # Consumo HTTP e formulário de redefinição
 
 O [emissor continua privado](password-reset-kernel.md). Não há endpoint/CLI por
-id de usuário para obter links. Solicitação pública, envio, anti-enumeração e
-convites não estão concluídos; não usar bootstrap/SQL para recuperar o operador.
+id de usuário para obter links. [Pedido/fila e captura local opt-in](recovery-request.md)
+já conectam solicitação e entrega. ACS/aceite público e convites não estão concluídos; não usar bootstrap/SQL para recuperar o operador.
 Veja a [lista completa de fechamento](authentication-completion.md).
 
 ## Contrato
@@ -56,5 +56,5 @@ Playwright usam Chrome com **API interceptada**, temas/mobile320, sem storage
 sensível/cookies ou sessão automática. Isso não é aceite de pedido/e-mail/form
 completo, ACS, autenticador físico ou backend público.
 
-Nenhuma migração/custódia nova. A VPS continua na imagem web175198a/API503:
+Este consumidor não muda custódia. A fila posterior usa00017/00018. A VPS continua na imagem web175198a/API503:
 nenhum endpoint/reset/login público foi ativado por esta mudança.

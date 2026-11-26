@@ -115,7 +115,8 @@ Isso evita misturar dependências nativas Windows e Linux nos containers.
   `crmfctl user create-admin`, com senha no terminal e MFA no primeiro login;
   o QG autenticado já tem [gestão real de planos](docs/implementation/hq-plans.md),
   com limites, módulos, revisões e auditoria; convites e
-  envio de recuperação ainda pendem. O [consumo de link e formulário de nova senha](docs/implementation/password-reset-web.md)
+  envio público ACS ainda pendem. O [pedido de recuperação local opt-in](docs/implementation/recovery-request.md)
+  já usa fila protegida e processo de entrega separado, somente para identidades descartáveis. O [consumo de link e formulário de nova senha](docs/implementation/password-reset-web.md)
   já redefine a senha sem remover fatores ou criar sessão; o emissor permanece privado. O [núcleo de provisionamento](docs/implementation/tenant-provisioning.md)
   já cria schema/role por rede via CLI de operador, aplica migrações e oferece
   pools por contexto autenticado. O [QG Redes](docs/implementation/hq-networks.md)

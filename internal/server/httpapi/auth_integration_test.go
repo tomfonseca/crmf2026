@@ -5,7 +5,9 @@ package httpapi
 import (
 	"bytes"
 	"context"
+	"crypto/hmac"
 	"crypto/rand"
+	"crypto/sha256"
 	"encoding/json"
 	"io"
 	"log/slog"
@@ -36,7 +38,7 @@ type httpFixture struct {
 	ip                  netip.Addr
 }
 
-func newHTTPFixture(t *testing.T, required bool) *httpFixture {
+func newHTTPFixture(t *testing.T, required bool, capture ...string) *httpFixture {
 	t.Helper()
 	ctx := context.Background()
 	adminURL := "postgres://crmf_migrator:crmf_local_migrator_only@localhost:55432/crmf_control?sslmode=disable"
@@ -104,6 +106,35 @@ func newHTTPFixture(t *testing.T, required bool) *httpFixture {
 		t.Fatal("generate test-only key")
 	}
 	engine, err := auth.NewEngine(ctx, sessions, key, "http://localhost:5174", "http://localhost:5173")
+	var recovery *auth.LocalRecovery
+	if err == nil && len(capture) == 1 {
+		mailer, mailErr := auth.NewLocalMailer(auth.LocalMailOptions{Development: true, Endpoint: capture[0], TenantOrigin: "http://localhost:5174", PlatformOrigin: "http://localhost:5173"})
+		if mailErr != nil {
+			t.Fatal(mailErr)
+		}
+		t.Cleanup(mailer.Close)
+		recovery, mailErr = auth.NewLocalRecovery(engine, mailer)
+		if mailErr != nil {
+			t.Fatal(mailErr)
+		}
+		// Own fixture custody fingerprints only; no production key is involved.
+		index := func(k []byte, p, v string) []byte {
+			m := hmac.New(sha256.New, k)
+			m.Write([]byte(p))
+			m.Write([]byte{0})
+			m.Write([]byte(v))
+			return m.Sum(nil)
+		}
+		derived := index(key, "recovery-index-v1", "")
+		custody := index(derived, "custody", "")
+		buckets := [][]byte{index(derived, "global", ""), index(derived, "ip", f.ip.Unmap().String()), index(derived, "recipient", f.user.String()+"@example.invalid")}
+		t.Cleanup(func() {
+			_, _ = admin.Exec(context.Background(), "DELETE FROM auth.recovery_requests WHERE custody_id=$1", custody)
+			for _, b := range buckets {
+				_, _ = admin.Exec(context.Background(), "DELETE FROM auth.recovery_limits WHERE key=$1", b)
+			}
+		})
+	}
 	clear(key)
 	if err != nil {
 		t.Fatal(err)
@@ -125,7 +156,12 @@ func newHTTPFixture(t *testing.T, required bool) *httpFixture {
 	if err != nil {
 		t.Fatal(err)
 	}
-	router, err := NewAuthenticated(nil, slog.New(slog.NewTextHandler(io.Discard, nil)), AuthOptions{Backend: engine, Plans: catalog, Networks: networks, Stores: stores, Development: true, TenantOrigin: "http://localhost:5174", PlatformOrigin: "http://localhost:5173", TrustedProxies: []netip.Prefix{netip.MustParsePrefix("127.0.0.1/32")}})
+	router, err := NewAuthenticated(nil, slog.New(slog.NewTextHandler(io.Discard, nil)), AuthOptions{Backend: engine, Recovery: func() RecoveryRequestBackend {
+		if recovery != nil {
+			return recovery
+		}
+		return nil
+	}(), Plans: catalog, Networks: networks, Stores: stores, Development: true, TenantOrigin: "http://localhost:5174", PlatformOrigin: "http://localhost:5173", TrustedProxies: []netip.Prefix{netip.MustParsePrefix("127.0.0.1/32")}})
 	if err != nil {
 		t.Fatal(err)
 	}

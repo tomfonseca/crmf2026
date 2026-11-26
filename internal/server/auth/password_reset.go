@@ -5,6 +5,7 @@ import (
 	"errors"
 	"net/netip"
 	"strings"
+	"time"
 
 	authdb "github.com/crmf/crmf/internal/server/db/auth"
 	"github.com/google/uuid"
@@ -36,11 +37,16 @@ func resetIdentityAllowed(ctx context.Context, q *authdb.Queries, user authdb.Lo
 }
 
 // issuePasswordReset is intentionally PRIVATE. Only the future authorized,
-// anti-enumerating request/delivery lifecycle may call it. There is no HTTP or
+// anti-enumerating queued delivery lifecycle may call it. There is no HTTP or
 // operator endpoint exposing a raw link or accepting a user ID for issuance.
 // The notice is returned only after commit; delivery uncertainty never retries.
-func (e *Engine) issuePasswordReset(ctx context.Context, id uuid.UUID, realm Realm) (MailNotice, error) {
-	if id == uuid.Nil || (realm != Tenant && realm != Platform) {
+type resetExpectation struct {
+	Email       string
+	RequestedAt time.Time
+}
+
+func (e *Engine) issuePasswordReset(ctx context.Context, id uuid.UUID, realm Realm, expected ...resetExpectation) (MailNotice, error) {
+	if id == uuid.Nil || (realm != Tenant && realm != Platform) || len(expected) > 1 {
 		return MailNotice{}, ErrResetToken
 	}
 	tx, err := e.sessions.pool.Begin(ctx)
@@ -55,6 +61,10 @@ func (e *Engine) issuePasswordReset(ctx context.Context, id uuid.UUID, realm Rea
 	}
 	if err != nil {
 		return MailNotice{}, storageError(ctx)
+	}
+	if len(expected) == 1 && (!strings.EqualFold(expected[0].Email, user.Email) || expected[0].RequestedAt.IsZero() ||
+		(user.PasswordChangedAt.Valid && user.PasswordChangedAt.Time.After(expected[0].RequestedAt))) {
+		return MailNotice{}, ErrResetToken
 	}
 	if err = resetIdentityAllowed(ctx, q, user, realm); err != nil {
 		return MailNotice{}, err
@@ -91,7 +101,7 @@ func (e *Engine) issuePasswordReset(ctx context.Context, id uuid.UUID, realm Rea
 
 // ResetPassword consumes an email bearer proof and changes only the password.
 // Caller must supply a trusted resolved IP, exact realm, bounded context/body,
-// CSRF/origin checks and no-store response. It is not yet wired to HTTP.
+// CSRF/origin checks and no-store response. HTTP never exposes the issuer.
 func (e *Engine) ResetPassword(ctx context.Context, token, next string, realm Realm, ip netip.Addr) error {
 	if err := e.reserveAttempt(ctx, ip); err != nil {
 		return err

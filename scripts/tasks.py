@@ -81,6 +81,20 @@ def mail_dev():
     print("Local mail capture: http://localhost:18025; no external delivery or auth links issued.")
 
 
+def recovery_dev():
+    # No key creation/bootstrap, migrations, database restart or volume reset.
+    key = ROOT / ".tools/local-secrets/mfa.key"
+    if key.is_symlink() or not key.is_file():
+        raise RuntimeError("Recover the original local authentication key before enabling capture")
+    run("docker", "compose", "-f", "compose.yaml", "-f", "compose.auth.yaml",
+        "-f", "compose.provision.yaml", "-f", "compose.mail.yaml", "-f", "compose.recovery.yaml",
+        "up", "-d", "--no-deps", "--build", "--wait", "--wait-timeout", "120",
+        "mailpit", "api", "auth-mail", "hq", "dash")
+    wait_http("http://localhost:18025/readyz", seconds=15)
+    wait_http("http://localhost:8080/readyz", seconds=15)
+    print("Local recovery capture opted in; UUID@example.invalid only. No operator recovery or external mail.")
+
+
 def auth_dev():
     # Explicit one-time local provisioning, never an API startup fallback.
     import base64
@@ -97,7 +111,9 @@ def auth_dev():
                                     cwd=ROOT, env=ENV, check=True, capture_output=True, text=True)
             return result.stdout.strip()
         for table, column in (("users", "mfa_secret_enc"), ("login_challenges", "secret_enc"),
-                              ("passkey_credentials", "credential_enc"), ("passkey_challenges", "session_enc")):
+                              ("passkey_credentials", "credential_enc"), ("passkey_challenges", "session_enc"),
+                              ("recovery_requests", "recipient_enc"), ("recovery_requests", "recipient_key"),
+                              ("recovery_limits", "key")):
             if scalar(f"SELECT to_regclass('auth.{table}') IS NOT NULL") == "t":
                 if scalar(f"SELECT count(*) FROM auth.{table} WHERE {column} IS NOT NULL") != "0":
                     raise RuntimeError("Authentication key missing but encrypted state exists; recover the original key")
@@ -175,7 +191,7 @@ def check():
 
 
 if __name__ == "__main__":
-    commands = {"dev": dev, "auth-dev": auth_dev, "mail-dev": mail_dev, "stop": lambda: run("docker", "compose", "stop"), "test": test,
+    commands = {"dev": dev, "auth-dev": auth_dev, "mail-dev": mail_dev, "recovery-dev": recovery_dev, "stop": lambda: run("docker", "compose", "stop"), "test": test,
                 "integration": integration, "gen": gen, "lint": lint, "fmt": fmt,
                 "agent": agent, "build": build, "check": check, "security": security}
     if len(sys.argv) != 2 or sys.argv[1] not in commands:

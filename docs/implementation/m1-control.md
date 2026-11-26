@@ -377,7 +377,9 @@ sessions/challenges. The issuer remains private; tests use only disposable
 identities, including a real Mailpit round trip.
 See [proof contract and mandatory public-flow gates](password-reset-kernel.md).
 The [realm-specific reset consumer and form](password-reset-web.md) now use
-this kernel. Public forgot request/delivery remains disabled; issuance is private.
+this kernel. [Local opt-in recovery](recovery-request.md) now queues anonymous requests without
+identity lookup, with encrypted recipients/shared budgets and one-attempt mail
+claims; public/provider delivery remains disabled and issuance stays private.
 See the [full authentication/authorization closure checklist](authentication-completion.md).
 
 ## Not delivered / next increments

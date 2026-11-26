@@ -4,7 +4,7 @@ import "testing"
 
 func TestAuthConfigurationFailsClosed(t *testing.T) {
 	base := map[string]string{"AUTH_ENABLED": "true", "APP_ENV": "development", "AUTH_DATABASE_URL": "postgres://crmf_auth:test@localhost/control", "AUTH_KEY_FILE": "/private/mfa.key", "AUTH_TENANT_ORIGIN": "http://localhost:5174", "AUTH_PLATFORM_ORIGIN": "http://localhost:5173"}
-	load := func() (Auth, error) { return loadAuth(func(k string) string { return base[k] }) }
+	load := func() (Auth, error) { return LoadAuth(func(k string) string { return base[k] }) }
 	if _, err := load(); err != nil {
 		t.Fatal(err)
 	}

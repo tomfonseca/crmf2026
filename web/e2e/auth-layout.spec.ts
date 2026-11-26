@@ -89,9 +89,9 @@ test("mobile login validates, reveals password, persists only theme and shows ho
     page.getByRole("heading", { name: "Esqueci minha senha" }),
   ).toBeVisible();
   await expect(
-    page.getByRole("button", { name: "Enviar link de redefinição" }),
-  ).toBeDisabled();
-  await expect(page.getByText(/Nenhum e-mail será enviado/)).toBeVisible();
+    page.getByRole("button", { name: "Enviar instruções" }),
+  ).toBeEnabled();
+  await expect(page.getByText(/somente contas descartáveis/)).toBeVisible();
   expect(
     await page.evaluate(
       () => document.documentElement.scrollWidth <= innerWidth,
