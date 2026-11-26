@@ -1,0 +1,554 @@
+.qg-shell .plans-page {
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--ds-text);
+  min-width: 0;
+}
+.qg-shell .plans-heading {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+}
+.qg-shell .plans-heading > div {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.qg-shell .plans-breadcrumb {
+  font-size: 12px;
+  line-height: 16px;
+  letter-spacing: 0.04em;
+  font-weight: 500;
+  text-transform: uppercase;
+  color: var(--ds-muted);
+  margin: 0 0 4px;
+}
+.qg-shell .plans-heading h1 {
+  font-size: 20px;
+  line-height: 28px;
+  font-weight: 600;
+  margin: 0;
+}
+.qg-shell .plans-heading p {
+  margin: 4px 0 0;
+  color: var(--ds-muted);
+  font-size: 13px;
+  line-height: 20px;
+}
+.qg-shell .plans-page button,
+.qg-shell .plans-modal button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 36px;
+  padding: 0 14px;
+  margin: 0;
+  border: 1px solid var(--ds-border);
+  border-radius: 6px;
+  background: var(--ds-surface);
+  color: var(--ds-text);
+  font-family: inherit;
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 500;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.qg-shell .plans-page button:disabled,
+.qg-shell .plans-modal button:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+.qg-shell .plans-page .plans-primary {
+  background: var(--ds-accent);
+  border-color: var(--ds-accent);
+  color: #fff;
+  font-weight: 600;
+}
+.qg-shell .plans-page .plans-dialog-actions button.plans-danger,
+.qg-shell .plans-modal button.plans-danger {
+  background: #d63939;
+  border-color: #d63939;
+  color: white;
+  font-weight: 600;
+}
+.qg-shell .plans-page .plans-outline-danger,
+.qg-shell .plans-modal .plans-outline-danger {
+  background: transparent;
+  border-color: #f1c0c0;
+  color: #b02a2a;
+}
+.qg-shell .plans-filters {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+.qg-shell .plans-search {
+  position: relative;
+  display: block;
+  width: 360px;
+  max-width: 100%;
+  margin: 0;
+}
+.qg-shell .plans-search > svg {
+  position: absolute;
+  left: 12px;
+  top: 10px;
+  color: var(--ds-muted);
+  pointer-events: none;
+}
+.qg-shell .plans-search input {
+  height: 36px;
+  min-height: 36px;
+  box-sizing: border-box;
+  width: 100%;
+  padding: 7px 12px 7px 36px;
+  margin: 0;
+  font-size: 14px;
+}
+.qg-shell .plans-segments {
+  display: inline-flex;
+  border: 1px solid var(--ds-border);
+  padding: 3px;
+  border-radius: 8px;
+  gap: 2px;
+}
+.qg-shell .plans-segments button {
+  min-height: 28px;
+  height: 28px;
+  padding: 0 12px;
+  border: 0;
+  background: transparent;
+  font-size: 13px;
+}
+.qg-shell .plans-segments button[aria-pressed="true"] {
+  background: var(--ds-accent);
+  color: white;
+  font-weight: 600;
+}
+.qg-shell .plans-table-panel {
+  border: 1px solid var(--ds-border);
+  border-radius: 6px;
+  background: var(--ds-surface);
+  min-width: 0;
+  overflow: hidden;
+}
+.qg-shell .plans-table-scroll {
+  overflow: auto;
+  max-width: 100%;
+}
+.qg-shell .plans-table-panel table {
+  border-collapse: collapse;
+  width: 100%;
+  text-align: left;
+  font-size: 13px;
+  line-height: 20px;
+  min-width: 1000px;
+}
+.qg-shell .plans-table-panel :is(th, td) {
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--ds-border);
+  vertical-align: middle;
+  font-weight: 400;
+}
+.qg-shell .plans-table-panel thead th {
+  padding: 8px 16px;
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--ds-muted);
+  white-space: nowrap;
+}
+.qg-shell .plans-table-panel tbody tr:last-child :is(th, td) {
+  border-bottom: 0;
+}
+.qg-shell .plans-table-panel tbody th {
+  font-weight: 500;
+  min-width: 138px;
+}
+.qg-shell .plans-table-panel small {
+  font:
+    11px/16px ui-monospace,
+    SFMono-Regular,
+    Consolas,
+    monospace;
+  color: var(--ds-muted);
+  display: block;
+}
+.qg-shell .plans-modules {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+  min-width: 130px;
+}
+.qg-shell .plans-row-actions {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+}
+.qg-shell .plans-row-actions button {
+  min-height: 30px;
+  height: 30px;
+  padding: 0 12px;
+  font-size: 13px;
+}
+.qg-shell .plans-row-actions .plans-trash {
+  width: 42px;
+  padding: 0;
+}
+.qg-shell .plans-table-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 10px 16px;
+  border-top: 1px solid var(--ds-border);
+  font-size: 12px;
+  color: var(--ds-muted);
+}
+.qg-shell .plans-table-footer nav {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.qg-shell .plans-table-footer .plans-refresh {
+  min-height: 24px;
+  font-size: 12px;
+  border: 0;
+  background: transparent;
+  padding: 0 4px;
+}
+.qg-shell .plans-editor {
+  padding: 0;
+  margin: 0;
+  border: 0;
+  max-width: none;
+}
+.qg-shell .plans-form {
+  margin: 0;
+}
+.qg-shell .plans-form > .plans-fields {
+  display: block;
+  border: 0;
+  padding: 0;
+  margin: 0;
+  min-width: 0;
+  border-radius: 0;
+}
+.qg-shell .plans-form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 420px), 1fr));
+  gap: 16px;
+  align-items: start;
+}
+.qg-shell .plans-form-card {
+  border: 1px solid var(--ds-border);
+  border-radius: 6px;
+  background: var(--ds-surface);
+  min-width: 0;
+  overflow: hidden;
+}
+.qg-shell .plans-form-card > header {
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--ds-border);
+}
+.qg-shell .plans-form-card h2 {
+  margin: 0;
+  font-size: 15px;
+  line-height: 22px;
+  font-weight: 600;
+}
+.qg-shell .plans-form-card small {
+  display: block;
+  font-size: 12px;
+  line-height: 20px;
+  font-weight: 400;
+  color: var(--ds-muted);
+}
+.qg-shell .plans-card-body {
+  padding: 16px;
+}
+.qg-shell .plans-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 0 0 16px;
+}
+.qg-shell .plans-field > label {
+  display: block;
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 500;
+  margin: 0;
+}
+.qg-shell .plans-field input:not([type="checkbox"]),
+.qg-shell .plans-delete-field input {
+  box-sizing: border-box;
+  width: 100%;
+  height: 36px;
+  min-height: 36px;
+  padding: 7px 12px;
+  margin: 0;
+  font-size: 14px;
+  line-height: 20px;
+}
+.qg-shell .plans-unit {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+.qg-shell .plans-unit input {
+  min-width: 0;
+  flex: 1;
+}
+.qg-shell .plans-unit > span {
+  min-width: 56px;
+  font-size: 13px;
+  color: var(--ds-muted);
+}
+.qg-shell .plans-limit {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.qg-shell .plans-limit input:not([type="checkbox"]) {
+  max-width: 140px;
+}
+.qg-shell .plans-check {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  line-height: 20px;
+  margin: 0;
+  font-size: 14px;
+  font-weight: 400;
+}
+.qg-shell .plans-check input[type="checkbox"] {
+  flex: 0 0 16px;
+  width: 16px;
+  height: 16px;
+  min-height: 16px;
+  margin: 2px 0 0;
+  accent-color: var(--ds-accent);
+}
+.qg-shell .plans-module {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--ds-border);
+}
+.qg-shell .plans-modules-help {
+  margin-top: 8px;
+}
+.qg-shell .plans-status {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+.qg-shell .plans-status input[role="switch"] {
+  appearance: none;
+  position: relative;
+  width: 34px;
+  min-width: 34px;
+  height: 20px;
+  min-height: 20px;
+  flex: 0 0 34px;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  background: var(--ds-muted);
+  margin: 0;
+  cursor: pointer;
+}
+.qg-shell .plans-status input[role="switch"]:checked {
+  background: var(--ds-accent);
+}
+.qg-shell .plans-status input[role="switch"]::before {
+  content: "";
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  top: 2px;
+  left: 2px;
+  background: #fff;
+  border-radius: 50%;
+}
+.qg-shell .plans-status input[role="switch"]:checked::before {
+  left: 16px;
+}
+.qg-shell .plans-status label {
+  display: block;
+  font-weight: 500;
+  margin: 0;
+}
+.qg-shell .plans-status p {
+  margin: 4px 0 0;
+  font-size: 13px;
+  line-height: 20px;
+  color: var(--ds-muted);
+}
+.qg-shell .plans-form-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  flex-wrap: wrap;
+  border-top: 1px solid var(--ds-border);
+  padding-top: 8px;
+  margin-top: 16px;
+}
+.qg-shell .plans-action-right {
+  margin-left: auto;
+  display: flex;
+  gap: 8px;
+}
+.qg-shell .plans-required {
+  color: #b02a2a;
+}
+.qg-shell dialog.plans-modal {
+  position: fixed;
+  inset: 0 0 auto;
+  width: 520px;
+  max-width: calc(100% - 32px);
+  max-height: calc(100dvh - 104px);
+  overflow: auto;
+  height: auto;
+  margin: 80px auto 24px;
+  padding: 0;
+  border: 1px solid var(--ds-border);
+  border-radius: 8px;
+  background: var(--ds-surface);
+  color: var(--ds-text);
+  box-shadow: 0 16px 40px #0003;
+  font-size: 14px;
+  line-height: 20px;
+}
+.qg-shell dialog.plans-modal::backdrop {
+  background: #0007;
+}
+.qg-shell dialog.plans-modal > header {
+  display: block;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--ds-border);
+  margin: 0;
+}
+.qg-shell dialog.plans-modal h2 {
+  font-size: 16px;
+  line-height: 24px;
+  font-weight: 600;
+  margin: 0;
+}
+.qg-shell dialog.plans-discard {
+  width: 480px;
+}
+.qg-shell .plans-dialog-body {
+  padding: 16px 20px;
+  color: var(--ds-muted);
+}
+.qg-shell .plans-dialog-body p {
+  margin: 0;
+}
+.qg-shell .plans-dialog-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 12px 20px;
+  border-top: 1px solid var(--ds-border);
+  margin: 0;
+}
+.qg-shell .plans-modal .plans-editor > .plans-form > .plans-fields > p {
+  padding: 16px 20px 0;
+  margin: 0 0 16px;
+  color: var(--ds-muted);
+}
+.qg-shell .plans-delete-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 0;
+  padding: 0 20px 16px;
+  font-weight: 500;
+}
+.qg-shell .plans-modal .plans-editor > p[role="alert"] {
+  padding: 0 20px;
+}
+.qg-shell[data-theme="dark"] .plans-outline-danger,
+.qg-shell [data-theme="dark"] .plans-outline-danger {
+  color: #ff9999;
+  border-color: #904747;
+}
+@media (max-width: 759px) {
+  .qg-shell .plans-table-panel {
+    display: none;
+  }
+  .qg-shell .plans-table-panel:has(.plans-empty-cell) {
+    display: block;
+  }
+  .qg-shell .plans-table-panel:has(.plans-empty-cell) table {
+    min-width: 0;
+  }
+  .qg-shell .plans-table-panel:has(.plans-empty-cell) thead {
+    display: none;
+  }
+  .qg-shell .plans-heading {
+    gap: 12px;
+  }
+  .qg-shell .plans-form-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .qg-shell .plans-filters {
+    align-items: stretch;
+  }
+  .qg-shell .plans-search {
+    width: 100%;
+  }
+  .qg-shell .plans-segments {
+    width: 100%;
+    justify-content: space-between;
+  }
+  .qg-shell .plans-form-actions {
+    position: static;
+  }
+  .qg-shell dialog.plans-modal {
+    margin-top: 32px;
+    max-height: calc(100dvh - 64px);
+  }
+  .qg-shell .plans-module {
+    flex-wrap: wrap;
+  }
+}
+@media (max-width: 479px) {
+  .qg-shell .plans-page button,
+  .qg-shell .plans-modal button {
+    min-height: 44px;
+  }
+  .qg-shell .plans-field input:not([type="checkbox"]),
+  .qg-shell .plans-search input,
+  .qg-shell .plans-delete-field input {
+    height: 44px;
+    min-height: 44px;
+    font-size: 16px;
+  }
+  .qg-shell .plans-check {
+    min-height: 24px;
+  }
+  .qg-shell .plans-search > svg {
+    top: 14px;
+  }
+}
+.qg-shell .plans-modal code {
+  overflow-wrap: anywhere;
+}
