@@ -135,8 +135,8 @@ no chat ou no servidor.
 - [x] Configuração de staging loopback e teste black-box da imagem.
 - [x] Scanner HIGH/CRITICAL e correção checksum-locked do Caddy.
 - [x] Preflight DNS com erro distinto de ausência e testes offline de regressão.
-- [ ] Registros A corretos publicados na origem e aceitos nos dois resolvers.
-- [ ] Revisão CAA/conectividade e HTTPS externo com cadeia/hostname válidos.
+- [x] Registros A corretos publicados na origem e aceitos nos dois resolvers.
+- [x] Revisão CAA/conectividade e HTTPS externo com cadeia/hostname válidos.
 - [ ] Identidade/custódia aprovadas para a VPS; bancos, Blob e roles separados.
 - [ ] Migrações e API/provisioner reais, sem importar custódia local ou refazer bootstrap.
 - [ ] Aceite funcional de login/passkey e operações autorizadas.
@@ -145,6 +145,43 @@ no chat ou no servidor.
 Esta lista descreve o escopo, não certifica o estado atual da VPS; obtenha o
 estado de execução pelo SSH autorizado. PR/CI e staging não substituem revisão,
 merge ou aceite de milestone.
+
+## Evidência da publicação de homologação — 26/11/2026
+
+A release **175198a** foi publicada em 80/443, preservando o projeto
+crmf-hml-web e os volumes caddy_data/caddy_config. Nenhuma imagem nova foi
+construída na VPS; a chave SSH, o sshd e a porta 22022 não foram alterados.
+Chaves/certificados TLS gerados pelo Caddy permanecem em seus volumes; nenhuma
+custódia local de autenticação/tenants foi importada.
+
+- A origem atual (a.sec.dns.br/c.sec.dns.br) publicou os três A; ambos os
+  resolvers passaram no gate com A exato, sem AAAA e sem erro DNS.
+- CAA dos três hosts e ancestrais consultados em ambos os resolvers: NOERROR,
+  sem restrição de CA. Let’s Encrypt emitiu certificados, verificados externamente
+  com cadeia/hostname normais, TLS 1.3 e validade até 24/02/2027.
+- HTTP retorna 308 para HTTPS. QG / retorna 200; Dash / redireciona para /login.
+  A API continua em 503 deployment_pending, inclusive health/readiness.
+- Oito testes públicos confirmaram compilados/cache, bloqueio DEV/fontes/demos,
+  CORS exato, ausência de cookies, redirecionamentos/certificados e rejeição de
+  Host HTTP/SNI desconhecidos.
+- Chrome real, sem interceptação de transporte ou ignorar erros TLS: ambos os
+  realms exibem **“Não foi possível verificar sua sessão”**, com nova tentativa,
+  temas e largura 320 px. Sem erro JS não tratado, cookie, sessão persistida ou
+  requisição mutante observada. Isto **não é login funcional** nem aceite MFA.
+
+Reproduza somente contra esta entrada de homologação ainda em manutenção:
+
+```sh
+CRMF_PUBLIC_HTTPS_TEST=1 python -m unittest discover -s tests -p test_web_https.py -v
+```
+
+O opt-in é explícito; descoberta normal permanece offline. Os destinos são fixos
+e não há credenciais/cookies ou bypass de TLS. Não usar esta suíte para certificar
+backend implantado: ela exige 503 e inclui métodos sem autenticação na API.
+
+Rollback operacional: restaurar a configuração de bind/sites HTTP loopback,
+mantendo a mesma imagem revisada e os volumes. Não apagar estado ACME, reinstalar
+para repetir solicitações nem voltar à release vulnerável ea4a6a3.
 
 ## Backend real ainda bloqueado
 
