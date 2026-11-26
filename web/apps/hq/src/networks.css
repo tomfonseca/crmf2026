@@ -1,0 +1,439 @@
+.auth-app[data-theme="dark"]:has(.qg-shell .networks-page) {
+  --ds-page: #171717;
+  --ds-surface: #262626;
+  --ds-border: #404040;
+  --ds-accent: #066fd1;
+  --ds-accent-bg: #232d37;
+  --ds-accent-text: #6aa9ec;
+}
+.qg-shell .networks-page {
+  --ds-ok: var(--auth-ok);
+  --ds-ok-bg: var(--auth-ok-bg);
+  --ds-danger-bg: var(--auth-danger-bg);
+  --ds-chip: var(--auth-chip);
+  min-width: 0;
+}
+.qg-shell .networks-filters {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+.qg-shell .networks-filters > label:not(.plans-search) {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--ds-muted);
+  font-size: 13px;
+}
+.qg-shell .networks-page select {
+  font-family: inherit;
+  font-size: 14px;
+  min-height: 36px;
+  border: 1px solid var(--ds-border);
+  border-radius: 6px;
+  background: var(--ds-surface);
+  color: var(--ds-text);
+  padding: 7px 12px;
+  max-width: 100%;
+  box-sizing: border-box;
+  margin: 0;
+}
+.qg-shell .networks-filters select {
+  min-width: 140px;
+}
+.qg-shell .networks-page a {
+  color: var(--ds-accent-text);
+  text-decoration: none;
+}
+.qg-shell .networks-page a:hover {
+  text-decoration: underline;
+}
+.qg-shell .networks-table th a {
+  color: var(--ds-text);
+  font-weight: 600;
+}
+.qg-shell .networks-page .networks-table table {
+  min-width: 940px;
+}
+.qg-shell .networks-help {
+  font-size: 12px;
+  line-height: 18px;
+  color: var(--ds-muted);
+  margin: 8px 0 0;
+}
+.qg-shell .networks-form,
+.qg-shell .networks-fields {
+  border: 0;
+  padding: 0;
+  margin: 0;
+  min-width: 0;
+  max-width: none;
+  background: transparent;
+}
+.qg-shell .networks-form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 420px), 1fr));
+  align-items: start;
+  gap: 16px;
+}
+.qg-shell .networks-card {
+  border: 1px solid var(--ds-border);
+  border-radius: 6px;
+  min-width: 0;
+  overflow: hidden;
+  background: var(--ds-surface);
+}
+.qg-shell .networks-card > header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--ds-border);
+}
+.qg-shell .networks-card > header h2 {
+  font-size: 15px;
+  line-height: 22px;
+  font-weight: 600;
+  margin: 0;
+}
+.qg-shell .networks-card > header p {
+  font-size: 12px;
+  line-height: 18px;
+  color: var(--ds-muted);
+  margin: 2px 0 0;
+}
+.qg-shell .networks-card-body {
+  padding: 16px;
+  min-width: 0;
+}
+.qg-shell .networks-form .networks-card-body {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding-bottom: 32px;
+}
+.qg-shell .networks-form label {
+  display: block;
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 500;
+  min-width: 0;
+  color: var(--ds-text);
+}
+.qg-shell .networks-form label > span {
+  color: var(--ds-danger);
+}
+.qg-shell .networks-form :is(input, select) {
+  display: block;
+  width: 100%;
+  height: 36px;
+  min-height: 36px;
+  box-sizing: border-box;
+  margin: 6px 0 0;
+  padding: 7px 12px;
+  border: 1px solid var(--ds-input-border);
+  border-radius: 6px;
+  font-family: inherit;
+  font-size: 14px;
+  line-height: 20px;
+  background: var(--ds-surface);
+  color: var(--ds-text);
+}
+.qg-shell .networks-form :is(input, select):disabled {
+  background: var(--ds-page);
+  color: var(--ds-muted);
+  cursor: not-allowed;
+  opacity: 1;
+}
+.qg-shell .networks-form small {
+  display: block;
+  font-size: 12px;
+  line-height: 18px;
+  font-weight: 400;
+  color: var(--ds-muted);
+  margin-top: 6px;
+}
+.qg-shell .networks-city {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 120px;
+  gap: 12px;
+}
+.qg-shell .networks-banner {
+  padding: 10px 14px;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  background: var(--ds-accent-bg);
+  color: var(--ds-accent-text);
+  font-size: 13px;
+  line-height: 20px;
+  margin: 16px 0;
+}
+.qg-shell .networks-error {
+  background: var(--ds-danger-bg);
+  color: var(--ds-danger);
+}
+.qg-shell .networks-form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  padding-top: 8px;
+  margin-top: 16px;
+  border-top: 1px solid var(--ds-border);
+}
+.qg-shell .networks-empty {
+  text-align: center;
+  padding: 32px 16px;
+  color: var(--ds-muted);
+}
+.qg-shell .networks-empty h2 {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--ds-text);
+}
+.qg-shell .networks-empty p {
+  font-size: 13px;
+  line-height: 20px;
+  margin: 8px auto;
+  max-width: 520px;
+}
+.qg-shell .networks-values {
+  margin: 0;
+  display: grid;
+  gap: 10px;
+}
+.qg-shell .networks-values > div {
+  display: grid;
+  grid-template-columns: 200px minmax(0, 1fr);
+  gap: 16px;
+  align-items: baseline;
+  font-size: 14px;
+  line-height: 20px;
+}
+.qg-shell .networks-values dt {
+  color: var(--ds-muted);
+}
+.qg-shell .networks-values dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+.qg-shell .networks-values code {
+  font-size: 12px;
+}
+.qg-shell .networks-badge {
+  display: inline-block;
+  font-size: 12px;
+  line-height: 18px;
+  font-weight: 500;
+  border-radius: 6px;
+  padding: 2px 8px;
+  vertical-align: middle;
+  white-space: nowrap;
+  background: var(--ds-chip);
+  color: var(--ds-muted);
+}
+.qg-shell .networks-ok {
+  color: var(--ds-ok);
+  background: var(--ds-ok-bg);
+}
+.qg-shell .networks-danger {
+  color: var(--ds-danger);
+  background: var(--ds-danger-bg);
+}
+.qg-shell .networks-steps {
+  margin: 16px 0 0;
+  padding: 0;
+  list-style: none;
+}
+.qg-shell .networks-steps > li {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--ds-border);
+}
+.qg-shell .networks-steps > li > div {
+  flex: 1;
+  min-width: 0;
+}
+.qg-shell .networks-steps h3 {
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 500;
+  margin: 0;
+}
+.qg-shell .networks-steps p {
+  font-size: 12px;
+  line-height: 18px;
+  color: var(--ds-muted);
+  margin: 0;
+}
+.qg-shell .networks-step-icon {
+  width: 28px;
+  height: 28px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--ds-chip);
+  color: var(--ds-muted);
+}
+.qg-shell .networks-step-icon.networks-ok {
+  background: var(--ds-ok-bg);
+  color: var(--ds-ok);
+}
+.qg-shell .networks-step-complete {
+  font-size: 12px;
+  line-height: 18px;
+  color: var(--ds-ok);
+}
+.qg-shell .networks-steps .networks-help {
+  margin: 0;
+  white-space: nowrap;
+}
+.qg-shell .networks-setup-actions,
+.qg-shell .networks-heading-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.qg-shell .networks-setup-actions {
+  margin-top: 16px;
+}
+.qg-shell .networks-overall {
+  font-size: 13px;
+  line-height: 20px;
+  margin: 16px 0 0;
+}
+.qg-shell .networks-title-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.qg-shell .networks-tabs {
+  display: flex;
+  gap: 24px;
+  border-bottom: 1px solid var(--ds-border);
+  overflow-x: auto;
+  margin-bottom: 16px;
+}
+.qg-shell .networks-tabs button {
+  background: none;
+  border: 0;
+  border-radius: 0;
+  border-bottom: 2px solid transparent;
+  padding: 10px 0;
+  min-height: 42px;
+  color: var(--ds-muted);
+  flex-shrink: 0;
+}
+.qg-shell .networks-tabs button[aria-selected="true"] {
+  color: var(--ds-text);
+  border-bottom-color: var(--ds-accent);
+}
+.qg-shell .networks-detail-stack {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 380px), 1fr));
+  align-items: start;
+  gap: 16px;
+}
+.qg-shell .networks-detail-stack > :nth-child(n + 3) {
+  grid-column: 1 / -1;
+}
+.qg-shell .networks-detail-stack .networks-values > div {
+  grid-template-columns: 140px minmax(0, 1fr);
+}
+.qg-shell .networks-card-body:has(> .networks-detail-table) {
+  padding: 0;
+}
+.qg-shell .networks-card-body:has(> .networks-detail-table) > .networks-help {
+  padding: 0 16px 16px;
+}
+.qg-shell .networks-detail-table tbody :is(th, td) {
+  font-size: 13px;
+  line-height: 20px;
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--ds-border);
+  font-weight: 400;
+  text-transform: none;
+  color: var(--ds-text);
+}
+.qg-shell .networks-detail-table tbody th {
+  font-weight: 500;
+}
+.qg-shell .networks-detail-table {
+  overflow-x: auto;
+  max-width: 100%;
+}
+.qg-shell .networks-detail-table table {
+  border-collapse: collapse;
+  min-width: 600px;
+  width: 100%;
+  text-align: left;
+}
+.qg-shell .networks-detail-table th {
+  font-size: 12px;
+  line-height: 16px;
+  text-transform: uppercase;
+  font-weight: 500;
+  color: var(--ds-muted);
+  padding: 8px 16px;
+  border-bottom: 1px solid var(--ds-border);
+  white-space: nowrap;
+}
+@media (max-width: 850px) {
+  .qg-shell .networks-form-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .qg-shell .networks-values > div {
+    grid-template-columns: 140px minmax(0, 1fr);
+  }
+}
+@media (max-width: 600px) {
+  .qg-shell .networks-page button,
+  .qg-shell .networks-form :is(input, select) {
+    min-height: 44px;
+  }
+  .qg-shell .networks-filters > label:not(.plans-search) {
+    width: 100%;
+    justify-content: space-between;
+  }
+  .qg-shell .networks-filters select {
+    max-width: 70%;
+  }
+  .qg-shell .networks-city {
+    grid-template-columns: minmax(0, 1fr) 80px;
+  }
+  .qg-shell .networks-values > div {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 4px;
+  }
+  .qg-shell .networks-steps > li {
+    flex-wrap: wrap;
+  }
+  .qg-shell .networks-steps > li > div {
+    flex-basis: calc(100% - 40px);
+  }
+  .qg-shell .networks-steps > li > span:last-child {
+    margin-left: 38px;
+  }
+  .qg-shell .networks-form-actions {
+    flex-wrap: wrap;
+  }
+  .qg-shell .networks-setup-actions button {
+    white-space: normal;
+  }
+  .qg-shell .networks-form-actions button {
+    padding: 0 10px;
+  }
+  .qg-shell .networks-card > header {
+    flex-wrap: wrap;
+  }
+  .qg-shell .networks-form :is(input, select) {
+    font-size: 16px;
+  }
+}

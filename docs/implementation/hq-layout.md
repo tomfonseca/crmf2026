@@ -144,9 +144,12 @@ PostgreSQL/HTTPS integration covers concurrent automatic allocation and audit.
 - `/plans`, `/plans/new`, `/plans/:id`: existing authoritative plan API; direct
   edit lookup is limited to the loaded page. Unknown/unloaded IDs cannot select
   arbitrary data or mutate a record.
-- `/tenants`, `/tenants/new`: existing network API.
-- `/tenants/:slug`, `/tenants/:slug/setup` and `?aba=assinatura|lojas|usuarios|cobranca`:
-  planned detailed layouts. A route parameter does not establish tenant existence.
+- `/tenants`, `/tenants/new`: reference-aligned real listing/four-card creation.
+- `/tenants/:slug`, `/tenants/:slug/setup` and `?aba=dados|assinatura|lojas|usuarios|cobranca`:
+  details/setup resolve checked records from the bounded real catalog page.
+  Missing records offer explicit pagination; a route parameter never proves
+  existence. Unsupported tab services/actions remain **Previsto**. See
+  [network layout scope and evidence](hq-networks.md#reference-aligned-network-screens).
 - `/stores[/new|/:id[/edit|/pairing|/reinstall]]`,
   `/devices[/:id]`, `/batches[/:id]`: planned layouts, authenticated, actions disabled.
 - `/__qg-design`: Vite development only; preview inventory/route excluded from

@@ -61,10 +61,11 @@ export function useQGRoute() {
   function navigate(next: string) {
     if (!next.startsWith("/") || next.startsWith("//")) return;
     requestLeave(() => {
+      const pageChanged = next.split("?")[0] !== window.location.pathname;
       position.current++;
       window.history.pushState({ [key]: position.current }, "", next);
       setPath(next);
-      focus();
+      if (pageChanged) focus();
     });
   }
   const dialog = pending ? (
@@ -75,8 +76,10 @@ export function useQGRoute() {
     >
       <div className="plans-dialog-body">
         <p>
-          As alterações feitas neste plano ainda não foram salvas e serão
-          perdidas.
+          As alterações feitas{" "}
+          {document.querySelector<HTMLFormElement>("form[data-dirty=true]")
+            ?.dataset.draftLabel ?? "neste plano"}{" "}
+          ainda não foram salvas e serão perdidas.
         </p>
       </div>
       <footer className="plans-dialog-actions">

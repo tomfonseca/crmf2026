@@ -95,8 +95,7 @@ export function CatalogHost(props: {
         }
       >
         {leave.dialog}
-        {path.startsWith("/tenants") &&
-        !/\/tenants\/[^/]+/.test(path.replace("/tenants/new", "/tenants")) &&
+        {(path === "/tenants" || path.startsWith("/tenants/")) &&
         props.networks ? (
           <Networks
             client={props.networks}
