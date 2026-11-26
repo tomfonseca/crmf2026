@@ -8,6 +8,9 @@ Isto **não** implanta a API autenticada nem conclui M1/M8 ou a infraestrutura A
 
 - Compila React/TypeScript em modo production no CI/workstation; runtime contém
   somente Caddy e os arquivos dist, nunca Node, pnpm, Vite ou código Go.
+- Caddy v2.11.9 é recompilado com o módulo isolado proxy/go.mod/go.sum e x/net
+  v0.62.0 para corrigir CVE-2026-78661 da imagem upstream. Não há exceção no
+  scanner ou redução de severidade. A imagem final continua sendo escaneada.
 - Imagens base fixadas por digest; COPY restrito a fontes web e configuração de
   entrada. Não copia repositório inteiro, .tools, dumps, arquivos .env, chaves,
   referências privadas ou resultados de navegador para a imagem final.
