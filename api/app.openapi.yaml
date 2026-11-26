@@ -6,6 +6,118 @@ info:
 servers:
   - url: http://localhost:8080
 paths:
+  /v1/me/password:
+    post:
+      operationId: changePasswordTenant
+      security: [{TenantSession: []}]
+      description: Current password required. Atomically revoke all sessions and challenges; preserve passkeys. No email reset.
+      parameters: [{$ref: '#/components/parameters/CRMFRequest'}]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/PasswordChangeInput'}
+      responses:
+        '204':
+          description: Password changed; all sessions revoked and browser cookies cleared
+        default:
+          description: Request rejected or service unavailable
+          content:
+            application/problem+json:
+              schema: {$ref: '#/components/schemas/Problem'}
+  /v1/me/sessions:
+    get:
+      operationId: listSessionsTenant
+      security: [{TenantSession: []}]
+      description: Own live sessions in this realm only, at most 100. IDs are references, never authentication tokens.
+      parameters:
+        - name: after
+          in: query
+          schema: {type: string, format: uuid}
+      responses:
+        '200':
+          description: Live session metadata
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/SessionPage'}
+        default:
+          description: Request rejected or service unavailable
+          content:
+            application/problem+json:
+              schema: {$ref: '#/components/schemas/Problem'}
+    delete:
+      operationId: endSessionTenant
+      security: [{TenantSession: []}]
+      parameters: [{$ref: '#/components/parameters/CRMFRequest'}]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/EndSessionInput'}
+      responses:
+        '204':
+          description: Own session revoked (idempotent); cookies cleared if current
+        default:
+          description: Request rejected or service unavailable
+          content:
+            application/problem+json:
+              schema: {$ref: '#/components/schemas/Problem'}
+  /v1/hq/me/password:
+    post:
+      operationId: changePasswordPlatform
+      security: [{PlatformSession: []}]
+      description: Current password required. Atomically revoke all sessions and challenges; preserve passkeys. No email reset.
+      parameters: [{$ref: '#/components/parameters/CRMFRequest'}]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/PasswordChangeInput'}
+      responses:
+        '204':
+          description: Password changed; all sessions revoked and browser cookies cleared
+        default:
+          description: Request rejected or service unavailable
+          content:
+            application/problem+json:
+              schema: {$ref: '#/components/schemas/Problem'}
+  /v1/hq/me/sessions:
+    get:
+      operationId: listSessionsPlatform
+      security: [{PlatformSession: []}]
+      description: Own live sessions in this realm only, at most 100. IDs are references, never authentication tokens.
+      parameters:
+        - name: after
+          in: query
+          schema: {type: string, format: uuid}
+      responses:
+        '200':
+          description: Live session metadata
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/SessionPage'}
+        default:
+          description: Request rejected or service unavailable
+          content:
+            application/problem+json:
+              schema: {$ref: '#/components/schemas/Problem'}
+    delete:
+      operationId: endSessionPlatform
+      security: [{PlatformSession: []}]
+      parameters: [{$ref: '#/components/parameters/CRMFRequest'}]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/EndSessionInput'}
+      responses:
+        '204':
+          description: Own session revoked (idempotent); cookies cleared if current
+        default:
+          description: Request rejected or service unavailable
+          content:
+            application/problem+json:
+              schema: {$ref: '#/components/schemas/Problem'}
   /healthz:
     get:
       operationId: healthz
@@ -548,6 +660,41 @@ components:
     TenantChallenge: {type: apiKey, in: cookie, name: __Host-crmf_tenant_challenge}
     PlatformChallenge: {type: apiKey, in: cookie, name: __Host-crmf_platform_challenge}
   schemas:
+    PasswordChangeInput:
+      type: object
+      additionalProperties: false
+      required: [current_password, new_password]
+      properties:
+        current_password: {type: string, minLength: 1, maxLength: 1024}
+        new_password: {type: string, minLength: 12, maxLength: 1024}
+    EndSessionInput:
+      type: object
+      additionalProperties: false
+      required: [session_id]
+      properties:
+        session_id: {type: string, format: uuid}
+    OwnSession:
+      type: object
+      additionalProperties: false
+      required: [id, created_at, last_seen_at, idle_expires_at, expires_at, current, mfa_verified]
+      properties:
+        id: {type: string, format: uuid}
+        created_at: {type: string, format: date-time}
+        last_seen_at: {type: string, format: date-time}
+        idle_expires_at: {type: string, format: date-time}
+        expires_at: {type: string, format: date-time}
+        current: {type: boolean}
+        mfa_verified: {type: boolean}
+    SessionPage:
+      type: object
+      additionalProperties: false
+      required: [items]
+      properties:
+        items:
+          type: array
+          maxItems: 100
+          items: {$ref: '#/components/schemas/OwnSession'}
+        next_cursor: {type: string, format: uuid}
     PairingMetadata:
       type: object
       required: [id, store_id, status, expires_at]

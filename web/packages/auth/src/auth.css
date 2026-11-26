@@ -613,6 +613,39 @@ body:has(.auth-app) {
   max-width: 100%;
   min-height: 40px;
 }
+.auth-session-table {
+  max-width: 100%;
+  overflow-x: auto;
+  margin-block: 16px;
+}
+.auth-session-table table {
+  width: 100%;
+  border-collapse: collapse;
+}
+.auth-session-table th,
+.auth-session-table td {
+  padding: 12px;
+  border-bottom: 1px solid var(--ds-border);
+  text-align: left;
+  vertical-align: top;
+}
+.auth-session-table small {
+  overflow-wrap: anywhere;
+}
+.auth-app .auth-session-dialog {
+  background: var(--ds-surface);
+  color: var(--ds-text);
+  border: 1px solid var(--ds-border);
+  border-radius: var(--ds-radius);
+  padding: 24px;
+  max-width: min(480px, calc(100vw - 32px));
+}
+.auth-session-dialog::backdrop {
+  background: rgb(0 0 0 / 45%);
+}
+.auth-account-panel .auth-session-dialog h3 {
+  margin-top: 0;
+}
 @media (max-width: 991px) {
   .auth-cover {
     display: none;

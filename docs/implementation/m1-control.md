@@ -350,6 +350,15 @@ are hidden on navigation/visibility/pagehide/60s. Support reads metadata only.
 See [contract, proof and mandatory M3 security gates](store-pairing-codes.md).
 No agent consumption, MSI, Ed25519 device enrollment, token or telemetry is implied.
 
+## Own-account security
+
+Minha conta now connects password changes and own-session metadata/revocation in
+both realms. Current-password proof is rate limited and transactionally ends all
+sessions/challenges while preserving passkeys/recovery credentials; session
+references never expose bearer tokens. See [contract, evidence and limits](account-security.md).
+Email recovery, invitations and additional-passkey management remain pending.
+No migration or operator credential change is required.
+
 ## Not delivered / next increments
 
 This is **M1 started, not M1 complete**. Authentication endpoints are available

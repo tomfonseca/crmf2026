@@ -65,6 +65,14 @@ name, it now seals passkey credentials and ceremony state. The helper refuses
 replacement when either legacy or passkey encrypted state exists. Do not print,
 delete or rotate it by replacement. Key rotation/recovery need a separate design.
 
+## Own-account security
+
+[Minha conta: password changes and own sessions](account-security.md) is now
+integrated in both realms. Password changes require the current password and end
+all sessions while preserving passkeys/recovery codes. Session lists are bounded,
+own-realm only, without bearer tokens/device guesses/background polling.
+This is not password recovery by email or additional-passkey management.
+
 ## Verification and remaining work
 
 Vitest covers transport/CSRF, realm validation, required UV options, secret

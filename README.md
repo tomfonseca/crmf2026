@@ -39,7 +39,9 @@ Não há usuários finais pré-cadastrados. O QG e `/login` do Dash têm telas
 M1 de login/MFA; habilite a API com `python scripts/tasks.py auth-dev`.
 Veja [fluxos e limites da autenticação web](docs/implementation/authentication-web.md)
 e [novo layout de autenticação](docs/implementation/authentication-layout.md): login,
-passkey, recuperação, Minha conta e telas previstas de senha/convite. No QG de
+passkey, recuperação e Minha conta. A [segurança da própria conta](docs/implementation/account-security.md)
+já permite trocar a senha com prova da senha atual e consultar/encerrar suas
+sessões, preservando passkeys. Recuperação por e-mail e convites continuam previstos. No QG de
 **desenvolvimento**, `/__auth-design` permite conferir as 94 variações visuais.
 O [novo layout do QG](docs/implementation/hq-layout.md) preserva Planos/Redes
 reais e monta as demais telas operacionais como **Previsto**, sem dados fictícios

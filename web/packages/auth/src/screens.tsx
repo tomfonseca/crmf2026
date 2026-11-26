@@ -658,7 +658,11 @@ export function AccountScreen({
   onTab,
   preview = false,
   security = "",
+  accountContent,
+  busy = false,
 }: {
+  accountContent?: ReactNode;
+  busy?: boolean;
   identity: Identity;
   tab: number;
   onTab: (tab: number) => void;
@@ -677,6 +681,7 @@ export function AccountScreen({
             key={title}
             type="button"
             role="tab"
+            disabled={busy}
             id={`${id}-${index}`}
             aria-controls={`${id}-panel`}
             aria-selected={tab === index}
@@ -711,7 +716,7 @@ export function AccountScreen({
         className="auth-account-panel"
       >
         <h2>
-          {tabs[tab]} {tab > 0 && <Planned />}
+          {tabs[tab]} {tab > 0 && !accountContent && <Planned />}
         </h2>
         {tab === 0 ? (
           <>
@@ -757,6 +762,8 @@ export function AccountScreen({
               ))}
             </dl>
           </>
+        ) : accountContent ? (
+          accountContent
         ) : tab === 1 ? (
           <>
             <PendingNotice text="A troca de senha ainda depende da integração com a API. Exigirá sua senha atual e encerrará as sessões conforme a política de segurança." />
