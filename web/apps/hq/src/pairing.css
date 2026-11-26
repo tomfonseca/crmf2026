@@ -1,0 +1,50 @@
+.pairing-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(420px, 100%), 1fr));
+  gap: 16px;
+  align-items: start;
+}
+.pairing-code-panel {
+  padding: 20px;
+  border: 1px solid var(--ds-border);
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  text-align: center;
+  overflow-wrap: anywhere;
+}
+.pairing-page p {
+  overflow-wrap: anywhere;
+}
+.pairing-secret {
+  font:
+    600 32px/40px ui-monospace,
+    Menlo,
+    monospace;
+  letter-spacing: 0.12em;
+  max-width: 100%;
+}
+.pairing-actions,
+.pairing-code-panel > div {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.qg-shell .pairing-page button {
+  min-height: 44px;
+  white-space: normal;
+}
+.pairing-actions {
+  margin-top: 16px;
+}
+@media (max-width: 400px) {
+  .pairing-secret {
+    font-size: 24px;
+    letter-spacing: 0.08em;
+  }
+  .pairing-code-panel {
+    padding: 12px;
+  }
+}

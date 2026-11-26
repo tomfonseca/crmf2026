@@ -56,7 +56,10 @@ The authenticated QG opens the real [plan catalog](../implementation/hq-plans.md
 and offers [Redes → Nova rede](../implementation/hq-networks.md). Rebuild QG
 with `docker compose up -d --build hq` after changing frontend sources.
 No commercial plans/prices are pre-created. Admins can mutate plans; support
-can only read. The existing Dash demo routes stay synthetic and separate.
+can only read. The existing Dash demo routes stay synthetic and separate. Store detail now links
+to [pairing-code issuance](../implementation/store-pairing-codes.md); migrate
+control through 00014 before rebuilding API/HQ. Use no real ERP credentials in
+that screen: consumer/MSI/device registration are still M3, not available yet.
 
 The helper provisions an ignored persistent development key only when no
 encrypted legacy or passkey state exists. Back up `.tools/local-secrets/mfa.key` securely;

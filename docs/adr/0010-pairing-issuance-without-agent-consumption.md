@@ -1,0 +1,5 @@
+# Separate pairing-code issuance from agent enrollment
+
+M1 issues eight-character, 72-hour store pairing codes once, storing only SHA-256 and exposing reference/status metadata on later reads. Bind to a checked store revision and compare-and-swap the prior code under live tenant policy locks; revoke prior unused codes and append a redacted actor audit atomically. Use a separate persistent issuer window rather than granting the control API read access to append-only audit history.
+
+Do not enable partial anonymous redemption or make MSI/device-success claims before M3 supplies distributed guessing limits, current-policy/expiry/revision checks, atomic single-use consumption and Ed25519 enrollment with prior-device revocation. Forty random bits satisfy the specified short-code shape but are not strong offline-search protection after database compromise. Keep issuance independent of auth sealing keys/tenant-secret custody, and keep raw codes out of query caches, browser storage, URLs and logs; one-time display is not a claim that clipboard history can be erased.

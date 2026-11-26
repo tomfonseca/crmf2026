@@ -340,6 +340,16 @@ checked filtered real records. Health/device/batch fields remain unavailable.
 See [store contract, locking and tests](hq-stores.md). Pairing, invitations and
 other pending M1 services are not implied.
 
+## Store pairing-code issuance (M1, not M3 agent enrollment)
+
+Forward migration 00014 and QG `/stores/:id/pairing` issue eight-character codes
+once, 72-hour DB expiry, revision/previous-code CAS, atomic replacement/revocation,
+redacted audit and persistent issuer/store rate limits. API never reads audit or
+receives a new custody key. Browser secrets stay outside query cache/storage and
+are hidden on navigation/visibility/pagehide/60s. Support reads metadata only.
+See [contract, proof and mandatory M3 security gates](store-pairing-codes.md).
+No agent consumption, MSI, Ed25519 device enrollment, token or telemetry is implied.
+
 ## Not delivered / next increments
 
 This is **M1 started, not M1 complete**. Authentication endpoints are available

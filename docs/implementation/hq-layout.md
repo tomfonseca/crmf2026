@@ -46,7 +46,7 @@ The development-only `/__qg-design` catalogue contains all **125 QG boards**
 | QG-Redes, QG-Rede-Nova | Real listing/creation/preparation summary |
 | QG-Rede-Preparacao | Detailed step layout only; no invented per-step progress or invitation readiness |
 | QG-Rede, QG-Rede-Acao | Real commercial-profile editing and filtered store configuration; other lifecycle/subscription/limits/invite/billing actions unavailable |
-| QG-Lojas, QG-Loja-Form, QG-Loja | Real authenticated configuration catalog/create/edit/inactivate with transactional quota; health/agent/batches unavailable |
+| QG-Lojas, QG-Loja-Form, QG-Loja | Real configuration catalog/create/edit/inactivate with transactional quota and pairing-code issuance; consumer/health/agent/batches unavailable |
 | QG-Loja-Pareamento, QG-Loja-Reinstalar | Code/instructions/replacement layouts; no actual pairing code, MSI or revocation issued |
 | QG-Dispositivos, QG-Dispositivo | Health/resources/streams/commands and confirmation dialogs; commands disabled |
 | QG-Envios, QG-Lote | Monitor/timeline/detail/stages/attempts/quarantine layouts; no real ingest/reprocessing |

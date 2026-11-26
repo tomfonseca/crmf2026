@@ -1,10 +1,12 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
   useInfiniteQuery,
   useQuery,
   useQueryClient,
 } from "@tanstack/react-query";
 import { useScope } from "@crmf/auth";
+import { StorePairing } from "./StorePairing";
+import type { PairingClient } from "./pairing-client";
 import { NetworkFailure, type NetworkClient } from "./networks-client";
 import {
   StoreScreens,
@@ -39,11 +41,13 @@ export function Stores({
   networks,
   client,
   onExpired,
+  pairing,
 }: {
   route: string;
   navigate: (p: string) => void;
   networks?: NetworkClient;
   client?: StoreClient;
+  pairing?: PairingClient;
   onExpired: () => void;
 }) {
   const scope = useScope(),
@@ -66,6 +70,11 @@ export function Stores({
     enabled: !!id && !!client,
     queryFn: ({ signal }) => client!.get(id, signal),
   });
+  const refetchDetail = detail.refetch;
+  const refreshPairingStore = useCallback(async () => {
+    const r = await refetchDetail();
+    if (r.error) throw r.error;
+  }, [refetchDetail]);
   const available = useInfiniteQuery({
     queryKey: ["hq-store-networks"],
     enabled: creating && canWrite && !!networks,
@@ -149,6 +158,18 @@ export function Stores({
       throw e;
     }
   }
+  if (path.endsWith("/pairing") && record)
+    return (
+      <StorePairing
+        key={record.id}
+        store={record}
+        refreshStore={refreshPairingStore}
+        client={pairing}
+        canWrite={canWrite}
+        navigate={navigate}
+        onExpired={onExpired}
+      />
+    );
   return (
     <>
       {query.isError && (

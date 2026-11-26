@@ -304,6 +304,38 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/hq/stores/{id}/pairing": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["getHQPairing"];
+        put?: never;
+        post: operations["issueHQPairing"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/hq/stores/{id}/pairing/{pairing_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete: operations["revokeHQPairing"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/hq/companies/{cnpj}": {
         parameters: {
             query?: never;
@@ -340,6 +372,16 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        PairingMetadata: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            store_id: string;
+            /** @enum {string} */
+            status: "pending" | "used" | "revoked" | "expired" | "invalidated";
+            /** Format: date-time */
+            expires_at: string;
+        };
         HQStoreFields: {
             code: string;
             name: string;
@@ -1190,6 +1232,92 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["HQStore"];
                 };
+            };
+            default: components["responses"]["CatalogError"];
+        };
+    };
+    getHQPairing: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Latest code metadata only, never the code or digest. Empty object means no issued code. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        current?: components["schemas"]["PairingMetadata"];
+                    };
+                };
+            };
+            default: components["responses"]["CatalogError"];
+        };
+    };
+    issueHQPairing: {
+        parameters: {
+            query?: never;
+            header: {
+                "X-CRMF-Request": components["parameters"]["CRMFRequest"];
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** Format: int32 */
+                    store_version: number;
+                    /** @description Latest code UUID or empty string for none. Compare-and-swap */
+                    previous_id: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Code shown once, valid 72 hours; five issues per operator/minute and one per store/minute. No M3 redemption endpoint implied. */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        current: components["schemas"]["PairingMetadata"];
+                        code: string;
+                    };
+                };
+            };
+            default: components["responses"]["CatalogError"];
+        };
+    };
+    revokeHQPairing: {
+        parameters: {
+            query?: never;
+            header: {
+                "X-CRMF-Request": components["parameters"]["CRMFRequest"];
+            };
+            path: {
+                id: string;
+                pairing_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Unused code revoked and audited */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
             default: components["responses"]["CatalogError"];
         };

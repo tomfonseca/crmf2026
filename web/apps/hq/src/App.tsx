@@ -9,6 +9,7 @@ import { CatalogHost } from "./Plans";
 import { createPlanClient } from "./plans-client";
 import { createNetworkClient } from "./networks-client";
 import { createStoreClient } from "./stores-client";
+import { createPairingClient } from "./pairing-client";
 import { QGPreview } from "./QGPreview";
 
 function configuredClients() {
@@ -19,6 +20,7 @@ function configuredClients() {
       plans: createPlanClient(base, import.meta.env.DEV),
       networks: createNetworkClient(base, import.meta.env.DEV),
       stores: createStoreClient(base, import.meta.env.DEV),
+      pairing: createPairingClient(base, import.meta.env.DEV),
     };
   } catch {
     return null;
@@ -46,6 +48,7 @@ export function App() {
           client={clients.plans}
           networks={clients.networks}
           stores={clients.stores}
+          pairing={clients.pairing}
           onExpired={expire}
           theme={theme}
           toggleTheme={toggleTheme}

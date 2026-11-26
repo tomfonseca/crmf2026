@@ -45,8 +45,10 @@ O [novo layout do QG](docs/implementation/hq-layout.md) preserva Planos/Redes
 reais e monta as demais telas operacionais como **Previsto**, sem dados fictícios
 na sessão real. As [telas de Lojas](docs/implementation/hq-stores.md) têm lista,
 formulário e detalhe integrados ao cadastro real, com edição/inativação,
-revisão, auditoria e limite de lojas transacional. Telemetria e pareamento continuam
-previstos, sem simular agente instalado. O [cadastro comercial de Redes](docs/implementation/network-profiles.md)
+revisão, auditoria e limite de lojas transacional. A [emissão de códigos de
+pareamento](docs/implementation/store-pairing-codes.md) por loja já é real, com
+exibição única, validade de 72 horas, revogação e auditoria. Consumo pelo agente,
+instalador e telemetria continuam previstos, sem simular agente instalado. O [cadastro comercial de Redes](docs/implementation/network-profiles.md)
 persiste razão social, cidade/UF, contatos, fuso e referência de cobrança, com edição
 versionada e sugestões automáticas ao informar o CNPJ (sem obrigar a consulta).
 `/__qg-design`, somente em desenvolvimento, reúne as 125 pranchetas.
@@ -107,13 +109,14 @@ Isso evita misturar dependências nativas Windows e Linux nos containers.
   de [limites efetivos](docs/implementation/effective-limits.md) já resolve plano
   e overrides pelo contexto autenticado, ainda sem integração nas futuras rotas
   de negócio. Veja [estado e próximos incrementos](docs/implementation/m1-control.md).
-- Ainda não implementado: fluxos complementares de autenticação, pareamento de lojas/pareamento
+- Ainda não implementado: fluxos complementares de autenticação, consumo de códigos pelo agente/instalador
   e aceite completo de provisionamento/isolamento por tenant (M1),
   conector real (M2), coleta/ingestão/MSI (M3), jobs de ingestão River e agregados (M4),
   interfaces finais, design system completo e permissões integradas (M5/M6),
   OTA (M7), produção e piloto (M8). A prévia visual não conclui M1 nem M5.
 - `worker` M0 verifica dependências e aguarda encerramento; não consome lotes.
-- `api` M0 não expõe dados de negócio nem simula autenticação.
+- A API sem configuração de autenticação não expõe cadastros; com opt-in, os
+  serviços M1 acima são reais. Não há rotas de indicadores reais no dashboard.
 - Terraform M0 prepara bootstrap do estado e resource group de hml; nenhum
   recurso de nuvem é criado pelos comandos locais.
 - Verificações locais não substituem o aceite remoto: acompanhe as execuções

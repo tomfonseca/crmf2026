@@ -437,6 +437,61 @@ paths:
             application/json:
               schema: {$ref: '#/components/schemas/HQStore'}
         default: {$ref: '#/components/responses/CatalogError'}
+  /v1/hq/stores/{id}/pairing:
+    get:
+      operationId: getHQPairing
+      security: [{PlatformSession: []}]
+      parameters:
+        - {name: id, in: path, required: true, schema: {type: string, format: uuid}}
+      responses:
+        '200':
+          description: Latest code metadata only, never the code or digest. Empty object means no issued code.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  current: {$ref: '#/components/schemas/PairingMetadata'}
+        default: {$ref: '#/components/responses/CatalogError'}
+    post:
+      operationId: issueHQPairing
+      security: [{PlatformSession: []}]
+      parameters:
+        - {name: id, in: path, required: true, schema: {type: string, format: uuid}}
+        - {$ref: '#/components/parameters/CRMFRequest'}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [store_version, previous_id]
+              properties:
+                store_version: {type: integer, format: int32, minimum: 1}
+                previous_id: {type: string, description: Latest code UUID or empty string for none. Compare-and-swap, not idempotency.}
+      responses:
+        '201':
+          description: Code shown once, valid 72 hours; five issues per operator/minute and one per store/minute. No M3 redemption endpoint implied.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [current, code]
+                properties:
+                  current: {$ref: '#/components/schemas/PairingMetadata'}
+                  code: {type: string, pattern: '^[A-HJ-NP-Z2-9]{8}$'}
+        default: {$ref: '#/components/responses/CatalogError'}
+  /v1/hq/stores/{id}/pairing/{pairing_id}:
+    delete:
+      operationId: revokeHQPairing
+      security: [{PlatformSession: []}]
+      parameters:
+        - {name: id, in: path, required: true, schema: {type: string, format: uuid}}
+        - {name: pairing_id, in: path, required: true, schema: {type: string, format: uuid}}
+        - {$ref: '#/components/parameters/CRMFRequest'}
+      responses:
+        '204': {description: Unused code revoked and audited, not a device revocation}
+        default: {$ref: '#/components/responses/CatalogError'}
   /v1/hq/companies/{cnpj}:
     get:
       operationId: lookupCompany
@@ -493,6 +548,14 @@ components:
     TenantChallenge: {type: apiKey, in: cookie, name: __Host-crmf_tenant_challenge}
     PlatformChallenge: {type: apiKey, in: cookie, name: __Host-crmf_platform_challenge}
   schemas:
+    PairingMetadata:
+      type: object
+      required: [id, store_id, status, expires_at]
+      properties:
+        id: {type: string, format: uuid}
+        store_id: {type: string, format: uuid}
+        status: {type: string, enum: [pending, used, revoked, expired, invalidated]}
+        expires_at: {type: string, format: date-time}
     HQStoreFields:
       type: object
       required: [code, name, city, uf, timezone, erp, status]
