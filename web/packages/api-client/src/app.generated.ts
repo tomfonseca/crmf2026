@@ -4,6 +4,74 @@
  */
 
 export interface paths {
+    "/v1/me/password": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** @description Current password required. Atomically revoke all sessions and challenges; preserve passkeys. No email reset. */
+        post: operations["changePasswordTenant"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/me/sessions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description Own live sessions in this realm only, at most 100. IDs are references, never authentication tokens. */
+        get: operations["listSessionsTenant"];
+        put?: never;
+        post?: never;
+        delete: operations["endSessionTenant"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/hq/me/password": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** @description Current password required. Atomically revoke all sessions and challenges; preserve passkeys. No email reset. */
+        post: operations["changePasswordPlatform"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/hq/me/sessions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description Own live sessions in this realm only, at most 100. IDs are references, never authentication tokens. */
+        get: operations["listSessionsPlatform"];
+        put?: never;
+        post?: never;
+        delete: operations["endSessionPlatform"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/healthz": {
         parameters: {
             query?: never;
@@ -372,6 +440,33 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        PasswordChangeInput: {
+            current_password: string;
+            new_password: string;
+        };
+        EndSessionInput: {
+            /** Format: uuid */
+            session_id: string;
+        };
+        OwnSession: {
+            /** Format: uuid */
+            id: string;
+            /** Format: date-time */
+            created_at: string;
+            /** Format: date-time */
+            last_seen_at: string;
+            /** Format: date-time */
+            idle_expires_at: string;
+            /** Format: date-time */
+            expires_at: string;
+            current: boolean;
+            mfa_verified: boolean;
+        };
+        SessionPage: {
+            items: components["schemas"]["OwnSession"][];
+            /** Format: uuid */
+            next_cursor?: string;
+        };
         PairingMetadata: {
             /** Format: uuid */
             id: string;
@@ -555,6 +650,200 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
+    changePasswordTenant: {
+        parameters: {
+            query?: never;
+            header: {
+                "X-CRMF-Request": components["parameters"]["CRMFRequest"];
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PasswordChangeInput"];
+            };
+        };
+        responses: {
+            /** @description Password changed; all sessions revoked and browser cookies cleared */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Request rejected or service unavailable */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    listSessionsTenant: {
+        parameters: {
+            query?: {
+                after?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Live session metadata */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SessionPage"];
+                };
+            };
+            /** @description Request rejected or service unavailable */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    endSessionTenant: {
+        parameters: {
+            query?: never;
+            header: {
+                "X-CRMF-Request": components["parameters"]["CRMFRequest"];
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["EndSessionInput"];
+            };
+        };
+        responses: {
+            /** @description Own session revoked (idempotent); cookies cleared if current */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Request rejected or service unavailable */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    changePasswordPlatform: {
+        parameters: {
+            query?: never;
+            header: {
+                "X-CRMF-Request": components["parameters"]["CRMFRequest"];
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PasswordChangeInput"];
+            };
+        };
+        responses: {
+            /** @description Password changed; all sessions revoked and browser cookies cleared */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Request rejected or service unavailable */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    listSessionsPlatform: {
+        parameters: {
+            query?: {
+                after?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Live session metadata */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SessionPage"];
+                };
+            };
+            /** @description Request rejected or service unavailable */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    endSessionPlatform: {
+        parameters: {
+            query?: never;
+            header: {
+                "X-CRMF-Request": components["parameters"]["CRMFRequest"];
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["EndSessionInput"];
+            };
+        };
+        responses: {
+            /** @description Own session revoked (idempotent); cookies cleared if current */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Request rejected or service unavailable */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
     healthz: {
         parameters: {
             query?: never;

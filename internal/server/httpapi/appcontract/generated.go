@@ -498,6 +498,36 @@ func (e EnrollPlatformParamsXCRMFRequest) Valid() bool {
 	}
 }
 
+// Defines values for ChangePasswordPlatformParamsXCRMFRequest.
+const (
+	ChangePasswordPlatformParamsXCRMFRequestN1 ChangePasswordPlatformParamsXCRMFRequest = "1"
+)
+
+// Valid indicates whether the value is a known member of the ChangePasswordPlatformParamsXCRMFRequest enum.
+func (e ChangePasswordPlatformParamsXCRMFRequest) Valid() bool {
+	switch e {
+	case ChangePasswordPlatformParamsXCRMFRequestN1:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for EndSessionPlatformParamsXCRMFRequest.
+const (
+	EndSessionPlatformParamsXCRMFRequestN1 EndSessionPlatformParamsXCRMFRequest = "1"
+)
+
+// Valid indicates whether the value is a known member of the EndSessionPlatformParamsXCRMFRequest enum.
+func (e EndSessionPlatformParamsXCRMFRequest) Valid() bool {
+	switch e {
+	case EndSessionPlatformParamsXCRMFRequestN1:
+		return true
+	default:
+		return false
+	}
+}
+
 // Defines values for CreatePlanParamsXCRMFRequest.
 const (
 	CreatePlanParamsXCRMFRequestN1 CreatePlanParamsXCRMFRequest = "1"
@@ -663,6 +693,36 @@ func (e EnrollTenantParamsXCRMFRequest) Valid() bool {
 	}
 }
 
+// Defines values for ChangePasswordTenantParamsXCRMFRequest.
+const (
+	ChangePasswordTenantParamsXCRMFRequestN1 ChangePasswordTenantParamsXCRMFRequest = "1"
+)
+
+// Valid indicates whether the value is a known member of the ChangePasswordTenantParamsXCRMFRequest enum.
+func (e ChangePasswordTenantParamsXCRMFRequest) Valid() bool {
+	switch e {
+	case ChangePasswordTenantParamsXCRMFRequestN1:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for EndSessionTenantParamsXCRMFRequest.
+const (
+	EndSessionTenantParamsXCRMFRequestN1 EndSessionTenantParamsXCRMFRequest = "1"
+)
+
+// Valid indicates whether the value is a known member of the EndSessionTenantParamsXCRMFRequest enum.
+func (e EndSessionTenantParamsXCRMFRequest) Valid() bool {
+	switch e {
+	case EndSessionTenantParamsXCRMFRequestN1:
+		return true
+	default:
+		return false
+	}
+}
+
 // AuthOutcome defines model for AuthOutcome.
 type AuthOutcome struct {
 	// PublicKey JSON-serialized WebAuthn creation or request options; ephemeral and realm-bound
@@ -675,6 +735,11 @@ type AuthOutcome struct {
 
 // AuthOutcomeStatus defines model for AuthOutcome.Status.
 type AuthOutcomeStatus string
+
+// EndSessionInput defines model for EndSessionInput.
+type EndSessionInput struct {
+	SessionId openapi_types.UUID `json:"session_id"`
+}
 
 // EnrollmentInput defines model for EnrollmentInput.
 type EnrollmentInput struct {
@@ -837,6 +902,17 @@ type NetworkProfileInput struct {
 	Uf                string `json:"uf"`
 }
 
+// OwnSession defines model for OwnSession.
+type OwnSession struct {
+	CreatedAt     time.Time          `json:"created_at"`
+	Current       bool               `json:"current"`
+	ExpiresAt     time.Time          `json:"expires_at"`
+	Id            openapi_types.UUID `json:"id"`
+	IdleExpiresAt time.Time          `json:"idle_expires_at"`
+	LastSeenAt    time.Time          `json:"last_seen_at"`
+	MfaVerified   bool               `json:"mfa_verified"`
+}
+
 // PairingMetadata defines model for PairingMetadata.
 type PairingMetadata struct {
 	ExpiresAt time.Time             `json:"expires_at"`
@@ -852,6 +928,12 @@ type PairingMetadataStatus string
 type PasskeyInput struct {
 	// Response Serialized WebAuthn credential JSON or an explicit single-use recovery code; never a TOTP
 	Response string `json:"response"`
+}
+
+// PasswordChangeInput defines model for PasswordChangeInput.
+type PasswordChangeInput struct {
+	CurrentPassword string `json:"current_password"`
+	NewPassword     string `json:"new_password"`
 }
 
 // Plan defines model for Plan.
@@ -926,6 +1008,12 @@ type Problem struct {
 	Type   string `json:"type"`
 }
 
+// SessionPage defines model for SessionPage.
+type SessionPage struct {
+	Items      []OwnSession        `json:"items"`
+	NextCursor *openapi_types.UUID `json:"next_cursor,omitempty"`
+}
+
 // CRMFRequest defines model for CRMFRequest.
 type CRMFRequest string
 
@@ -990,6 +1078,27 @@ type EnrollPlatformParams struct {
 
 // EnrollPlatformParamsXCRMFRequest defines parameters for EnrollPlatform.
 type EnrollPlatformParamsXCRMFRequest string
+
+// ChangePasswordPlatformParams defines parameters for ChangePasswordPlatform.
+type ChangePasswordPlatformParams struct {
+	XCRMFRequest ChangePasswordPlatformParamsXCRMFRequest `json:"X-CRMF-Request"`
+}
+
+// ChangePasswordPlatformParamsXCRMFRequest defines parameters for ChangePasswordPlatform.
+type ChangePasswordPlatformParamsXCRMFRequest string
+
+// EndSessionPlatformParams defines parameters for EndSessionPlatform.
+type EndSessionPlatformParams struct {
+	XCRMFRequest EndSessionPlatformParamsXCRMFRequest `json:"X-CRMF-Request"`
+}
+
+// EndSessionPlatformParamsXCRMFRequest defines parameters for EndSessionPlatform.
+type EndSessionPlatformParamsXCRMFRequest string
+
+// ListSessionsPlatformParams defines parameters for ListSessionsPlatform.
+type ListSessionsPlatformParams struct {
+	After *openapi_types.UUID `form:"after,omitempty" json:"after,omitempty"`
+}
 
 // ListPlansParams defines parameters for ListPlans.
 type ListPlansParams struct {
@@ -1114,6 +1223,27 @@ type EnrollTenantParams struct {
 // EnrollTenantParamsXCRMFRequest defines parameters for EnrollTenant.
 type EnrollTenantParamsXCRMFRequest string
 
+// ChangePasswordTenantParams defines parameters for ChangePasswordTenant.
+type ChangePasswordTenantParams struct {
+	XCRMFRequest ChangePasswordTenantParamsXCRMFRequest `json:"X-CRMF-Request"`
+}
+
+// ChangePasswordTenantParamsXCRMFRequest defines parameters for ChangePasswordTenant.
+type ChangePasswordTenantParamsXCRMFRequest string
+
+// EndSessionTenantParams defines parameters for EndSessionTenant.
+type EndSessionTenantParams struct {
+	XCRMFRequest EndSessionTenantParamsXCRMFRequest `json:"X-CRMF-Request"`
+}
+
+// EndSessionTenantParamsXCRMFRequest defines parameters for EndSessionTenant.
+type EndSessionTenantParamsXCRMFRequest string
+
+// ListSessionsTenantParams defines parameters for ListSessionsTenant.
+type ListSessionsTenantParams struct {
+	After *openapi_types.UUID `form:"after,omitempty" json:"after,omitempty"`
+}
+
 // LoginTenantJSONRequestBody defines body for LoginTenant for application/json ContentType.
 type LoginTenantJSONRequestBody = LoginInput
 
@@ -1128,6 +1258,12 @@ type PasskeyPlatformJSONRequestBody = PasskeyInput
 
 // EnrollPlatformJSONRequestBody defines body for EnrollPlatform for application/json ContentType.
 type EnrollPlatformJSONRequestBody = EnrollmentInput
+
+// ChangePasswordPlatformJSONRequestBody defines body for ChangePasswordPlatform for application/json ContentType.
+type ChangePasswordPlatformJSONRequestBody = PasswordChangeInput
+
+// EndSessionPlatformJSONRequestBody defines body for EndSessionPlatform for application/json ContentType.
+type EndSessionPlatformJSONRequestBody = EndSessionInput
 
 // CreatePlanJSONRequestBody defines body for CreatePlan for application/json ContentType.
 type CreatePlanJSONRequestBody = PlanInput
@@ -1158,6 +1294,12 @@ type RetryNetworkJSONRequestBody RetryNetworkJSONBody
 
 // EnrollTenantJSONRequestBody defines body for EnrollTenant for application/json ContentType.
 type EnrollTenantJSONRequestBody = EnrollmentInput
+
+// ChangePasswordTenantJSONRequestBody defines body for ChangePasswordTenant for application/json ContentType.
+type ChangePasswordTenantJSONRequestBody = PasswordChangeInput
+
+// EndSessionTenantJSONRequestBody defines body for EndSessionTenant for application/json ContentType.
+type EndSessionTenantJSONRequestBody = EndSessionInput
 
 // ServerInterface represents all server handlers.
 type ServerInterface interface {
@@ -1194,6 +1336,15 @@ type ServerInterface interface {
 
 	// (POST /v1/hq/me/passkey)
 	EnrollPlatform(w http.ResponseWriter, r *http.Request, params EnrollPlatformParams)
+
+	// (POST /v1/hq/me/password)
+	ChangePasswordPlatform(w http.ResponseWriter, r *http.Request, params ChangePasswordPlatformParams)
+
+	// (DELETE /v1/hq/me/sessions)
+	EndSessionPlatform(w http.ResponseWriter, r *http.Request, params EndSessionPlatformParams)
+
+	// (GET /v1/hq/me/sessions)
+	ListSessionsPlatform(w http.ResponseWriter, r *http.Request, params ListSessionsPlatformParams)
 
 	// (GET /v1/hq/plans)
 	ListPlans(w http.ResponseWriter, r *http.Request, params ListPlansParams)
@@ -1245,6 +1396,15 @@ type ServerInterface interface {
 
 	// (POST /v1/me/passkey)
 	EnrollTenant(w http.ResponseWriter, r *http.Request, params EnrollTenantParams)
+
+	// (POST /v1/me/password)
+	ChangePasswordTenant(w http.ResponseWriter, r *http.Request, params ChangePasswordTenantParams)
+
+	// (DELETE /v1/me/sessions)
+	EndSessionTenant(w http.ResponseWriter, r *http.Request, params EndSessionTenantParams)
+
+	// (GET /v1/me/sessions)
+	ListSessionsTenant(w http.ResponseWriter, r *http.Request, params ListSessionsTenantParams)
 }
 
 // Unimplemented server implementation that returns http.StatusNotImplemented for each endpoint.
@@ -1302,6 +1462,21 @@ func (_ Unimplemented) MePlatform(w http.ResponseWriter, r *http.Request) {
 
 // (POST /v1/hq/me/passkey)
 func (_ Unimplemented) EnrollPlatform(w http.ResponseWriter, r *http.Request, params EnrollPlatformParams) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// (POST /v1/hq/me/password)
+func (_ Unimplemented) ChangePasswordPlatform(w http.ResponseWriter, r *http.Request, params ChangePasswordPlatformParams) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// (DELETE /v1/hq/me/sessions)
+func (_ Unimplemented) EndSessionPlatform(w http.ResponseWriter, r *http.Request, params EndSessionPlatformParams) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// (GET /v1/hq/me/sessions)
+func (_ Unimplemented) ListSessionsPlatform(w http.ResponseWriter, r *http.Request, params ListSessionsPlatformParams) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
@@ -1387,6 +1562,21 @@ func (_ Unimplemented) MeTenant(w http.ResponseWriter, r *http.Request) {
 
 // (POST /v1/me/passkey)
 func (_ Unimplemented) EnrollTenant(w http.ResponseWriter, r *http.Request, params EnrollTenantParams) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// (POST /v1/me/password)
+func (_ Unimplemented) ChangePasswordTenant(w http.ResponseWriter, r *http.Request, params ChangePasswordTenantParams) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// (DELETE /v1/me/sessions)
+func (_ Unimplemented) EndSessionTenant(w http.ResponseWriter, r *http.Request, params EndSessionTenantParams) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// (GET /v1/me/sessions)
+func (_ Unimplemented) ListSessionsTenant(w http.ResponseWriter, r *http.Request, params ListSessionsTenantParams) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
@@ -1773,6 +1963,129 @@ func (siw *ServerInterfaceWrapper) EnrollPlatform(w http.ResponseWriter, r *http
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.EnrollPlatform(w, r, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// ChangePasswordPlatform operation middleware
+func (siw *ServerInterfaceWrapper) ChangePasswordPlatform(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params ChangePasswordPlatformParams
+
+	headers := r.Header
+
+	// ------------- Required header parameter "X-CRMF-Request" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("X-CRMF-Request")]; found {
+		var XCRMFRequest ChangePasswordPlatformParamsXCRMFRequest
+		n := len(valueList)
+		if n != 1 {
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "X-CRMF-Request", Count: n})
+			return
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "X-CRMF-Request", valueList[0], &XCRMFRequest, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true, Type: "string", Format: ""})
+		if err != nil {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "X-CRMF-Request", Err: err})
+			return
+		}
+
+		params.XCRMFRequest = XCRMFRequest
+
+	} else {
+		err := fmt.Errorf("Header parameter X-CRMF-Request is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "X-CRMF-Request", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.ChangePasswordPlatform(w, r, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// EndSessionPlatform operation middleware
+func (siw *ServerInterfaceWrapper) EndSessionPlatform(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params EndSessionPlatformParams
+
+	headers := r.Header
+
+	// ------------- Required header parameter "X-CRMF-Request" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("X-CRMF-Request")]; found {
+		var XCRMFRequest EndSessionPlatformParamsXCRMFRequest
+		n := len(valueList)
+		if n != 1 {
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "X-CRMF-Request", Count: n})
+			return
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "X-CRMF-Request", valueList[0], &XCRMFRequest, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true, Type: "string", Format: ""})
+		if err != nil {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "X-CRMF-Request", Err: err})
+			return
+		}
+
+		params.XCRMFRequest = XCRMFRequest
+
+	} else {
+		err := fmt.Errorf("Header parameter X-CRMF-Request is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "X-CRMF-Request", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.EndSessionPlatform(w, r, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// ListSessionsPlatform operation middleware
+func (siw *ServerInterfaceWrapper) ListSessionsPlatform(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params ListSessionsPlatformParams
+
+	// ------------- Optional query parameter "after" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "after", r.URL.Query(), &params.After, runtime.BindQueryParameterOptions{Type: "string", Format: "uuid"})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "after"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "after", Err: err})
+		}
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.ListSessionsPlatform(w, r, params)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -2527,6 +2840,129 @@ func (siw *ServerInterfaceWrapper) EnrollTenant(w http.ResponseWriter, r *http.R
 	handler.ServeHTTP(w, r)
 }
 
+// ChangePasswordTenant operation middleware
+func (siw *ServerInterfaceWrapper) ChangePasswordTenant(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params ChangePasswordTenantParams
+
+	headers := r.Header
+
+	// ------------- Required header parameter "X-CRMF-Request" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("X-CRMF-Request")]; found {
+		var XCRMFRequest ChangePasswordTenantParamsXCRMFRequest
+		n := len(valueList)
+		if n != 1 {
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "X-CRMF-Request", Count: n})
+			return
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "X-CRMF-Request", valueList[0], &XCRMFRequest, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true, Type: "string", Format: ""})
+		if err != nil {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "X-CRMF-Request", Err: err})
+			return
+		}
+
+		params.XCRMFRequest = XCRMFRequest
+
+	} else {
+		err := fmt.Errorf("Header parameter X-CRMF-Request is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "X-CRMF-Request", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.ChangePasswordTenant(w, r, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// EndSessionTenant operation middleware
+func (siw *ServerInterfaceWrapper) EndSessionTenant(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params EndSessionTenantParams
+
+	headers := r.Header
+
+	// ------------- Required header parameter "X-CRMF-Request" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("X-CRMF-Request")]; found {
+		var XCRMFRequest EndSessionTenantParamsXCRMFRequest
+		n := len(valueList)
+		if n != 1 {
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "X-CRMF-Request", Count: n})
+			return
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "X-CRMF-Request", valueList[0], &XCRMFRequest, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true, Type: "string", Format: ""})
+		if err != nil {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "X-CRMF-Request", Err: err})
+			return
+		}
+
+		params.XCRMFRequest = XCRMFRequest
+
+	} else {
+		err := fmt.Errorf("Header parameter X-CRMF-Request is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "X-CRMF-Request", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.EndSessionTenant(w, r, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// ListSessionsTenant operation middleware
+func (siw *ServerInterfaceWrapper) ListSessionsTenant(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params ListSessionsTenantParams
+
+	// ------------- Optional query parameter "after" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "after", r.URL.Query(), &params.After, runtime.BindQueryParameterOptions{Type: "string", Format: "uuid"})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "after"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "after", Err: err})
+		}
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.ListSessionsTenant(w, r, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
 type UnescapedCookieParamError struct {
 	ParamName string
 	Err       error
@@ -2642,6 +3078,24 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 	}
 
 	r.Group(func(r chi.Router) {
+		r.Post(options.BaseURL+"/v1/me/password", wrapper.ChangePasswordTenant)
+	})
+	r.Group(func(r chi.Router) {
+		r.Delete(options.BaseURL+"/v1/me/sessions", wrapper.EndSessionTenant)
+	})
+	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/v1/me/sessions", wrapper.ListSessionsTenant)
+	})
+	r.Group(func(r chi.Router) {
+		r.Post(options.BaseURL+"/v1/hq/me/password", wrapper.ChangePasswordPlatform)
+	})
+	r.Group(func(r chi.Router) {
+		r.Delete(options.BaseURL+"/v1/hq/me/sessions", wrapper.EndSessionPlatform)
+	})
+	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/v1/hq/me/sessions", wrapper.ListSessionsPlatform)
+	})
+	r.Group(func(r chi.Router) {
 		r.Get(options.BaseURL+"/healthz", wrapper.Healthz)
 	})
 	r.Group(func(r chi.Router) {
@@ -2734,65 +3188,72 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 // const string: with thousands of chunks the chained `+` fold is several
 // times slower for the Go compiler than parsing a slice literal.
 var swaggerSpec = []string{
-	"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",
+	"7Fxbcxu3kv4rKOx5iGuHIiX5ZGPqSXF8TnQ2trR2XLsVlZYFzTRJxBhgBGAk0yr+960GMOTceJVE0Vk9",
+	"SSQHQKP76ysac09jlWZKgrSG9u9pxjRLwYJ2n95+fP+Pj3CTg7H4kUvap2NgCWgaUclSoH36Px18qlM8",
+	"FlENNznXkNC+1TlE1MRjSBmOB5mntH9JD+lVRO0kw+HGai5HdDqd4kiTKWnAr80sE2r0Tmul8XOspAXp",
+	"6GBZJnjMLFeym2l1LSD99z+NkvjbfLW/aRjSPv237nyHXf+r6V74UX7ZBEyseYbT0T49k7dM8IRwmeWW",
+	"/PC613sVkVyy3I5BWlwWEvz68FVEhkpf8yQBiV8cv4pIyo3hcoQfX7+KiLFMQDfJPbnQ5bKTG8Bf37wi",
+	"SuO0t4wLdi2A/PD33vErOo3oB7B3Sn8pSNzh1sPKRHtZEg1/QozbrZJKcWSYDlc7ze34PLexQjzc00yr",
+	"DLTlXoxZfi14PPgCE/xUXe9fn84/dAxozgT/Bgn5b7jGuSSJNbgt4sIFMcqNMicEsjGkoJkgTCZEAxNp",
+	"51rlMqENUCGkYnULejKIVQKmScK5hI7lKRCQWgmRgrSkgCFRUkxoRLmF1A1tzB6+YFqzCX42ltnclKFe",
+	"gQ2NaMaM+QKTwUxJIjpfef5ti36UFeuyWGn+nLpGWSER72TyCYzhSp4hhB1qkoTjhpm4KAlnyISBqCYv",
+	"44cOeIKfhkqnzNI+zXOe0JVEzce2E1ZsdBvCkHN3SjuyUvb1N5AjO6b9w97R64imXM6+WEXlbKI2Gn/9",
+	"r09WaYdjJsT5kPYvl6tTGPAPDiIxdBrV8b8WHyMqveoNvFG9X/yAEfmo9QELkkk7WHO9W9CGK1l5lkt7",
+	"fEQdM3map2VWcmlhBLrBSz/5bOXaPmpUz1dtcv5qzvvAyoYlibmd1IR/1Ou17A1Vvfbgj6swElHQWVlx",
+	"BZdfB9d81KKKhetrkrJiiRbzEFt+i4ziMvzbthwaqG9KbrNkPqwPWqUejnthi5FnupumRIZnVrTMCAVZ",
+	"zhX9UZRpE4zXtjUfuhR8n7OE2UdU/0fSsxWKA0ygbOuLN/GmvjzItZwl6MvspLnUSLMQQc685TK2FRP9",
+	"E4e1eVLn1suUZ4JZ5ODM3rRqikFhDHhSpWSlNayvvpktzQ3orTBZDCy2W6Y/Kli6TA6efQ1haCXanYgB",
+	"IUAPCgO5kH2bb8Ut2Ubqb2rEtwpEIGVc1IzX8dFqi/docYInIFoeL4SQucVbyezPVh6PQIJmdqVR6DWN",
+	"QrRuNCFgxMTiWCITTK4Lbvfs4pm0GnIBq9R9ntK4p/3AW+6CxaaRuskh98Gyhoy5pZyGJOiJhoyL1gC5",
+	"SEkGC0zuj69XcndhbNWk0WLSQqO5Aze5yUAmju6YyRhEO5ltAVSIjkpSizx+5qIqC2JGTwsbG1yoAG4J",
+	"grdR0QLjGbMWtKR9+r+Xp50/ep03V/eHR9NL98/R9G+rIbphVLMRgLeBqOdGCRLlLbLOt17nzeDq/jh6",
+	"3WvbXd2hrhbvEsFczOnfQDQJs2zLLa8VsvRWhiyOgmUhf0TbCNhsm9dcCC5Hgzg3VqUzN7w6RVg/l5CW",
+	"xXbQ5o2Wj1gE7caABIYsF3awLMpvDuImE2yy/ioaRtxY0JCsP2bz5KFCVnPRaj5R4VSd1S18iVrF3Qas",
+	"8zsZSiCbWjQNWKgZMFuBP+YErkzUZmDiXOtQnQu/XSslgEn8Eb5mXIPZaMI1DRtPBAy2mV8wYwcGQG40",
+	"Kh06p8KHHJK2vbY5thI7a8s2ya/was7V2sJt0r5gHIl8D5YVZq8WSj6dEJqRAUYBPmTJDfjY/lZ9cf95",
+	"OvA/7ovMzFa29BiBuHtkNrwUKpSY0M5EV5jcxggX9dJmdfVTe23XZS9MEKz/YomXSQJfsa7NLcHyuQBX",
+	"Ji9qtwTzlRMi4RY0YeT3898vaFQ2Sz8dvjnaLLafkbyIFRjwvx0zOdrKLQXwDrbPRSIq4W798aurOnWK",
+	"agu08kEwuX4lBJ8uYogti6CPWZScx78u220vnCDNi8qNIbJvtepjjho2GaRK2rHZmF4H3oFT0nUHX85G",
+	"R1TmQtCrMEtuQD9sEpXkAqoFk8KWxUpDqE4EOwlfM6UtjWiWC7OgWlkupkQ0l/wmhzM/tdU5tNdPD9dJ",
+	"7TWPYRAXZ5Ub5s5mIuMBfta3TAwMxEom5qFYC7FLmbJyUti6ZAM/FTyUxTqXziL93LDAWgL8NKpb6/OU",
+	"W2driVWEGcNHEk0zT9PcuiNKA/oWdCcklJAQ7iz5kIM+IO8KCy7UHeiYGXBzGaIxoJPE5BlCBxI8NSVI",
+	"G7P8mgtuJwe0YUBDhaqZdl2Fv4PO1X0v+vF4Qf61QNk3Le/W+PUMtd3SMfCi4m4T6pbbBRVA/8X9qmI5",
+	"/lpMs7TOH8LsCzbaNEOdGZu1CsaliN4bvmBQDnu9msVxrvOrHcS5NkpXhLNeAOUmbu7VlU/jXHM7+YRE",
+	"+V1chLL02zETAuQIZn0SsVJfOMz7JAaDX5WxnVinw0FRzB7Es2HzXWT8P2ES9Ns9VUpl1p65bb7fXVV7",
+	"M0pDJXwpnX7eTaj0szbnQiZzOVTNSPJ9j4zdKQfBrgcw7uz//SFRd5KUzti5kgfktPKZBOGaUoyJckTz",
+	"JId8lPva2AmRivhmBeLTVj1rQXj38YLc5KA5mIOZWvRddww5nTdkkNOLs1Lk0ae9g95BDzmkMpAs47RP",
+	"jw8OD3quqBwCh67f1jf8fwTOlKOWuAnPEtoPhzvfaK095qjXW9IasllLiF+irSPkQqsYjCHcECbQp03d",
+	"Q11XjV1M80f/87OQ/FZJq5UgmApeMwMRYZKJieWxmX3n0POzUNcET+/YCAjTmG+weOwbXCL6997xLltv",
+	"TguYJiQBV0iW8QTZXu27ccy/Pewi5LsCj1acY1C+P6s65cd5Z0xNRU4IenT8zxTLEjsGwgT67oScaz7i",
+	"0jGp2t1FfPMXKkFV4O6U5/dCq8tNZAsc7PyRbrnJbHrljTEY+7NKJo8Gl9Ip1LRq8ENE+mRALTdHtcm9",
+	"bqtMLuwJURm7yTEO+wLSOHBiLxLRYHMtISHMFEbsV2uzc/zN21tTqijuEr8fW1rGqqBrdpAFb0r7l1d1",
+	"XKvc7g2wVW4fDdkVkL1ubu2tFyKJBTC0BUhppsGARJ6G/qruzBuTorb0PQr9vh44XF5No/tpFQuhX24/",
+	"wBBqZHts5ypVvBdLt7+gL0Xhl1dzzI9v9tO1X8zTihfn/gL57Zz7+GZf/fsjwvvFw5eNXaOEUfPx45v9",
+	"dfN7bfNeHP13g/3Frh7pYZKD6d5jP9B0YT3lN6W+5Nlb9/ikiUdXb8OK0rzaFvqLFt/F2rxna3r1hJhq",
+	"7UVqqUf5Ap1n3ISYfDQC43Uf0YRFPEuG3MRMEN8z4KmpQaiNktnWurULWGsZtbJYUygJ8vnM2HsoWbAn",
+	"E9ysJfzFEmzkBauA2S8H6C9q7bX/q98le3GB3zHwixaXduS/9a0rpHhyVik/IKdWpTxmQkxCnIygL4Jo",
+	"f0Y0i6TNiY+z9S2QoG3mgHxQxPUboozANlXB9wAVHUF7HxLW25bWUouWLKWYC9knR5CcVBkbkhLH4Gut",
+	"7gxoElcTmz1CLMqcx/BgqBbb9+wS4BsJ6qazuHy75+azekd4W5yc38kCFTNQ/MATSDOFRL46qcOC8CEp",
+	"Wjv/EgiJ2gM9ZAwemM51hktix9z4C+vO8EeEWZIqY8lhr3dAzn4x4RhyCBpkDCYqeh6rJtf7j5ZaBjdF",
+	"Md0sRp9LFvA0ezLPFtjQgqbl9GBVz8RT5gLlnpIWAf5WYitJi6bfv5i5wYshZnE+yA3WrKTZVry1q9GP",
+	"Ld2HdPrgvuh0ZVPPlk08DQl+zrDb7bDXI47lqKbGd7u5TjilE9AnRfMa8fqbdFB9N8opK28zWdu0FAFR",
+	"LSZxXfWOT3sZh8wbgdfxKoePunBr0UAwSTLQhhsbghaWJ9xiWDPrxGJJyiXZiVxrWt6958l0WUzxi/v+",
+	"WeW9Se87dlWh8wjNYFVZvPvKYutUjYQXDTxVF3i5AbxEUbtN2CL0+SxNfo1fXEPiN+TlVwHYLmzEylpg",
+	"uGG+qBK4hqsPPcZVWPpe2r02Q57EXRcHltqh3JFUs0LuPVEkINY7mRBP3HE7Jq97b3ZolOb3EhbGHuGt",
+	"F+aposuofaLyi2Z2F6o+JJgJjHq2nuUGBn/GAiIk1d5XEnvAuB5YCwJSsHjtSjCemmcOcwoO7qOJqbzk",
+	"ZsfBzgxZTRm7H0iodXkTwiURKsbs3CWlzl3d5MqynTqruo2ZRT6thuafYBcK/0m83NM1Ky+W1dsxOLE4",
+	"hoT7NHbiK5dlFd2FFi528juUQ7RPmv088cMyuFTMdhFLuCAhDkjS4N8IcjJHU8ykVFhqugUS3sj2PLre",
+	"zfxV7eU6H+5zfw9a33rtd3WhvnpfveW+WkvVi1kw4XpeUfQKVURfJMQjP/er0iTheCx+QN6lmZ0QPylJ",
+	"AesbUhFuTO5CgAQOns27nyERO5X17ixLFRUZaqTKTbjOv1isnz+f/YLSAyc1T7e7LCmVhAPi2j80dJhM",
+	"OuaOZcgYZcms2h5PDmgfr/UufJ/AI2XW1cmiyga3S68PH6J0LVdFTzu//qvz4aLzxxF2s/zU/gaiB2hr",
+	"y836xRfN26x4AsSM8e6akjFExL9x+D+OyFjl2pyQIQZpTk0NFq6IVx2luymXufXXl5QE95uTRvjBnWe+",
+	"PyYaEBTOR4BMMsWlJTzNBIfk4Hktf/c+/DNYUfT66E6Tdm0gWiad07tz67O6BJWbYMgrR7JFPO8NBCMJ",
+	"uAMJfCQOdTm0E7sDgk/cl9cUQtfV1jWFfUr7P8yDrM3S/sdO80O0RzK84+jDRF8MxZpl8e44dDPhivfT",
+	"t8ktz/YLxu1jtl95Ud5abu3osdduP4IMeX4ha7QASa7dGdaf6jpyIYUru8NXbixKWxes2mFXZLABwRvM",
+	"X2q3JO2svQHv/032Wdv3jtPPttXr8Uuago7xFU6zVMSw2wccfTwquDRWL8v9ZPXIwurJQkPzPWNqg1O6",
+	"dd9CuzobWPp60b2xkqdEwh1h1mJc7JIqzJcNS2cVkVmzDfHv6SEeU7uD8d60jc/ut740je/V5egSUvax",
+	"X3yPr0W/dIv/NRD/3TSK7/krAl7axLft21yO0c06xPfaYL70hz8GNPa0O3wR8l56w/fWxriH9G0hqVwL",
+	"2qdja7N+tytUzMRYGdv/qfdTj06vpv83AA==",
 }
 
 // decodeSpec returns the embedded OpenAPI spec as raw JSON bytes,

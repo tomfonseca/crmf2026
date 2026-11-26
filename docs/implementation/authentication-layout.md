@@ -3,7 +3,9 @@
 The supplied static authentication boards are visual references, not executable
 application HTML. React implements their structure, scoped tokens and interactions;
 the original ZIP/HTML and screenshots remain private under ignored local tooling.
-No SQL, migrations, passwords, passkeys, bootstrap markers or ERP data are changed.
+The original visual increment changed no SQL or credentials. Subsequent
+[own-account security](account-security.md) connects password/session APIs; deployment
+still changes no operator password, passkey, bootstrap marker or ERP data.
 
 ## Layout and scope
 
@@ -46,14 +48,15 @@ No SQL, migrations, passwords, passkeys, bootstrap markers or ERP data are chang
 | NovaSenha | Layout available; saving disabled until secure one-use link validation/reset API exists |
 | Convite-Aceite | Layout available; no identity/role/email is asserted from an unvalidated link |
 | Link-Invalido | Generic public guidance; precise expired/used/invalid variations are visual previews only |
-| Conta, QG-Conta | Authenticated current identity, read-only profile and four tabs; unsupported mutations Previsto |
+| Conta, QG-Conta | Current identity, read-only profile, real password/session APIs; passkey management Previsto |
 
-Profile name/email/last-access, session inventory, passkey inventory and tenant
-MFA policy are not present in the current identity contract. Production displays
-unavailable states, not synthetic people, devices, dates, key counts or policy.
-The QG's mandatory passkey policy remains explicit. Password change, session
-revocation lists, optional enrollment settings, additional/removable keys and
-recovery regeneration are disabled until their secure APIs and ceremonies exist.
+Profile name/email/last-access, passkey inventory and tenant MFA policy remain
+absent from the identity contract; display unavailable states, never synthetic
+people/keys/policy. Separate own-session endpoints now provide checked live
+session references/timestamps without inventing devices. Password changes require
+the current password and end all sessions while preserving passkeys/recovery
+codes. The QG's mandatory passkey policy stays explicit. Additional/removable
+passkeys, optional enrollment settings and recovery regeneration remain disabled.
 The existing Sair action still revokes the current session.
 
 Forgot/reset/invitation flows **do not** simulate HTTP 202, email delivery,

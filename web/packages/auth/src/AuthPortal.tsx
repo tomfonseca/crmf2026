@@ -37,6 +37,7 @@ import {
   StatusScreen,
   type StaticScreen,
 } from "./screens";
+import { AccountSecurity } from "./AccountSecurity";
 import "@crmf/ui/styles.css";
 import "./auth.css";
 type State =
@@ -346,6 +347,7 @@ export function AuthPortal({
               <div className="auth-actions">
                 <button
                   className="auth-link"
+                  disabled={busy}
                   onClick={() =>
                     navigate(path.endsWith("/minha-conta") ? "" : "minha-conta")
                   }
@@ -368,6 +370,22 @@ export function AuthPortal({
                 identity={state.identity}
                 tab={tab}
                 onTab={setTab}
+                busy={busy}
+                accountContent={
+                  client.account && (tab === 1 || tab === 2) ? (
+                    <AccountSecurity
+                      key={tab}
+                      client={client.account}
+                      mode={tab === 1 ? "password" : "sessions"}
+                      onBusy={setBusy}
+                      onEnded={(message) => {
+                        setState({ kind: "login" });
+                        navigate("");
+                        setError(message);
+                      }}
+                    />
+                  ) : undefined
+                }
               />
             ) : (
               <>
