@@ -78,7 +78,10 @@ Caddy ao atualizar ou reverter; não reinicialize bancos ou custódia existente.
 
 1. Rode na VPS `bash check-public-dns.sh`: ambos os resolvers devem devolver
    somente A=108.174.144.89 para os três hosts e nenhum AAAA enquanto IPv6 não
-   estiver configurado. Erro bloqueia publicação, sem retry/sleep cego.
+   estiver configurado. Cada consulta exige status DNS `NOERROR`: `SERVFAIL`,
+   `REFUSED`, `NXDOMAIN`, falha de transporte ou resposta sem cabeçalho bloqueiam
+   publicação. Um AAAA vazio sem sucesso confirmado não comprova ausência de IPv6.
+   CNAME, IPv4 adicional ou ausente também bloqueiam. Sem retry/sleep cego.
 2. Confira CAA caso exista restrição de CA, liberação TCP 80/443 no provedor,
    e ausência de outro serviço nessas portas. Não mude nameservers/e-mail.
 3. Altere somente variáveis públicas:
@@ -95,6 +98,53 @@ Caddy ao atualizar ou reverter; não reinicialize bancos ou custódia existente.
 Se falhar a emissão, preserve o volume e diagnostique DNS/CAA/conectividade;
 não reinstale para provocar novas solicitações repetidas e rate limit da CA.
 Rollback é repor a tag/configuração anterior e executar up, sem apagar volumes.
+
+## Diagnóstico de registros ainda ausentes
+
+O domínio existir/delegar DNS não comprova que os registros A foram publicados.
+Consulte os servidores da zona, além dos resolvers recursivos:
+
+```sh
+dig @1.1.1.1 crmfarma.app.br NS +time=3 +tries=1 +short
+# Para cada servidor retornado (substitua <servidor-autoritativo>):
+dig @<servidor-autoritativo> qg.crmfarma.app.br A +norecurse +noall +comments +answer +authority
+# Repita para dash.crmfarma.app.br e api.crmfarma.app.br.
+```
+
+`NXDOMAIN` com flag `aa` nos servidores autoritativos significa que o nome ainda
+não está publicado na origem, não apenas que um resolver mantém cache antigo.
+Não solicite certificados nem troque nameservers para tentar contornar isso.
+
+Se a zona for do Registro.br, confira no painel os registros abaixo e salve:
+
+| Tipo | Nome relativo | Valor |
+| --- | --- | --- |
+| A | qg | 108.174.144.89 |
+| A | dash | 108.174.144.89 |
+| A | api | 108.174.144.89 |
+
+Não duplique o sufixo do domínio se o painel já o preencher. Se houver transição
+de modo DNS ou atualização pendente indicada pelo painel, aguarde sua conclusão
+e então revalide a origem e os dois resolvers. Preserve MX/TXT/CAA/NS e demais
+registros; não crie AAAA sem configurar IPv6. Nenhuma senha do painel é necessária
+no chat ou no servidor.
+
+## Lista de entrega e gates restantes
+
+- [x] Receita da imagem web de produção, sem Vite, segredos ou fallback sintético.
+- [x] Configuração de staging loopback e teste black-box da imagem.
+- [x] Scanner HIGH/CRITICAL e correção checksum-locked do Caddy.
+- [x] Preflight DNS com erro distinto de ausência e testes offline de regressão.
+- [ ] Registros A corretos publicados na origem e aceitos nos dois resolvers.
+- [ ] Revisão CAA/conectividade e HTTPS externo com cadeia/hostname válidos.
+- [ ] Identidade/custódia aprovadas para a VPS; bancos, Blob e roles separados.
+- [ ] Migrações e API/provisioner reais, sem importar custódia local ou refazer bootstrap.
+- [ ] Aceite funcional de login/passkey e operações autorizadas.
+- [ ] Backup/restauração, observabilidade, hardening e aceite operacional.
+
+Esta lista descreve o escopo, não certifica o estado atual da VPS; obtenha o
+estado de execução pelo SSH autorizado. PR/CI e staging não substituem revisão,
+merge ou aceite de milestone.
 
 ## Backend real ainda bloqueado
 
