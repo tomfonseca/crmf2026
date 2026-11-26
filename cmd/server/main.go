@@ -135,7 +135,7 @@ func run(ctx context.Context, args []string, logger *slog.Logger) error {
 		}
 		cancel()
 		probes = append(probes, engine.Ping)
-		router, err = httpapi.NewAuthenticated(probes, logger, httpapi.AuthOptions{Backend: engine, Plans: catalog, Networks: networks, TenantOrigin: cfg.Auth.TenantOrigin, PlatformOrigin: cfg.Auth.PlatformOrigin, Development: cfg.Auth.Development, TrustedProxies: cfg.Auth.TrustedProxies})
+		router, err = httpapi.NewAuthenticated(probes, logger, httpapi.AuthOptions{Backend: engine, Plans: catalog, Networks: networks, Companies: app.NewCompanyLookup(), TenantOrigin: cfg.Auth.TenantOrigin, PlatformOrigin: cfg.Auth.PlatformOrigin, Development: cfg.Auth.Development, TrustedProxies: cfg.Auth.TrustedProxies})
 		if err != nil {
 			return errors.New("initialize authentication routes")
 		}

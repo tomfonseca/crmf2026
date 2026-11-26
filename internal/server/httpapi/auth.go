@@ -13,6 +13,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/crmf/crmf/internal/server/app"
 	"github.com/crmf/crmf/internal/server/auth"
 	"github.com/crmf/crmf/internal/server/config"
 	"github.com/crmf/crmf/internal/server/httpapi/appcontract"
@@ -29,9 +30,12 @@ type AuthBackend interface {
 	CancelChallenge(context.Context, string, auth.Realm) error
 }
 type AuthOptions struct {
-	Backend                      AuthBackend
-	Plans                        PlanBackend
-	Networks                     NetworkBackend
+	Backend   AuthBackend
+	Plans     PlanBackend
+	Networks  NetworkBackend
+	Companies interface {
+		Lookup(context.Context, string) (app.NetworkProfile, error)
+	}
 	TenantOrigin, PlatformOrigin string
 	Development                  bool
 	TrustedProxies               []netip.Prefix
@@ -50,6 +54,12 @@ func NewAuthenticated(probes []Probe, logger *slog.Logger, options AuthOptions) 
 	return newRouter(probes, logger, &options), nil
 }
 func authRoute(path string) (auth.Realm, string, bool) {
+	if strings.HasPrefix(path, "/v1/hq/companies/") {
+		return auth.Platform, "GET", true
+	}
+	if strings.HasPrefix(path, "/v1/hq/tenants/") && strings.HasSuffix(path, "/profile") {
+		return auth.Platform, "PUT", true
+	}
 	if path == "/v1/hq/tenants" {
 		return auth.Platform, "GET, POST", true
 	}

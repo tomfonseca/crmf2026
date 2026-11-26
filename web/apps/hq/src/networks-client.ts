@@ -2,9 +2,53 @@ import { createAppClient, type AppComponents } from "@crmf/api-client";
 import { createAuthClient } from "@crmf/auth";
 export type Network = AppComponents["schemas"]["Network"];
 export type NetworkInput = AppComponents["schemas"]["NetworkInput"];
+export type NetworkProfileInput =
+  AppComponents["schemas"]["NetworkProfileInput"];
+export type NetworkProfile = AppComponents["schemas"]["NetworkProfile"];
+export const emptyNetworkProfile = (): NetworkProfileInput => ({
+  display_name: "",
+  registered_name: "",
+  city: "",
+  uf: "",
+  contact_name: "",
+  contact_email: "",
+  default_timezone: "",
+  billing_customer_id: "",
+});
+function checkedProfile(
+  p: NetworkProfileInput | undefined,
+): NetworkProfileInput {
+  if (
+    !p ||
+    Object.keys(emptyNetworkProfile()).some(
+      (k) =>
+        typeof p[k as keyof NetworkProfileInput] !== "string" ||
+        p[k as keyof NetworkProfileInput].length > 500,
+    )
+  )
+    throw new NetworkFailure(502);
+  return p;
+}
+function checkedVersion(p: NetworkProfile | undefined): NetworkProfile {
+  if (
+    !p ||
+    !Number.isInteger(p.version) ||
+    p.version < 0 ||
+    p.version > 2147483647
+  )
+    throw new NetworkFailure(502);
+  checkedProfile(p.data);
+  return p;
+}
 export type NetworkPage = { items: Network[]; next_cursor?: string };
 export interface NetworkClient {
   list(after: string, signal?: AbortSignal): Promise<NetworkPage>;
+  updateProfile(
+    network: Network,
+    profile: NetworkProfile,
+    signal?: AbortSignal,
+  ): Promise<NetworkProfile>;
+  lookup(cnpj: string, signal?: AbortSignal): Promise<NetworkProfileInput>;
   create(input: NetworkInput, signal?: AbortSignal): Promise<Network>;
   retry(network: Network, signal?: AbortSignal): Promise<Network>;
 }
@@ -23,7 +67,7 @@ export function networkMessage(error: unknown): string {
     if (error.status === 409)
       return "Rede já cadastrada ou tentativa alterada. Atualize a lista antes de tentar novamente.";
     if (error.status === 400)
-      return "Revise os dados da rede e selecione um plano ativo.";
+      return "Revise os dados informados. Na criação, selecione um plano ativo.";
   }
   return "Não foi possível confirmar a operação. Atualize a lista antes de tentar novamente.";
 }
@@ -52,6 +96,7 @@ function checked(value: Network | undefined): Network {
     (value.provision_status === "ready" && value.schema_version < 1)
   )
     throw new NetworkFailure(502);
+  if (value.profile !== undefined) checkedVersion(value.profile);
   return value;
 }
 export function createNetworkClient(
@@ -76,6 +121,31 @@ export function createNetworkClient(
     }
   }
   return {
+    lookup: (cnpj, signal) =>
+      guarded(async () => {
+        if (!/^[A-Z0-9]{12}[0-9]{2}$/.test(cnpj)) throw new NetworkFailure(400);
+        const r = await api.GET("/v1/hq/companies/{cnpj}", {
+          ...options(signal),
+          params: { path: { cnpj } },
+        });
+        if (!r.response.ok)
+          throw new NetworkFailure(r.response.status, r.error?.type);
+        return checkedProfile(r.data);
+      }),
+    updateProfile: (network, body, signal) =>
+      guarded(async () => {
+        const r = await api.PUT("/v1/hq/tenants/{id}/profile", {
+          ...options(signal),
+          params: {
+            path: { id: network.id },
+            header: { "X-CRMF-Request": "1" },
+          },
+          body,
+        });
+        if (r.response.status !== 200)
+          throw new NetworkFailure(r.response.status, r.error?.type);
+        return checkedVersion(r.data);
+      }),
     list: (after, signal) =>
       guarded(async () => {
         const result = await api.GET("/v1/hq/tenants", {

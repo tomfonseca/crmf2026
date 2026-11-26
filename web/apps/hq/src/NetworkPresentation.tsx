@@ -142,12 +142,12 @@ export function NetworkSetup({
       <Heading
         title="Preparação da rede"
         trail={`CLIENTES › REDES › ${n.slug}`}
-        subtitle={n.legal_name}
+        subtitle={n.profile?.data.display_name || n.legal_name}
       />
       <NetworkCard title="Preparação do ambiente">
         <Values
           items={[
-            ["Rede", n.legal_name],
+            ["Rede", n.profile?.data.display_name || n.legal_name],
             [
               "Identificador",
               <>
@@ -318,7 +318,7 @@ export function NetworkDetail({
   return (
     <>
       <Heading
-        title={n.legal_name}
+        title={n.profile?.data.display_name || n.legal_name}
         trail={`CLIENTES › REDES › ${n.slug}`}
         subtitle={`Identificador ${n.slug} · lojas: —`}
         badge={
@@ -402,22 +402,52 @@ export function NetworkDetail({
         {active === "dados" && (
           <NetworkCard
             title="Dados cadastrais"
-            action={canWrite && planned("Editar")}
+            action={
+              canWrite && (
+                <button
+                  onClick={() =>
+                    navigate(`/tenants/${n.slug}?aba=dados&editar=1`)
+                  }
+                >
+                  Editar
+                </button>
+              )
+            }
           >
             <Values
               items={[
-                ["Nome", n.legal_name],
+                ["Nome", n.profile?.data.display_name || n.legal_name],
                 [
                   "Identificador",
                   <>
                     <code>{n.slug}</code> <Badge>Imutável</Badge>
                   </>,
                 ],
-                ["Razão social", n.legal_name],
+                [
+                  "Razão social",
+                  n.profile?.data.registered_name || "Não disponível",
+                ],
                 ["CNPJ", n.cnpj],
-                ["Cidade/UF", "Não disponível"],
-                ["Contato comercial", "Não disponível"],
-                ["Fuso padrão", "Não disponível"],
+                [
+                  "Cidade/UF",
+                  [n.profile?.data.city, n.profile?.data.uf]
+                    .filter(Boolean)
+                    .join(" / ") || "Não disponível",
+                ],
+                [
+                  "Contato comercial",
+                  [n.profile?.data.contact_name, n.profile?.data.contact_email]
+                    .filter(Boolean)
+                    .join(" · ") || "Não disponível",
+                ],
+                [
+                  "Fuso padrão",
+                  n.profile?.data.default_timezone || "Não disponível",
+                ],
+                [
+                  "Identificador de cobrança",
+                  n.profile?.data.billing_customer_id || "Não disponível",
+                ],
                 ["Criada em", "Não disponível"],
                 [
                   "Preparação",

@@ -3,6 +3,11 @@
 Increment 11 adds Redes alongside Planos. It does not complete M1 or implement
 stores, pairing, customer invitations, sales ingestion or analytic facts.
 
+The [commercial-profile increment](network-profiles.md) now persists and edits
+all eight commercial fields and supplies authenticated CNPJ suggestions. Older
+visual-only limitations below have been updated; billing/invitations/telemetry
+remain separate unavailable services.
+
 ## Visible flow
 
 1. Sign in at the configured QG origin using the existing administrator and
@@ -38,10 +43,11 @@ Q02–Q09 images and privately supplied layout specifications/HTML:
   is disabled: network status is **not** subscription status. Unknown counts,
   telemetry, subscription status and dates display `—`, never invented zeros.
 - Creation: four separate cards in a 420px-minimum responsive grid:
-  Identificação, Dados cadastrais, Contato comercial, Assinatura. Only the four
-  supported request properties are editable/sent. Separate display/legal name,
-  address, contact, timezone and billing controls remain clearly **Previsto**.
-  Existing identifier/CNPJ policy and active-plan selection remain unchanged.
+  Identificação, Dados cadastrais, Contato comercial, Assinatura. Display name,
+  registered company name, city/UF, commercial contact, default timezone and manual
+  billing reference are persisted in a versioned profile. CNPJ lookup supplies
+  suggestions, never verified fiscal status. Identifier/CNPJ policy and active-plan
+  selection remain unchanged; detail → Editar saves profile with revision checks.
 - Accepted creation opens `/tenants/:slug/setup`. Five reference steps are
   visible, but intermediate schema/migration progress is not fabricated.
   Readiness/version alone confirms steps 2–3. Subscription reservation happens

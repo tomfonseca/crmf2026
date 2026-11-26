@@ -1,24 +1,18 @@
-import { useEffect, useRef, useState, type FormEvent } from "react";
-import {
-  useInfiniteQuery,
-  useMutation,
-  useQuery,
-  useQueryClient,
-} from "@tanstack/react-query";
+import { useEffect, useRef, useState } from "react";
+import { NetworkEditor } from "./NetworkEditor";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useScope } from "@crmf/auth";
 import {
   NetworkFailure,
   networkMessage,
   type Network,
   type NetworkClient,
-  type NetworkInput,
   type NetworkPage,
 } from "./networks-client";
-import { PlanFailure, planMessage, type PlanClient } from "./plans-client";
+import { type PlanClient } from "./plans-client";
 import { PlanIcon } from "./PlanPresentation";
 import {
   Heading,
-  NetworkCard,
   NetworkDetail,
   NetworkSetup,
   PreparationBadge,
@@ -98,7 +92,7 @@ export function Networks({
     : undefined;
   const items = (query.data?.items ?? []).filter(
     (n) =>
-      (n.legal_name + " " + n.slug)
+      ((n.profile?.data.display_name || n.legal_name) + " " + n.slug)
         .toLocaleLowerCase("pt-BR")
         .includes(search.toLocaleLowerCase("pt-BR")) &&
       (!planFilter || n.plan_id === planFilter),
@@ -165,7 +159,31 @@ export function Networks({
           {query.isPending ? (
             <Heading title="Carregando rede…" />
           ) : selected ? (
-            match[2] ? (
+            canWrite &&
+            new URLSearchParams(route.split("?")[1]).get("editar") === "1" ? (
+              <NetworkEditor
+                key={selected.id}
+                client={client}
+                plans={plans}
+                network={selected}
+                onExpired={onExpired}
+                onPlans={onPlans}
+                onCancel={() => navigate(`/tenants/${selected.slug}?aba=dados`)}
+                onDone={(n) => {
+                  cache.setQueryData<NetworkPage>(
+                    ["hq-networks", after],
+                    (old) => ({
+                      ...old,
+                      items: (old?.items ?? []).map((item) =>
+                        item.id === n.id ? n : item,
+                      ),
+                    }),
+                  );
+                  void cache.invalidateQueries({ queryKey: ["hq-networks"] });
+                  navigate(`/tenants/${n.slug}?aba=dados`);
+                }}
+              />
+            ) : match[2] ? (
               <NetworkSetup
                 network={selected}
                 refresh={refresh}
@@ -295,7 +313,7 @@ export function Networks({
                             }
                           }}
                         >
-                          {n.legal_name}
+                          {n.profile?.data.display_name || n.legal_name}
                         </a>
                         <small>{n.slug}</small>
                       </th>
@@ -388,287 +406,6 @@ export function Networks({
         </p>
       )}
     </section>
-  );
-}
-function NetworkEditor({
-  client,
-  plans,
-  onDone,
-  onCancel,
-  onExpired,
-  onPlans,
-}: {
-  client: NetworkClient;
-  plans: PlanClient;
-  onDone: (network: Network) => void;
-  onCancel: () => void;
-  onExpired: () => void;
-  onPlans: () => void;
-}) {
-  const [input, setInput] = useState<NetworkInput>({
-    legal_name: "",
-    slug: "",
-    cnpj: "",
-    plan_id: "",
-  });
-  const dirty = Object.values(input).some(Boolean);
-  const form = useRef<HTMLFormElement>(null);
-  const controller = useRef<AbortController | null>(null);
-  const submitting = useRef(false);
-  useEffect(() => {
-    controller.current = new AbortController();
-    return () => controller.current?.abort();
-  }, []);
-  const available = useInfiniteQuery({
-    queryKey: ["hq-network-plans"],
-    initialPageParam: "",
-    queryFn: ({ pageParam, signal }) => plans.list(pageParam, signal),
-    getNextPageParam: (page) => page.next_cursor,
-  });
-  const options =
-    available.data?.pages
-      .flatMap((page) => page.items)
-      .filter((plan) => plan.active) ?? [];
-  const mutation = useMutation({
-    mutationFn: () => client.create(input, controller.current?.signal),
-    onSuccess: (network) => {
-      if (form.current) {
-        form.current.dataset.dirty = "false";
-        form.current.dataset.saving = "false";
-      }
-      onDone(network);
-    },
-    onError: (error) => {
-      if (error instanceof NetworkFailure && error.status === 401) onExpired();
-    },
-    onSettled: () => {
-      submitting.current = false;
-    },
-  });
-  useEffect(() => {
-    if (
-      available.error instanceof PlanFailure &&
-      available.error.status === 401
-    )
-      onExpired();
-  }, [available.error, onExpired]);
-  useEffect(() => {
-    function warn(event: BeforeUnloadEvent) {
-      if (dirty) {
-        event.preventDefault();
-        event.returnValue = "";
-      }
-    }
-    window.addEventListener("beforeunload", warn);
-    return () => window.removeEventListener("beforeunload", warn);
-  }, [dirty]);
-  function submit(event: FormEvent) {
-    event.preventDefault();
-    if (!submitting.current) {
-      submitting.current = true;
-      mutation.mutate();
-    }
-  }
-  return (
-    <>
-      <Heading title="Cadastrar rede" trail="CLIENTES › REDES › NOVA" />
-      <form
-        ref={form}
-        className="networks-form"
-        data-dirty={dirty}
-        data-saving={mutation.isPending}
-        data-draft-label="nesta rede"
-        onSubmit={submit}
-      >
-        <fieldset disabled={mutation.isPending} className="networks-fields">
-          <div className="networks-form-grid">
-            <NetworkCard title="Identificação">
-              <label>
-                Nome da rede <span aria-hidden="true">*</span>
-                <input
-                  aria-label="Nome da rede"
-                  required
-                  maxLength={200}
-                  value={input.legal_name}
-                  onChange={(e) =>
-                    setInput((v) => ({ ...v, legal_name: e.target.value }))
-                  }
-                />
-                <small>Nome cadastrado no QG e no Dash.</small>
-              </label>
-              <label>
-                Identificador <span aria-hidden="true">*</span>
-                <input
-                  aria-label="Identificador"
-                  required
-                  pattern="[a-z0-9_]{3,40}"
-                  maxLength={40}
-                  value={input.slug}
-                  onChange={(e) =>
-                    setInput((v) => ({ ...v, slug: e.target.value }))
-                  }
-                />
-                <small>
-                  3 a 40 letras minúsculas, números ou sublinhado.{" "}
-                  <strong>Não pode ser alterado depois da criação.</strong>
-                </small>
-              </label>
-            </NetworkCard>
-            <NetworkCard
-              title="Dados cadastrais"
-              subtitle="Usados em cobrança e suporte"
-            >
-              <label>
-                Razão social
-                <input
-                  disabled
-                  placeholder="Previsto · campo separado ainda indisponível"
-                />
-              </label>
-              <label>
-                CNPJ <span aria-hidden="true">*</span>
-                <input
-                  aria-label="CNPJ sem pontuação"
-                  required
-                  minLength={14}
-                  maxLength={14}
-                  pattern="[A-Z0-9]{12}[0-9]{2}"
-                  value={input.cnpj}
-                  onChange={(e) =>
-                    setInput((v) => ({
-                      ...v,
-                      cnpj: e.target.value.toUpperCase().replace(/[./-]/g, ""),
-                    }))
-                  }
-                />
-                <small>
-                  Sem pontuação; validação de formato, não de cadastro fiscal.
-                </small>
-              </label>
-              <div className="networks-city">
-                <label>
-                  Cidade
-                  <input disabled placeholder="Previsto" />
-                </label>
-                <label>
-                  UF
-                  <select disabled>
-                    <option>UF</option>
-                  </select>
-                </label>
-              </div>
-            </NetworkCard>
-            <NetworkCard title="Contato comercial">
-              <label>
-                Nome do contato
-                <input disabled placeholder="Previsto" />
-              </label>
-              <label>
-                E-mail do contato
-                <input disabled placeholder="Previsto" />
-                <small>
-                  Não é o administrador da rede; o convite de acesso é feito
-                  depois, na aba Usuários. Serviço de convites previsto.
-                </small>
-              </label>
-            </NetworkCard>
-            <NetworkCard title="Assinatura">
-              <label>
-                Plano <span aria-hidden="true">*</span>
-                <select
-                  aria-label="Plano"
-                  required
-                  value={input.plan_id}
-                  disabled={available.isPending || available.isError}
-                  onChange={(e) =>
-                    setInput((v) => ({ ...v, plan_id: e.target.value }))
-                  }
-                >
-                  <option value="">Selecione um plano ativo</option>
-                  {options.map((plan) => (
-                    <option key={plan.id} value={plan.id}>
-                      {plan.name} ({plan.code})
-                    </option>
-                  ))}
-                </select>
-                <small>
-                  Só planos ativos aparecem. A assinatura em avaliação é
-                  reservada com o cadastro.
-                </small>
-              </label>
-              {available.isPending && <p role="status">Carregando planos…</p>}
-              {available.isError && (
-                <div role="alert">
-                  {planMessage(available.error)}{" "}
-                  <button
-                    type="button"
-                    onClick={() => void available.refetch()}
-                  >
-                    Recarregar planos
-                  </button>
-                </div>
-              )}
-              {available.hasNextPage && (
-                <button
-                  type="button"
-                  disabled={available.isFetchingNextPage}
-                  onClick={() => void available.fetchNextPage()}
-                >
-                  Carregar mais planos
-                </button>
-              )}
-              {available.isSuccess && !options.length && (
-                <p>
-                  Nenhum plano ativo foi carregado.{" "}
-                  <button type="button" onClick={onPlans}>
-                    Ir para Planos
-                  </button>
-                </p>
-              )}
-              <label>
-                Fuso horário padrão das lojas
-                <select disabled>
-                  <option>Previsto · ainda não configurado</option>
-                </select>
-              </label>
-              <label>
-                Identificador de cobrança (opcional)
-                <input
-                  disabled
-                  placeholder="Previsto · ID do cliente no gateway"
-                />
-                <small>Integração de cobrança ainda não disponibilizada.</small>
-              </label>
-            </NetworkCard>
-          </div>
-        </fieldset>
-        {mutation.isError && (
-          <p className="networks-banner networks-error" role="alert">
-            {networkMessage(mutation.error)}
-          </p>
-        )}
-        <p className="networks-banner">
-          Ao salvar, o QG prepara o ambiente isolado da rede (schema e
-          permissões). Isso pode levar alguns minutos; você acompanha o
-          progresso na tela seguinte.
-        </p>
-        <footer className="networks-form-actions">
-          <button
-            type="button"
-            disabled={mutation.isPending}
-            onClick={onCancel}
-          >
-            Cancelar
-          </button>
-          <button
-            className="plans-primary"
-            disabled={mutation.isPending || !input.plan_id || available.isError}
-          >
-            {mutation.isPending ? "Salvando…" : "Cadastrar e preparar"}
-          </button>
-        </footer>
-      </form>
-    </>
   );
 }
 function RetryNetwork({

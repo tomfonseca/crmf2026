@@ -14,7 +14,8 @@ import (
 
 type NetworkBackend interface {
 	List(context.Context, string) (app.NetworkPage, error)
-	Create(context.Context, tenancy.ProvisionInput) (app.Network, error)
+	CreateWithProfile(context.Context, tenancy.ProvisionInput, app.NetworkProfile) (app.Network, error)
+	UpdateProfile(context.Context, uuid.UUID, int32, app.NetworkProfile) (app.ProfileVersion, error)
 	Retry(context.Context, uuid.UUID, int32) (app.Network, error)
 }
 
@@ -62,10 +63,14 @@ func (h *handler) CreateNetwork(w http.ResponseWriter, r *http.Request, _ appcon
 		return
 	}
 	var input appcontract.NetworkInput
-	if !decodeRequiredJSON(w, r, &input, []string{"slug", "legal_name", "cnpj", "plan_id"}, "invalid_network", "Revise os dados da rede") {
+	if !decodeNetworkJSON(w, r, &input, []string{"slug", "legal_name", "cnpj", "plan_id"}, true) {
 		return
 	}
-	network, err := h.auth.Networks.Create(ctx, tenancy.ProvisionInput{Slug: input.Slug, LegalName: input.LegalName, CNPJ: input.Cnpj, PlanID: input.PlanId})
+	var profile app.NetworkProfile
+	if input.Profile != nil {
+		profile = profileInput(*input.Profile)
+	}
+	network, err := h.auth.Networks.CreateWithProfile(ctx, tenancy.ProvisionInput{Slug: input.Slug, LegalName: input.LegalName, CNPJ: input.Cnpj, PlanID: input.PlanId}, profile)
 	if err != nil {
 		h.networkError(w, err)
 		return
@@ -89,7 +94,12 @@ func (h *handler) RetryNetwork(w http.ResponseWriter, r *http.Request, id uuid.U
 	writeJSON(w, 202, networkResponse(network))
 }
 func networkResponse(n app.Network) appcontract.Network {
-	return appcontract.Network{Id: n.ID, Slug: n.Slug, LegalName: n.LegalName, Cnpj: n.CNPJ, PlanId: n.PlanID, PlanName: n.PlanName, Status: appcontract.NetworkStatus(n.Status), ProvisionStatus: appcontract.NetworkProvisionStatus(n.ProvisionStatus), SchemaVersion: n.SchemaVersion, Generation: n.Generation}
+	result := appcontract.Network{Id: n.ID, Slug: n.Slug, LegalName: n.LegalName, Cnpj: n.CNPJ, PlanId: n.PlanID, PlanName: n.PlanName, Status: appcontract.NetworkStatus(n.Status), ProvisionStatus: appcontract.NetworkProvisionStatus(n.ProvisionStatus), SchemaVersion: n.SchemaVersion, Generation: n.Generation}
+	if n.Profile != nil {
+		p := profileResponse(*n.Profile)
+		result.Profile = &p
+	}
+	return result
 }
 func (h *handler) networkError(w http.ResponseWriter, err error) {
 	switch {

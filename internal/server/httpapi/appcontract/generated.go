@@ -398,6 +398,21 @@ func (e CreateNetworkParamsXCRMFRequest) Valid() bool {
 	}
 }
 
+// Defines values for UpdateNetworkProfileParamsXCRMFRequest.
+const (
+	UpdateNetworkProfileParamsXCRMFRequestN1 UpdateNetworkProfileParamsXCRMFRequest = "1"
+)
+
+// Valid indicates whether the value is a known member of the UpdateNetworkProfileParamsXCRMFRequest enum.
+func (e UpdateNetworkProfileParamsXCRMFRequest) Valid() bool {
+	switch e {
+	case UpdateNetworkProfileParamsXCRMFRequestN1:
+		return true
+	default:
+		return false
+	}
+}
+
 // Defines values for RetryNetworkParamsXCRMFRequest.
 const (
 	RetryNetworkParamsXCRMFRequestN1 RetryNetworkParamsXCRMFRequest = "1"
@@ -487,6 +502,7 @@ type Network struct {
 	LegalName       string                 `json:"legal_name"`
 	PlanId          openapi_types.UUID     `json:"plan_id"`
 	PlanName        string                 `json:"plan_name"`
+	Profile         *NetworkProfile        `json:"profile,omitempty"`
 	ProvisionStatus NetworkProvisionStatus `json:"provision_status"`
 	SchemaVersion   int64                  `json:"schema_version"`
 	Slug            string                 `json:"slug"`
@@ -501,10 +517,29 @@ type NetworkStatus string
 
 // NetworkInput defines model for NetworkInput.
 type NetworkInput struct {
-	Cnpj      string             `json:"cnpj"`
-	LegalName string             `json:"legal_name"`
-	PlanId    openapi_types.UUID `json:"plan_id"`
-	Slug      string             `json:"slug"`
+	Cnpj      string               `json:"cnpj"`
+	LegalName string               `json:"legal_name"`
+	PlanId    openapi_types.UUID   `json:"plan_id"`
+	Profile   *NetworkProfileInput `json:"profile,omitempty"`
+	Slug      string               `json:"slug"`
+}
+
+// NetworkProfile defines model for NetworkProfile.
+type NetworkProfile struct {
+	Data    NetworkProfileInput `json:"data"`
+	Version int32               `json:"version"`
+}
+
+// NetworkProfileInput defines model for NetworkProfileInput.
+type NetworkProfileInput struct {
+	BillingCustomerId string `json:"billing_customer_id"`
+	City              string `json:"city"`
+	ContactEmail      string `json:"contact_email"`
+	ContactName       string `json:"contact_name"`
+	DefaultTimezone   string `json:"default_timezone"`
+	DisplayName       string `json:"display_name"`
+	RegisteredName    string `json:"registered_name"`
+	Uf                string `json:"uf"`
 }
 
 // PasskeyInput defines model for PasskeyInput.
@@ -699,6 +734,14 @@ type CreateNetworkParams struct {
 // CreateNetworkParamsXCRMFRequest defines parameters for CreateNetwork.
 type CreateNetworkParamsXCRMFRequest string
 
+// UpdateNetworkProfileParams defines parameters for UpdateNetworkProfile.
+type UpdateNetworkProfileParams struct {
+	XCRMFRequest UpdateNetworkProfileParamsXCRMFRequest `json:"X-CRMF-Request"`
+}
+
+// UpdateNetworkProfileParamsXCRMFRequest defines parameters for UpdateNetworkProfile.
+type UpdateNetworkProfileParamsXCRMFRequest string
+
 // RetryNetworkJSONBody defines body for RetryNetwork for application/json ContentType.
 type RetryNetworkJSONBody struct {
 	Generation int32 `json:"generation"`
@@ -747,6 +790,9 @@ type UpdatePlanJSONRequestBody = PlanUpdate
 // CreateNetworkJSONRequestBody defines body for CreateNetwork for application/json ContentType.
 type CreateNetworkJSONRequestBody = NetworkInput
 
+// UpdateNetworkProfileJSONRequestBody defines body for UpdateNetworkProfile for application/json ContentType.
+type UpdateNetworkProfileJSONRequestBody = NetworkProfile
+
 // RetryNetworkJSONRequestBody defines body for RetryNetwork for application/json ContentType.
 type RetryNetworkJSONRequestBody RetryNetworkJSONBody
 
@@ -780,6 +826,9 @@ type ServerInterface interface {
 	// (POST /v1/hq/auth/passkey)
 	PasskeyPlatform(w http.ResponseWriter, r *http.Request, params PasskeyPlatformParams)
 
+	// (GET /v1/hq/companies/{cnpj})
+	LookupCompany(w http.ResponseWriter, r *http.Request, cnpj string)
+
 	// (GET /v1/hq/me)
 	MePlatform(w http.ResponseWriter, r *http.Request)
 
@@ -803,6 +852,9 @@ type ServerInterface interface {
 
 	// (POST /v1/hq/tenants)
 	CreateNetwork(w http.ResponseWriter, r *http.Request, params CreateNetworkParams)
+
+	// (PUT /v1/hq/tenants/{id}/profile)
+	UpdateNetworkProfile(w http.ResponseWriter, r *http.Request, id openapi_types.UUID, params UpdateNetworkProfileParams)
 
 	// (POST /v1/hq/tenants/{id}/retry)
 	RetryNetwork(w http.ResponseWriter, r *http.Request, id openapi_types.UUID, params RetryNetworkParams)
@@ -857,6 +909,11 @@ func (_ Unimplemented) PasskeyPlatform(w http.ResponseWriter, r *http.Request, p
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
+// (GET /v1/hq/companies/{cnpj})
+func (_ Unimplemented) LookupCompany(w http.ResponseWriter, r *http.Request, cnpj string) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
 // (GET /v1/hq/me)
 func (_ Unimplemented) MePlatform(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNotImplemented)
@@ -894,6 +951,11 @@ func (_ Unimplemented) ListNetworks(w http.ResponseWriter, r *http.Request, para
 
 // (POST /v1/hq/tenants)
 func (_ Unimplemented) CreateNetwork(w http.ResponseWriter, r *http.Request, params CreateNetworkParams) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// (PUT /v1/hq/tenants/{id}/profile)
+func (_ Unimplemented) UpdateNetworkProfile(w http.ResponseWriter, r *http.Request, id openapi_types.UUID, params UpdateNetworkProfileParams) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
@@ -1210,6 +1272,32 @@ func (siw *ServerInterfaceWrapper) PasskeyPlatform(w http.ResponseWriter, r *htt
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.PasskeyPlatform(w, r, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// LookupCompany operation middleware
+func (siw *ServerInterfaceWrapper) LookupCompany(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "cnpj" -------------
+	var cnpj string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "cnpj", chi.URLParam(r, "cnpj"), &cnpj, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "", ValueIsUnescaped: r.URL.RawPath == ""})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "cnpj", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.LookupCompany(w, r, cnpj)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -1542,6 +1630,60 @@ func (siw *ServerInterfaceWrapper) CreateNetwork(w http.ResponseWriter, r *http.
 	handler.ServeHTTP(w, r)
 }
 
+// UpdateNetworkProfile operation middleware
+func (siw *ServerInterfaceWrapper) UpdateNetworkProfile(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "id" -------------
+	var id openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", chi.URLParam(r, "id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: r.URL.RawPath == ""})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
+		return
+	}
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params UpdateNetworkProfileParams
+
+	headers := r.Header
+
+	// ------------- Required header parameter "X-CRMF-Request" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("X-CRMF-Request")]; found {
+		var XCRMFRequest UpdateNetworkProfileParamsXCRMFRequest
+		n := len(valueList)
+		if n != 1 {
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "X-CRMF-Request", Count: n})
+			return
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "X-CRMF-Request", valueList[0], &XCRMFRequest, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true, Type: "string", Format: ""})
+		if err != nil {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "X-CRMF-Request", Err: err})
+			return
+		}
+
+		params.XCRMFRequest = XCRMFRequest
+
+	} else {
+		err := fmt.Errorf("Header parameter X-CRMF-Request is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "X-CRMF-Request", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.UpdateNetworkProfile(w, r, id, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
 // RetryNetwork operation middleware
 func (siw *ServerInterfaceWrapper) RetryNetwork(w http.ResponseWriter, r *http.Request) {
 
@@ -1826,6 +1968,12 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 	r.Group(func(r chi.Router) {
 		r.Post(options.BaseURL+"/v1/hq/tenants/{id}/retry", wrapper.RetryNetwork)
 	})
+	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/v1/hq/companies/{cnpj}", wrapper.LookupCompany)
+	})
+	r.Group(func(r chi.Router) {
+		r.Put(options.BaseURL+"/v1/hq/tenants/{id}/profile", wrapper.UpdateNetworkProfile)
+	})
 
 	return r
 }
@@ -1835,49 +1983,54 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 // const string: with thousands of chunks the chained `+` fold is several
 // times slower for the Go compiler than parsing a slice literal.
 var swaggerSpec = []string{
-	"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",
+	"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",
+	"AA==",
 }
 
 // decodeSpec returns the embedded OpenAPI spec as raw JSON bytes,

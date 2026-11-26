@@ -75,6 +75,12 @@ for (const support of [false, true]) {
             headers,
             body: JSON.stringify({ items: created ? [network()] : [] }),
           });
+        if (path.startsWith("/v1/hq/companies/"))
+          return route.fulfill({
+            status: 503,
+            headers,
+            json: { type: "company_unavailable" },
+          });
         expect(support).toBe(false);
         expect(request.headers()["x-crmf-request"]).toBe("1");
         writes++;
@@ -88,6 +94,16 @@ for (const support of [false, true]) {
             legal_name: "Rede sintética",
             cnpj: "ABCDEFGHIJKL00",
             plan_id: id,
+            profile: {
+              display_name: "Rede sintética",
+              registered_name: "",
+              city: "",
+              uf: "",
+              contact_name: "",
+              contact_email: "",
+              default_timezone: "",
+              billing_customer_id: "",
+            },
           });
           created = true;
           state = "queued";

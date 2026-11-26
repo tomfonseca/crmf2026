@@ -322,6 +322,14 @@ See [layouts, entry points and security boundaries](authentication-layout.md).
 
 See [screen inventory, live/pending boundaries and verification](hq-layout.md).
 
+## Network commercial profile and CNPJ suggestions
+
+Forward migration 00011, atomic profile+network reservation, revisioned commercial
+editing, bounded admin-only company lookup and all formerly planned registration
+fields are delivered in [network profiles](network-profiles.md). No provisioning
+identity rewrite, customer invitation, active gateway integration or store service
+is implied. M1 remains partial.
+
 ## Not delivered / next increments
 
 This is **M1 started, not M1 complete**. Authentication endpoints are available
