@@ -110,7 +110,7 @@ for (const support of [false, true]) {
           page.getByText("Acesso de suporte: somente leitura."),
         ).toBeVisible();
         await expect(
-          page.getByRole("button", { name: "Nova rede", exact: true }),
+          page.getByRole("button", { name: "Cadastrar rede", exact: true }),
         ).toHaveCount(0);
         await expect(
           page.getByRole("button", {
@@ -126,18 +126,35 @@ for (const support of [false, true]) {
             () => document.documentElement.scrollWidth <= innerWidth,
           ),
         ).toBe(true);
+        state = "ready";
+        await page.goto(origin + "/tenants/synthetic/setup");
+        await expect(
+          page.getByText("Banco isolado confirmado · versão 1", {
+            exact: true,
+          }),
+        ).toBeVisible();
+        await expect(
+          page.getByRole("button", { name: "Convidar administrador" }),
+        ).toHaveCount(0);
+        await page.goto(origin + "/tenants/new");
+        await expect(
+          page.getByText("Acesso de suporte: o cadastro não está disponível."),
+        ).toBeVisible();
+        await expect(
+          page.getByRole("button", { name: "Cadastrar e preparar" }),
+        ).toHaveCount(0);
         expect(writes).toBe(0);
         return;
       }
       await page
-        .getByRole("button", { name: "Nova rede", exact: true })
+        .getByRole("button", { name: "Cadastrar rede", exact: true })
         .click();
       await page.getByLabel("Nome da rede").fill("Rede sintética");
-      await page.getByLabel("Identificador").fill("synthetic");
+      await page.getByLabel("Identificador", { exact: true }).fill("synthetic");
       await page.getByLabel("CNPJ sem pontuação").fill("ABCDEFGHIJKL00");
       await page.getByLabel("Plano", { exact: true }).selectOption(id);
       await page
-        .getByRole("button", { name: "Cadastrar rede", exact: true })
+        .getByRole("button", { name: "Cadastrar e preparar", exact: true })
         .click();
       await expect(page.getByText("Na fila", { exact: true })).toBeVisible();
       state = "failed";
@@ -152,7 +169,7 @@ for (const support of [false, true]) {
       await page
         .getByRole("button", { name: "Atualizar redes", exact: true })
         .click();
-      await expect(page.getByText("Pronta", { exact: true })).toBeVisible();
+      await expect(page.getByText("Concluída", { exact: true })).toBeVisible();
       await expect(
         page.getByText("Banco isolado confirmado · versão 1", {
           exact: true,
@@ -163,7 +180,9 @@ for (const support of [false, true]) {
       await page
         .getByRole("button", { name: "Atualizar redes", exact: true })
         .click();
-      await expect(page.getByText("Suspensa", { exact: true })).toBeVisible();
+      await expect(page.getByRole("alert")).toContainText(
+        "Não foi possível concluir",
+      );
       await expect(
         page.getByRole("button", {
           name: "Tentar preparar novamente",

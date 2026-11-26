@@ -8,11 +8,11 @@ stores, pairing, customer invitations, sales ingestion or analytic facts.
 1. Sign in at the configured QG origin using the existing administrator and
    passkey. Do not rerun administrator bootstrap.
 2. In Planos, create an active plan if none exists. No commercial values are seeded.
-3. Open Redes → Nova rede. Supply legal name, immutable lowercase identifier,
+3. Open Redes → Cadastrar rede. Supply legal name, immutable lowercase identifier,
    canonical CNPJ and an existing active plan.
-4. Cadastrar rede reserves a trial tenant/trialing subscription and a durable
+4. Cadastrar e preparar reserves a trial tenant/trialing subscription and a durable
    job. Na fila / Preparando does **not** mean that the network is ready.
-5. Pronta is shown only after the isolated provisioner has created and checked
+5. Concluída is shown only after the isolated provisioner has created and checked
    its schema, restricted login and tenant migrations, and committed readiness.
 6. On failure, Tentar preparar novamente submits a new attempt for the same
    network. Never regenerate a missing original credential or recreate missing
@@ -27,6 +27,55 @@ the existing shared tokens. Credentials never enter browser storage.
 Updates poll only after an explicit create/retry/refresh, for at most two
 minutes, and only while visible. Atualizar redes resumes monitoring; there is no
 indefinite polling that silently keeps a platform session alive.
+
+## Reference-aligned network screens
+
+The authenticated module, not just the development gallery, now follows the
+Q02–Q09 images and privately supplied layout specifications/HTML:
+
+- List: right-aligned Cadastrar rede, search/plan filters, seven reference
+  columns, status badges and bounded cursor pagination. The subscription filter
+  is disabled: network status is **not** subscription status. Unknown counts,
+  telemetry, subscription status and dates display `—`, never invented zeros.
+- Creation: four separate cards in a 420px-minimum responsive grid:
+  Identificação, Dados cadastrais, Contato comercial, Assinatura. Only the four
+  supported request properties are editable/sent. Separate display/legal name,
+  address, contact, timezone and billing controls remain clearly **Previsto**.
+  Existing identifier/CNPJ policy and active-plan selection remain unchanged.
+- Accepted creation opens `/tenants/:slug/setup`. Five reference steps are
+  visible, but intermediate schema/migration progress is not fabricated.
+  Readiness/version alone confirms steps 2–3. Subscription reservation happens
+  atomically at registration, not as a later simulated step. Invitations remain
+  **Previsto**, even after readiness. Admin retry preserves identity/generation;
+  support has no write actions, including on direct URLs.
+- Existing network links open real details and five URL-addressable tabs:
+  Dados cadastrais, Assinatura e plano, Lojas, Usuários, Eventos de cobrança.
+  Subscription/limits cards share a responsive row, history spans the next row.
+  Unimplemented services show unavailable values/disabled planned actions, not
+  fictitious stores, users, effective limits or billing events.
+- Detail/setup resolves only checked records from the bounded catalog page.
+  A direct URL outside the loaded page offers explicit next-page loading; it
+  does not establish existence or fabricate identity. The reserved creation
+  path stays usable even for an existing `new` identifier via `?aba=dados`.
+- Draft cancellation, sidebar/account/logout and browser history use the shared
+  discard guard; reload uses native beforeunload. Pending saves block SPA
+  navigation; success clears guard flags before routing. No drafts/business
+  records enter browser storage. Tab arrows/Home/End preserve focus and URL.
+
+Private browser comparisons use original HTML and intercepted test-only data
+at 1440px in both themes; originals/captures are ignored. Dark token overrides
+are scoped to this module, not an unrequested redesign of Planos. Mobile and
+1024px checks cover overflow and adaptive cards. Deliberate service/contract
+limitations above mean this is not pixel-perfect acceptance or M1 completion.
+
+Layout-correction verification: **76 frontend unit / 17 browser tests**, typecheck,
+lint and production build pass locally. Browser tests retain exact create/retry
+payload and generation assertions, cover support direct URLs, all five tabs,
+draft discard, keyboard focus and 320/390/1024/1440px layouts. Only HQ was rebuilt;
+API/schema/roles, worker custody and ERP are unchanged. The deployed-bundle check
+uses intercepted browser contracts with no writes, not a new native-authenticator
+or no-mock provisioning acceptance run. The earlier real integration evidence
+below remains distinct from this layout verification.
 
 ## Privilege boundary and durable intent
 
