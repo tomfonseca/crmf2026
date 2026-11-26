@@ -1,26 +1,31 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import "./qg-layout.css";
+import { QGIcon } from "./QGIcon";
 export type WorkspaceActions = {
   onAccount: () => void;
   onLogout: () => void;
   busy: boolean;
 };
 const groups = [
-  ["Visão geral", ["Painel", "/overview"]],
+  ["Visão geral", ["Painel", "/overview", "overview"]],
   [
     "Clientes",
-    ["Redes", "/tenants"],
-    ["Lojas", "/stores"],
-    ["Dispositivos", "/devices"],
-    ["Monitor de envios", "/batches"],
+    ["Redes", "/tenants", "networks"],
+    ["Lojas", "/stores", "stores"],
+    ["Dispositivos", "/devices", "devices"],
+    ["Monitor de envios", "/batches", "batches"],
   ],
   [
     "Catálogo",
-    ["Planos", "/plans"],
-    ["Releases", "/releases"],
-    ["Conectores", "/connectors"],
+    ["Planos", "/plans", "plans"],
+    ["Releases", "/releases", "releases"],
+    ["Conectores", "/connectors", "connectors"],
   ],
-  ["Administração", ["Usuários internos", "/users"], ["Auditoria", "/audit"]],
+  [
+    "Administração",
+    ["Usuários internos", "/users", "users"],
+    ["Auditoria", "/audit", "audit"],
+  ],
 ] as const;
 export function Shell({
   children,
@@ -137,10 +142,11 @@ export function Shell({
           {groups.map(([group, ...items]) => (
             <div className="qg-nav-group" key={group}>
               <p>{group}</p>
-              {items.map(([label, url]) => (
+              {items.map(([label, url, icon]) => (
                 <a
                   key={url}
                   title={label}
+                  aria-label={label}
                   href={url}
                   aria-current={
                     (path === "/" && url === "/plans") || path.startsWith(url)
@@ -155,17 +161,7 @@ export function Shell({
                     }
                   }}
                 >
-                  <svg aria-hidden="true" viewBox="0 0 24 24">
-                    <path
-                      d={
-                        url === "/overview"
-                          ? "M3 3h7v7H3zM14 3h7v7h-7zM3 14h7v7H3zM14 14h7v7h-7z"
-                          : url === "/plans"
-                            ? "M3 3h8l10 10-8 8L3 11zM7 7h.01"
-                            : "M4 20V5h16v15M8 9h2m4 0h2M8 13h2m4 0h2M8 17h8"
-                      }
-                    />
-                  </svg>
+                  <QGIcon name={icon} />
                   <span>{label}</span>
                 </a>
               ))}
@@ -174,11 +170,13 @@ export function Shell({
         </nav>
         <a
           className="qg-doc"
+          aria-label="Documentação"
           href="https://github.com/tomfonseca/crmf2026/tree/main/docs"
           target="_blank"
           rel="noreferrer"
         >
-          Documentação
+          <QGIcon name="documentation" />
+          <span>Documentação</span>
         </a>
       </aside>
       <div className="qg-body">
@@ -190,10 +188,11 @@ export function Shell({
             aria-expanded={drawer || !collapsed}
             onClick={toggle}
           >
-            ☰
+            <QGIcon name="menu" />
           </button>
           <label className="qg-global-search">
             <span className="auth-sr-only">Busca global — prevista</span>
+            <QGIcon name="search" size={16} />
             <input
               placeholder="Buscar rede, loja ou dispositivo…"
               disabled
@@ -206,14 +205,14 @@ export function Shell({
               aria-label={theme === "dark" ? "Tema claro" : "Tema escuro"}
               onClick={toggleTheme}
             >
-              {theme === "dark" ? "☀" : "☾"}
+              <QGIcon name={theme === "dark" ? "sun" : "moon"} />
             </button>
             <button
               className="qg-icon"
               aria-label="Alertas — previsto"
               disabled
             >
-              ♧
+              <QGIcon name="bell" />
             </button>
             <button
               ref={menuButton}
@@ -230,7 +229,11 @@ export function Shell({
                 {support ? "Suporte" : "Administrador"}
                 <small>da plataforma</small>
               </span>
-              <span>⌄</span>
+              <span
+                className={menu ? "qg-user-chevron is-open" : "qg-user-chevron"}
+              >
+                <QGIcon name="chevron" size={16} />
+              </span>
             </button>
             {menu && (
               <div id="qg-user-menu" className="qg-user-menu" ref={userMenu}>

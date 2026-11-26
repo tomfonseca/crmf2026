@@ -135,6 +135,9 @@
   font-weight: 600;
 }
 .qg-doc {
+  display: flex;
+  align-items: center;
+  gap: 10px;
   padding: 16px 22px;
   border-top: 1px solid var(--ds-border);
 }
@@ -163,13 +166,32 @@
   width: 40px;
   height: 40px;
   padding: 0;
-  font-size: 20px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.qg-user-chevron {
+  display: inline-flex;
+  transition: transform 0.2s;
+}
+.qg-user-chevron.is-open {
+  transform: rotate(180deg);
 }
 .qg-global-search {
+  position: relative;
   max-width: 360px;
   flex: 1;
 }
-.qg-global-search input {
+.qg-global-search > svg {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+  color: var(--ds-muted);
+}
+.qg-shell .qg-global-search input {
+  padding-left: 36px;
   width: 100%;
   background: var(--ds-page);
 }
@@ -240,7 +262,7 @@
 .is-collapsed .qg-brand :is(strong, span),
 .is-collapsed .qg-nav-group > p,
 .is-collapsed .qg-sidebar nav a > span,
-.is-collapsed .qg-doc {
+.is-collapsed .qg-doc > span {
   display: none;
 }
 .is-collapsed .qg-nav-group + .qg-nav-group {
@@ -637,7 +659,7 @@
       .qg-brand span,
       .qg-nav-group > p,
       .qg-sidebar nav a > span,
-      .qg-doc
+      .qg-doc > span
     ) {
     display: revert;
   }
