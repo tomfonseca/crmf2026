@@ -43,7 +43,9 @@ passkey, recuperação, Minha conta e telas previstas de senha/convite. No QG de
 **desenvolvimento**, `/__auth-design` permite conferir as 94 variações visuais.
 O [novo layout do QG](docs/implementation/hq-layout.md) preserva Planos/Redes
 reais e monta as demais telas operacionais como **Previsto**, sem dados fictícios
-na sessão real. `/__qg-design`, somente em desenvolvimento, reúne as 125 pranchetas.
+na sessão real. As [telas de Lojas](docs/implementation/hq-stores.md) têm lista,
+formulário e detalhe próprios; CRUD e telemetria continuam previstos, sem simular
+salvamento. `/__qg-design`, somente em desenvolvimento, reúne as 125 pranchetas.
 
 ## Prévia do dashboard (sem backend)
 

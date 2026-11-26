@@ -23,6 +23,7 @@ import {
   syncLabel,
 } from "./PlanPresentation";
 import { Networks } from "./Networks";
+import { Stores } from "./Stores";
 import type { NetworkClient } from "./networks-client";
 import { Shell, type WorkspaceActions } from "./Shell";
 import { useQGRoute } from "./routing";
@@ -106,6 +107,13 @@ export function CatalogHost(props: {
             onPlans={() => navigate("/plans")}
             theme={props.theme}
             toggleTheme={props.toggleTheme}
+          />
+        ) : /^\/stores(?:\/new|\/[^/?]+(?:\/edit)?)?(?:\?.*)?$/.test(path) ? (
+          <Stores
+            route={path}
+            navigate={navigate}
+            networks={props.networks}
+            onExpired={props.onExpired}
           />
         ) : path === "/" || path.startsWith("/plans") ? (
           <Plans {...props} route={path} navigate={navigate} />

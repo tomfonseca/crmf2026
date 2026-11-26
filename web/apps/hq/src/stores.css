@@ -1,0 +1,387 @@
+.auth-app[data-theme="dark"]:has(.qg-shell .stores-page) {
+  --ds-page: #171717;
+  --ds-surface: #262626;
+  --ds-border: #404040;
+  --ds-accent: #066fd1;
+  --ds-accent-bg: #232d37;
+  --ds-accent-text: #6aa9ec;
+}
+.qg-shell:has(.stores-page) .qg-doc {
+  color: var(--ds-muted);
+}
+.qg-shell .stores-page {
+  --stores-ok: var(--auth-ok);
+  --stores-ok-bg: var(--auth-ok-bg);
+  min-width: 0;
+  font-size: 14px;
+  line-height: 20px;
+}
+.qg-shell .stores-page a {
+  color: var(--ds-accent-text);
+  text-decoration: none;
+}
+.qg-shell .stores-page a:hover {
+  text-decoration: underline;
+}
+.qg-shell .stores-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 420px), 1fr));
+  gap: 16px;
+  align-items: start;
+}
+.qg-shell .stores-card {
+  background: var(--ds-surface);
+  border: 1px solid var(--ds-border);
+  border-radius: 6px;
+  min-width: 0;
+  overflow: hidden;
+}
+.qg-shell .stores-card > header {
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--ds-border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.qg-shell .stores-card > header h2 {
+  margin: 0;
+  font-size: 15px;
+  line-height: 22px;
+  font-weight: 600;
+}
+.qg-shell .stores-card-body {
+  padding: 16px;
+  min-width: 0;
+}
+.qg-shell .stores-table-card > .stores-card-body {
+  padding: 0;
+}
+.qg-shell .stores-form,
+.qg-shell .stores-fields {
+  padding: 0;
+  margin: 0;
+  border: 0;
+  background: transparent;
+  max-width: none;
+  min-width: 0;
+}
+.qg-shell .stores-form .stores-card-body {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding-bottom: 32px;
+}
+.qg-shell .stores-form label {
+  display: block;
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 500;
+  color: var(--ds-text);
+  min-width: 0;
+}
+.qg-shell .stores-form label > span {
+  color: var(--ds-danger);
+}
+.qg-shell .stores-form :is(input, select) {
+  display: block;
+  width: 100%;
+  height: 36px;
+  min-height: 36px;
+  box-sizing: border-box;
+  padding: 7px 12px;
+  margin: 6px 0 0;
+  border: 1px solid var(--ds-input-border);
+  border-radius: 6px;
+  background: var(--ds-surface);
+  color: var(--ds-text);
+  font: inherit;
+  font-weight: 400;
+  font-size: 14px;
+  line-height: 20px;
+}
+.qg-shell .stores-page select {
+  font-family: inherit;
+  font-size: 14px;
+  min-height: 36px;
+  border: 1px solid var(--ds-input-border);
+  border-radius: 6px;
+  background: var(--ds-surface);
+  color: var(--ds-text);
+  padding: 7px 12px;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+.qg-shell .stores-form select {
+  margin-top: 6px;
+}
+.qg-shell .stores-form small {
+  display: block;
+  font-size: 12px;
+  line-height: 18px;
+  font-weight: 400;
+  color: var(--ds-muted);
+  margin-top: 6px;
+}
+.qg-shell .stores-form :is(input, select):disabled {
+  background: var(--ds-page);
+  color: var(--ds-muted);
+  cursor: not-allowed;
+  opacity: 1;
+}
+.qg-shell .stores-form input[aria-invalid="true"] {
+  border-color: var(--ds-danger);
+}
+.qg-shell .stores-city {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 110px;
+  gap: 12px;
+}
+.qg-shell .stores-form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 16px;
+  padding-top: 8px;
+  border-top: 1px solid var(--ds-border);
+}
+.qg-shell .stores-banner {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  padding: 10px 14px;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  font-size: 13px;
+  line-height: 18px;
+  margin: 16px 0;
+}
+.qg-shell .stores-banner > svg {
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+.qg-shell .stores-banner > div {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.qg-shell .stores-info {
+  background: var(--ds-accent-bg);
+  color: var(--ds-accent-text);
+}
+.qg-shell .stores-ok {
+  background: var(--stores-ok-bg);
+  color: var(--stores-ok);
+}
+.qg-shell .stores-warn {
+  background: var(--auth-warn-bg);
+  color: var(--auth-warn);
+}
+.qg-shell .stores-danger {
+  background: var(--auth-danger-bg);
+  color: var(--ds-danger);
+}
+.qg-shell .stores-neutral {
+  background: var(--auth-chip);
+  color: var(--ds-muted);
+}
+.qg-shell .stores-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 6px;
+  font-size: 12px;
+  line-height: 18px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+.qg-shell .stores-details-grid {
+  margin-bottom: 16px;
+}
+.qg-shell .stores-values {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+}
+.qg-shell .stores-values > div {
+  display: grid;
+  grid-template-columns: 140px minmax(0, 1fr);
+  gap: 16px;
+  font-size: 14px;
+  line-height: 20px;
+  align-items: baseline;
+}
+.qg-shell
+  .stores-details-grid
+  > .stores-card:nth-child(2)
+  .stores-values
+  > div {
+  grid-template-columns: 160px minmax(0, 1fr);
+}
+.qg-shell .stores-values dt {
+  color: var(--ds-muted);
+}
+.qg-shell .stores-values dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+.qg-shell .stores-values code {
+  font-size: 12px;
+}
+.qg-shell .stores-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+  margin-bottom: 16px;
+}
+.qg-shell .stores-filters > label:not(.plans-search) {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--ds-muted);
+}
+.qg-shell .stores-filters select {
+  min-width: 140px;
+  margin: 0;
+}
+.qg-shell .stores-table-panel {
+  border: 1px solid var(--ds-border);
+  border-radius: 6px;
+  overflow: hidden;
+  min-width: 0;
+  background: var(--ds-surface);
+}
+.qg-shell .stores-table-scroll {
+  max-width: 100%;
+  overflow-x: auto;
+}
+.qg-shell .stores-page table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 940px;
+  font-size: 13px;
+  line-height: 20px;
+  text-align: left;
+}
+.qg-shell .stores-page .stores-table-card table {
+  min-width: 620px;
+}
+.qg-shell .stores-page table :is(th, td) {
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--ds-border);
+  vertical-align: middle;
+  font-weight: 400;
+}
+.qg-shell .stores-page table thead th {
+  padding: 8px 16px;
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 500;
+  text-transform: uppercase;
+  color: var(--ds-muted);
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+}
+.qg-shell .stores-page table tbody th {
+  font-weight: 600;
+}
+.qg-shell .stores-page table tbody th a {
+  color: var(--ds-text);
+}
+.qg-shell .stores-page table tbody tr:last-child :is(th, td) {
+  border-bottom: 0;
+}
+.qg-shell .stores-page table small {
+  display: block;
+  font:
+    12px/18px ui-monospace,
+    SFMono-Regular,
+    Consolas,
+    monospace;
+  color: var(--ds-muted);
+}
+.qg-shell .stores-table-footer {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 12px;
+  border-top: 1px solid var(--ds-border);
+  padding: 10px 16px;
+  color: var(--ds-muted);
+  font-size: 12px;
+  line-height: 18px;
+}
+.qg-shell .stores-empty {
+  padding: 32px 16px;
+  text-align: center;
+  color: var(--ds-muted);
+  font-size: 13px;
+  line-height: 20px;
+}
+.qg-shell .stores-empty :is(h2, h3) {
+  font-size: 15px;
+  line-height: 22px;
+  font-weight: 600;
+  margin: 0 0 8px;
+  color: var(--ds-text);
+}
+.qg-shell .stores-empty p {
+  margin: 0 auto 12px;
+  max-width: 520px;
+}
+.qg-shell .stores-help {
+  font-size: 12px;
+  line-height: 18px;
+  color: var(--ds-muted);
+  margin: 12px 0 0;
+}
+.qg-shell .stores-loading {
+  padding: 16px;
+  display: grid;
+  gap: 16px;
+  color: var(--ds-muted);
+}
+.qg-shell .stores-loading > div {
+  height: 12px;
+  border-radius: 4px;
+  background: var(--auth-chip);
+  max-width: 90%;
+}
+.qg-shell .stores-loading > div:nth-child(2n) {
+  max-width: 70%;
+}
+@media (max-width: 600px) {
+  .qg-shell .stores-page button,
+  .qg-shell .stores-page :is(input, select) {
+    min-height: 44px;
+  }
+  .qg-shell .stores-form :is(input, select) {
+    font-size: 16px;
+  }
+  .qg-shell .stores-filters > label:not(.plans-search) {
+    width: 100%;
+    justify-content: space-between;
+  }
+  .qg-shell .stores-filters select {
+    max-width: 70%;
+  }
+  .qg-shell .stores-city {
+    grid-template-columns: minmax(0, 1fr) 80px;
+  }
+  .qg-shell .stores-values > div,
+  .qg-shell
+    .stores-details-grid
+    > .stores-card:nth-child(2)
+    .stores-values
+    > div {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 4px;
+  }
+  .qg-shell .stores-form-actions {
+    flex-wrap: wrap;
+  }
+  .qg-shell .stores-form-actions button {
+    padding: 0 12px;
+  }
+}
