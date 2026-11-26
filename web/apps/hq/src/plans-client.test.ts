@@ -96,6 +96,36 @@ test("accepts the reported Essencial payload with the explicit lowercase code p0
   expect(fetch).toHaveBeenCalledOnce();
   expect(await (fetch.mock.calls[0][0] as Request).json()).toEqual(body);
 });
+test("omits the code and trusts the generated server identity on create", async () => {
+  const body = {
+    name: "Essencial",
+    price_cents: 9990,
+    active: true,
+    sync_interval_seconds: 10800,
+    history_months: 6,
+    max_stores: 3,
+    max_users: 15,
+    modules: ["core", "export"] as ("core" | "export")[],
+  };
+  const code = "p_00000000000070008000000000000001";
+  const fetch = vi.fn().mockResolvedValue(
+    new Response(
+      JSON.stringify({
+        ...body,
+        id: "00000000-0000-7000-8000-000000000001",
+        code,
+        version: 1,
+      }),
+      { status: 201, headers: { "Content-Type": "application/json" } },
+    ),
+  );
+  vi.stubGlobal("fetch", fetch);
+  const created = await createPlanClient("https://api.example.invalid").create(
+    body,
+  );
+  expect(created.code).toBe(code);
+  expect(await (fetch.mock.calls[0][0] as Request).json()).toEqual(body);
+});
 test("only sends versioned credentialed mutations to QG routes", async () => {
   const fetch = vi.fn().mockResolvedValue(new Response(null, { status: 204 }));
   vi.stubGlobal("fetch", fetch);

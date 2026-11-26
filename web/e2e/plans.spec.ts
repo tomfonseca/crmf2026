@@ -63,7 +63,13 @@ for (const support of [false, true]) {
           if (request.method() === "POST") {
             expect(body.price_cents).toBe(2990);
             expect(body.max_stores).toBeNull();
-            plan = { ...body, id, version: 1 };
+            expect(body).not.toHaveProperty("code");
+            plan = {
+              ...body,
+              id,
+              code: "p_00000000000070008000000000000001",
+              version: 1,
+            };
             return route.fulfill({
               status: 201,
               headers,
@@ -79,7 +85,10 @@ for (const support of [false, true]) {
               body: JSON.stringify(plan),
             });
           }
-          expect(body).toEqual({ version: 2, confirmation: "synthetic" });
+          expect(body).toEqual({
+            version: 2,
+            confirmation: "p_00000000000070008000000000000001",
+          });
           plan = null;
           return route.fulfill({ status: 204, headers });
         }
@@ -129,7 +138,11 @@ for (const support of [false, true]) {
       }
       await expect(page.getByText("Nenhum plano nesta página.")).toBeVisible();
       await page.getByRole("button", { name: "Cadastrar plano" }).click();
-      await page.getByLabel(/^Código/).fill("synthetic");
+      await expect(page.getByLabel(/^Código/)).toHaveAttribute("readonly", "");
+      await expect(page.getByLabel(/^Código/)).toHaveAttribute(
+        "placeholder",
+        "Gerado automaticamente",
+      );
       await page.getByLabel("Nome", { exact: true }).fill("Plano sintético");
       await page.getByLabel("Preço (R$)", { exact: true }).fill("29,90");
       await page.getByLabel("Intervalo de sincronização (minutos)").fill("3");
@@ -139,23 +152,6 @@ for (const support of [false, true]) {
         .getByLabel("Máximo de usuários (vazio = ilimitado)")
         .fill("10");
       await page.getByLabel("core", { exact: true }).check();
-      const code = page.getByLabel(/^Código/);
-      await code.fill("P01");
-      expect(
-        await code.evaluate((input: HTMLInputElement) => input.checkValidity()),
-      ).toBe(false);
-      await page
-        .getByRole("button", { name: "Salvar plano", exact: true })
-        .click();
-      await expect(code).toHaveAttribute("aria-invalid", "true");
-      await expect(
-        page.getByText(
-          "Use letras minúsculas, números, _ ou -, começando por letra ou número. Ex.: p01.",
-        ),
-      ).toBeVisible();
-      expect(mutations).toEqual([]);
-      await code.fill("synthetic");
-      await expect(code).not.toHaveAttribute("aria-invalid", "true");
       await page
         .getByRole("button", { name: "Salvar plano", exact: true })
         .click();
@@ -164,6 +160,9 @@ for (const support of [false, true]) {
         .getByRole("button", { name: "Editar Plano sintético", exact: true })
         .click();
       await expect(page.getByLabel(/^Código/)).toHaveAttribute("readonly", "");
+      await expect(page.getByLabel(/^Código/)).toHaveValue(
+        "p_00000000000070008000000000000001",
+      );
       await page.getByLabel("Plano ativo", { exact: true }).uncheck();
       await page
         .getByRole("button", { name: "Salvar plano", exact: true })
@@ -175,8 +174,10 @@ for (const support of [false, true]) {
         .getByRole("button", { name: "Excluir Plano sintético", exact: true })
         .click();
       await page
-        .getByLabel("Digite o código synthetic para confirmar")
-        .fill("synthetic");
+        .getByLabel(
+          "Digite o código p_00000000000070008000000000000001 para confirmar",
+        )
+        .fill("p_00000000000070008000000000000001");
       await page
         .getByRole("button", { name: "Excluir plano", exact: true })
         .click();

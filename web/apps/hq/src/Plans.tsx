@@ -547,10 +547,7 @@ function PlanEditor({
         modules: form.getAll("module") as PlanInput["modules"], // Values come exclusively from the fixed module checkboxes below.
       };
       if (editor.kind === "create")
-        await client.create(
-          { ...details, code: String(form.get("code") ?? "") },
-          controller.current.signal,
-        );
+        await client.create(details, controller.current.signal);
       else
         await client.update(
           editor.plan.id,

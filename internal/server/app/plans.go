@@ -74,6 +74,9 @@ func RequirePlatform(ctx context.Context, write bool) error {
 func validPlanCode(code string) bool {
 	return regexp.MustCompile(`^[a-z0-9][a-z0-9_-]{0,63}$`).MatchString(code)
 }
+func automaticPlanCode(id uuid.UUID) string {
+	return "p_" + strings.ReplaceAll(id.String(), "-", "")
+}
 func validatePlanDetails(d PlanDetails) error {
 	if !utf8.ValidString(d.Name) || strings.TrimSpace(d.Name) != d.Name || utf8.RuneCountInString(d.Name) < 1 || utf8.RuneCountInString(d.Name) > 120 ||
 		strings.ContainsFunc(d.Name, unicode.IsControl) || d.PriceCents < 0 || d.SyncIntervalSeconds < 1 || d.HistoryMonths < 1 ||
@@ -113,7 +116,7 @@ func (c *PlanCatalog) Create(ctx context.Context, code string, details PlanDetai
 	if err := RequirePlatform(ctx, true); err != nil {
 		return Plan{}, err
 	}
-	if !validPlanCode(code) {
+	if code != "" && !validPlanCode(code) {
 		return Plan{}, ErrInvalidPlan
 	}
 	if err := validatePlanDetails(details); err != nil {
@@ -122,6 +125,11 @@ func (c *PlanCatalog) Create(ctx context.Context, code string, details PlanDetai
 	id, err := uuid.NewV7()
 	if err != nil {
 		return Plan{}, ErrCatalogUnavailable
+	}
+	// The complete immutable UUID avoids list-based counters and concurrent
+	// allocation races. Database uniqueness constraints remain authoritative.
+	if code == "" {
+		code = automaticPlanCode(id)
 	}
 	tx, err := c.pool.Begin(ctx)
 	if err != nil {

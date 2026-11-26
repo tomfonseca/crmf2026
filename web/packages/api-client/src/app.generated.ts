@@ -317,7 +317,7 @@ export interface components {
             modules: ("core" | "realtime" | "export" | "pulse")[];
         };
         PlanInput: components["schemas"]["PlanFields"] & {
-            code: string;
+            code?: string;
         };
         PlanUpdate: components["schemas"]["PlanFields"] & {
             /** Format: int32 */

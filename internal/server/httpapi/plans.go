@@ -87,10 +87,18 @@ func (h *handler) CreatePlan(w http.ResponseWriter, r *http.Request, _ appcontra
 		return
 	}
 	var input appcontract.PlanInput
-	if !decodeCatalogJSON(w, r, &input, append(planFields(), "code")) {
+	if !decodeRequiredJSON(w, r, &input, planFields(), "invalid_plan", "Preencha todos os campos do plano com valores válidos", "code") {
 		return
 	}
-	plan, err := h.auth.Plans.Create(ctx, input.Code, app.PlanDetails{Name: input.Name, PriceCents: input.PriceCents, Active: input.Active, SyncIntervalSeconds: input.SyncIntervalSeconds, HistoryMonths: input.HistoryMonths, MaxStores: input.MaxStores, MaxUsers: input.MaxUsers, Modules: planModules(input.Modules)})
+	code := ""
+	if input.Code != nil {
+		code = *input.Code
+		if code == "" {
+			problem(w, 400, "invalid_plan", "Código do plano inválido")
+			return
+		}
+	}
+	plan, err := h.auth.Plans.Create(ctx, code, app.PlanDetails{Name: input.Name, PriceCents: input.PriceCents, Active: input.Active, SyncIntervalSeconds: input.SyncIntervalSeconds, HistoryMonths: input.HistoryMonths, MaxStores: input.MaxStores, MaxUsers: input.MaxUsers, Modules: planModules(input.Modules)})
 	if err != nil {
 		h.catalogError(w, err)
 		return
@@ -137,7 +145,7 @@ func planFields() []string {
 func decodeCatalogJSON(w http.ResponseWriter, r *http.Request, out any, keys []string) bool {
 	return decodeRequiredJSON(w, r, out, keys, "invalid_plan", "Preencha todos os campos do plano com valores válidos")
 }
-func decodeRequiredJSON(w http.ResponseWriter, r *http.Request, out any, keys []string, kind, title string) bool {
+func decodeRequiredJSON(w http.ResponseWriter, r *http.Request, out any, keys []string, kind, title string, optional ...string) bool {
 	var raw json.RawMessage
 	if !decodeAuthJSON(w, r, &raw) {
 		return false
@@ -167,7 +175,16 @@ func decodeRequiredJSON(w http.ResponseWriter, r *http.Request, out any, keys []
 			}
 			fields[key] = value
 		}
-		if len(fields) != len(keys) {
+		expected := len(keys)
+		for _, key := range optional {
+			if value, exists := fields[key]; exists {
+				if bytes.Equal(bytes.TrimSpace(value), []byte("null")) {
+					return false
+				}
+				expected++
+			}
+		}
+		if len(fields) != expected {
 			return false
 		}
 		for _, key := range keys {
