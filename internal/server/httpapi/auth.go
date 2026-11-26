@@ -59,7 +59,17 @@ func authRoute(path string) (auth.Realm, string, bool) {
 		return auth.Platform, "GET, POST", true
 	}
 	if strings.HasPrefix(path, "/v1/hq/stores/") {
-		return auth.Platform, "GET, PUT", true
+		parts := strings.Split(strings.TrimPrefix(path, "/v1/hq/stores/"), "/")
+		if len(parts) == 1 && parts[0] != "" {
+			return auth.Platform, "GET, PUT", true
+		}
+		if len(parts) == 2 && parts[0] != "" && parts[1] == "pairing" {
+			return auth.Platform, "GET, POST", true
+		}
+		if len(parts) == 3 && parts[0] != "" && parts[1] == "pairing" && parts[2] != "" {
+			return auth.Platform, "DELETE", true
+		}
+		return "", "", false
 	}
 	if strings.HasPrefix(path, "/v1/hq/companies/") {
 		return auth.Platform, "GET", true

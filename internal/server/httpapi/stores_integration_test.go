@@ -36,6 +36,9 @@ func TestHQStoresRealProvisioningQuotaRevisionAndIsolation(t *testing.T) {
 			}
 		}
 		for _, id := range stores {
+			if _, e = f.admin.Exec(ctx, "DELETE FROM core.pairing_codes WHERE store_id=$1", id); e != nil {
+				t.Error(e)
+			}
 			if _, e = f.admin.Exec(ctx, "DELETE FROM core.stores WHERE id=$1", id); e != nil {
 				t.Error("store cleanup", e)
 			}
@@ -262,7 +265,17 @@ func TestHQStoresRealProvisioningQuotaRevisionAndIsolation(t *testing.T) {
 	if f.admin.QueryRow(ctx, `SELECT count(*) FROM core.audit_log WHERE tenant_id=$1 AND actor_user_id=$2 AND action IN('hq.store_created','hq.store_updated')`, n.Id, f.user).Scan(&audit) != nil || audit != 3 {
 		t.Fatal("atomic store audit")
 	}
+	exercisePairing(t, f, second)
 	catalogPlatform(t, f, "platform_support", device)
+	if res, _ = f.request(t, "POST", "/v1/hq/stores/"+second.Id.String()+"/pairing", map[string]any{"store_version": 1, "previous_id": ""}, true); res.StatusCode != 403 {
+		t.Fatal("support emitted code")
+	}
+	if res, _ = f.request(t, "GET", "/v1/hq/stores/"+second.Id.String()+"/pairing", nil, false); res.StatusCode != 200 {
+		t.Fatal("support metadata read")
+	}
+	if res, _ = f.request(t, "DELETE", "/v1/hq/stores/"+second.Id.String()+"/pairing/"+uuid.NewString(), nil, true); res.StatusCode != 403 {
+		t.Fatal("support revoked code")
+	}
 	if res, _ = f.request(t, "GET", path, nil, false); res.StatusCode != 200 {
 		t.Fatal("support cannot read")
 	}

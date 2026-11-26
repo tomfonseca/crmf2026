@@ -24,8 +24,10 @@ semeadura de lojas operacionais ou conexão ao ERP.
   inclusive revogado, evitando trocar silenciosamente a identidade de extração.
 - Redes → aba Lojas consulta a API com filtro exato de rede, paginação explícita,
   nomes/códigos reais e links ao detalhe. O cliente rejeita registros de outra rede.
-- `/stores/:id/pairing` e `/stores/:id/reinstall` permanecem **Previsto**. Salvar
-  configuração não emite código, token, MSI ou comando nem afirma agente instalado.
+- `/stores/:id/pairing` agora tem [emissão/revogação real de códigos](store-pairing-codes.md),
+  em incremento posterior ao catálogo. `/stores/:id/reinstall`, consumidor, MSI e
+  comandos continuam **Previsto**. Salvar configuração por si só não emite código
+  nem afirma agente instalado.
 
 Admin cria/edita; suporte apenas lê, inclusive em URLs diretas. Consultas usam
 cookie opaco, no-store, abort/12s, tratamento de expiração e cache da montagem

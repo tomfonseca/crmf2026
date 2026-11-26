@@ -13,6 +13,7 @@ import (
 	"net/url"
 	"path"
 	"strings"
+	"time"
 
 	"github.com/getkin/kin-openapi/openapi3"
 	"github.com/go-chi/chi/v5"
@@ -248,6 +249,33 @@ func (e NetworkStatus) Valid() bool {
 	case NetworkStatusSuspended:
 		return true
 	case NetworkStatusTrial:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for PairingMetadataStatus.
+const (
+	Expired     PairingMetadataStatus = "expired"
+	Invalidated PairingMetadataStatus = "invalidated"
+	Pending     PairingMetadataStatus = "pending"
+	Revoked     PairingMetadataStatus = "revoked"
+	Used        PairingMetadataStatus = "used"
+)
+
+// Valid indicates whether the value is a known member of the PairingMetadataStatus enum.
+func (e PairingMetadataStatus) Valid() bool {
+	switch e {
+	case Expired:
+		return true
+	case Invalidated:
+		return true
+	case Pending:
+		return true
+	case Revoked:
+		return true
+	case Used:
 		return true
 	default:
 		return false
@@ -545,6 +573,36 @@ func (e UpdateHQStoreParamsXCRMFRequest) Valid() bool {
 	}
 }
 
+// Defines values for IssueHQPairingParamsXCRMFRequest.
+const (
+	IssueHQPairingParamsXCRMFRequestN1 IssueHQPairingParamsXCRMFRequest = "1"
+)
+
+// Valid indicates whether the value is a known member of the IssueHQPairingParamsXCRMFRequest enum.
+func (e IssueHQPairingParamsXCRMFRequest) Valid() bool {
+	switch e {
+	case IssueHQPairingParamsXCRMFRequestN1:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for RevokeHQPairingParamsXCRMFRequest.
+const (
+	RevokeHQPairingParamsXCRMFRequestN1 RevokeHQPairingParamsXCRMFRequest = "1"
+)
+
+// Valid indicates whether the value is a known member of the RevokeHQPairingParamsXCRMFRequest enum.
+func (e RevokeHQPairingParamsXCRMFRequest) Valid() bool {
+	switch e {
+	case RevokeHQPairingParamsXCRMFRequestN1:
+		return true
+	default:
+		return false
+	}
+}
+
 // Defines values for CreateNetworkParamsXCRMFRequest.
 const (
 	CreateNetworkParamsXCRMFRequestN1 CreateNetworkParamsXCRMFRequest = "1"
@@ -779,6 +837,17 @@ type NetworkProfileInput struct {
 	Uf                string `json:"uf"`
 }
 
+// PairingMetadata defines model for PairingMetadata.
+type PairingMetadata struct {
+	ExpiresAt time.Time             `json:"expires_at"`
+	Id        openapi_types.UUID    `json:"id"`
+	Status    PairingMetadataStatus `json:"status"`
+	StoreId   openapi_types.UUID    `json:"store_id"`
+}
+
+// PairingMetadataStatus defines model for PairingMetadata.Status.
+type PairingMetadataStatus string
+
 // PasskeyInput defines model for PasskeyInput.
 type PasskeyInput struct {
 	// Response Serialized WebAuthn credential JSON or an explicit single-use recovery code; never a TOTP
@@ -980,6 +1049,29 @@ type UpdateHQStoreParams struct {
 // UpdateHQStoreParamsXCRMFRequest defines parameters for UpdateHQStore.
 type UpdateHQStoreParamsXCRMFRequest string
 
+// IssueHQPairingJSONBody defines body for IssueHQPairing for application/json ContentType.
+type IssueHQPairingJSONBody struct {
+	// PreviousId Latest code UUID or empty string for none. Compare-and-swap
+	PreviousId   string `json:"previous_id"`
+	StoreVersion int32  `json:"store_version"`
+}
+
+// IssueHQPairingParams defines parameters for IssueHQPairing.
+type IssueHQPairingParams struct {
+	XCRMFRequest IssueHQPairingParamsXCRMFRequest `json:"X-CRMF-Request"`
+}
+
+// IssueHQPairingParamsXCRMFRequest defines parameters for IssueHQPairing.
+type IssueHQPairingParamsXCRMFRequest string
+
+// RevokeHQPairingParams defines parameters for RevokeHQPairing.
+type RevokeHQPairingParams struct {
+	XCRMFRequest RevokeHQPairingParamsXCRMFRequest `json:"X-CRMF-Request"`
+}
+
+// RevokeHQPairingParamsXCRMFRequest defines parameters for RevokeHQPairing.
+type RevokeHQPairingParamsXCRMFRequest string
+
 // ListNetworksParams defines parameters for ListNetworks.
 type ListNetworksParams struct {
 	After *string `form:"after,omitempty" json:"after,omitempty"`
@@ -1052,6 +1144,9 @@ type CreateHQStoreJSONRequestBody = HQStoreInput
 // UpdateHQStoreJSONRequestBody defines body for UpdateHQStore for application/json ContentType.
 type UpdateHQStoreJSONRequestBody = HQStoreUpdate
 
+// IssueHQPairingJSONRequestBody defines body for IssueHQPairing for application/json ContentType.
+type IssueHQPairingJSONRequestBody IssueHQPairingJSONBody
+
 // CreateNetworkJSONRequestBody defines body for CreateNetwork for application/json ContentType.
 type CreateNetworkJSONRequestBody = NetworkInput
 
@@ -1123,6 +1218,15 @@ type ServerInterface interface {
 
 	// (PUT /v1/hq/stores/{id})
 	UpdateHQStore(w http.ResponseWriter, r *http.Request, id openapi_types.UUID, params UpdateHQStoreParams)
+
+	// (GET /v1/hq/stores/{id}/pairing)
+	GetHQPairing(w http.ResponseWriter, r *http.Request, id openapi_types.UUID)
+
+	// (POST /v1/hq/stores/{id}/pairing)
+	IssueHQPairing(w http.ResponseWriter, r *http.Request, id openapi_types.UUID, params IssueHQPairingParams)
+
+	// (DELETE /v1/hq/stores/{id}/pairing/{pairing_id})
+	RevokeHQPairing(w http.ResponseWriter, r *http.Request, id openapi_types.UUID, pairingId openapi_types.UUID, params RevokeHQPairingParams)
 
 	// (GET /v1/hq/tenants)
 	ListNetworks(w http.ResponseWriter, r *http.Request, params ListNetworksParams)
@@ -1238,6 +1342,21 @@ func (_ Unimplemented) GetHQStore(w http.ResponseWriter, r *http.Request, id ope
 
 // (PUT /v1/hq/stores/{id})
 func (_ Unimplemented) UpdateHQStore(w http.ResponseWriter, r *http.Request, id openapi_types.UUID, params UpdateHQStoreParams) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// (GET /v1/hq/stores/{id}/pairing)
+func (_ Unimplemented) GetHQPairing(w http.ResponseWriter, r *http.Request, id openapi_types.UUID) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// (POST /v1/hq/stores/{id}/pairing)
+func (_ Unimplemented) IssueHQPairing(w http.ResponseWriter, r *http.Request, id openapi_types.UUID, params IssueHQPairingParams) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// (DELETE /v1/hq/stores/{id}/pairing/{pairing_id})
+func (_ Unimplemented) RevokeHQPairing(w http.ResponseWriter, r *http.Request, id openapi_types.UUID, pairingId openapi_types.UUID, params RevokeHQPairingParams) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
@@ -2020,6 +2139,149 @@ func (siw *ServerInterfaceWrapper) UpdateHQStore(w http.ResponseWriter, r *http.
 	handler.ServeHTTP(w, r)
 }
 
+// GetHQPairing operation middleware
+func (siw *ServerInterfaceWrapper) GetHQPairing(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "id" -------------
+	var id openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", chi.URLParam(r, "id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: r.URL.RawPath == ""})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetHQPairing(w, r, id)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// IssueHQPairing operation middleware
+func (siw *ServerInterfaceWrapper) IssueHQPairing(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "id" -------------
+	var id openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", chi.URLParam(r, "id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: r.URL.RawPath == ""})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
+		return
+	}
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params IssueHQPairingParams
+
+	headers := r.Header
+
+	// ------------- Required header parameter "X-CRMF-Request" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("X-CRMF-Request")]; found {
+		var XCRMFRequest IssueHQPairingParamsXCRMFRequest
+		n := len(valueList)
+		if n != 1 {
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "X-CRMF-Request", Count: n})
+			return
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "X-CRMF-Request", valueList[0], &XCRMFRequest, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true, Type: "string", Format: ""})
+		if err != nil {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "X-CRMF-Request", Err: err})
+			return
+		}
+
+		params.XCRMFRequest = XCRMFRequest
+
+	} else {
+		err := fmt.Errorf("Header parameter X-CRMF-Request is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "X-CRMF-Request", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.IssueHQPairing(w, r, id, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// RevokeHQPairing operation middleware
+func (siw *ServerInterfaceWrapper) RevokeHQPairing(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "id" -------------
+	var id openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", chi.URLParam(r, "id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: r.URL.RawPath == ""})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
+		return
+	}
+
+	// ------------- Path parameter "pairing_id" -------------
+	var pairingId openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "pairing_id", chi.URLParam(r, "pairing_id"), &pairingId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: r.URL.RawPath == ""})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "pairing_id", Err: err})
+		return
+	}
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params RevokeHQPairingParams
+
+	headers := r.Header
+
+	// ------------- Required header parameter "X-CRMF-Request" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("X-CRMF-Request")]; found {
+		var XCRMFRequest RevokeHQPairingParamsXCRMFRequest
+		n := len(valueList)
+		if n != 1 {
+			siw.ErrorHandlerFunc(w, r, &TooManyValuesForParamError{ParamName: "X-CRMF-Request", Count: n})
+			return
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "X-CRMF-Request", valueList[0], &XCRMFRequest, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true, Type: "string", Format: ""})
+		if err != nil {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "X-CRMF-Request", Err: err})
+			return
+		}
+
+		params.XCRMFRequest = XCRMFRequest
+
+	} else {
+		err := fmt.Errorf("Header parameter X-CRMF-Request is required, but not found")
+		siw.ErrorHandlerFunc(w, r, &RequiredHeaderError{ParamName: "X-CRMF-Request", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.RevokeHQPairing(w, r, id, pairingId, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
 // ListNetworks operation middleware
 func (siw *ServerInterfaceWrapper) ListNetworks(w http.ResponseWriter, r *http.Request) {
 
@@ -2449,6 +2711,15 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 		r.Put(options.BaseURL+"/v1/hq/stores/{id}", wrapper.UpdateHQStore)
 	})
 	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/v1/hq/stores/{id}/pairing", wrapper.GetHQPairing)
+	})
+	r.Group(func(r chi.Router) {
+		r.Post(options.BaseURL+"/v1/hq/stores/{id}/pairing", wrapper.IssueHQPairing)
+	})
+	r.Group(func(r chi.Router) {
+		r.Delete(options.BaseURL+"/v1/hq/stores/{id}/pairing/{pairing_id}", wrapper.RevokeHQPairing)
+	})
+	r.Group(func(r chi.Router) {
 		r.Get(options.BaseURL+"/v1/hq/companies/{cnpj}", wrapper.LookupCompany)
 	})
 	r.Group(func(r chi.Router) {
@@ -2463,59 +2734,65 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 // const string: with thousands of chunks the chained `+` fold is several
 // times slower for the Go compiler than parsing a slice literal.
 var swaggerSpec = []string{
-	"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",
-	"QoVMzJSxw58GPw3wmuz/BgA=",
+	"7Fzdc9s4kv9XULh92NRRlmxn5ybykyeb3fHeJPYlk7qrcflUENmSMAYBGgAVKy7971cNkOK3PhxHVur8",
+	"ZEsigEb3rz/R4AMNVZwoCdIaOnygCdMsBgvafXr78f0/PsJdCsbiRy7pkM6ARaBpQCWLgQ7p//TwqV7+",
+	"WEA13KVcQ0SHVqcQUBPOIGY4HmQa0+E1PaY3AbWLBIcbq7mc0uVyiSNNoqQBvzazTKjpO62Vxs+hkhak",
+	"o4MlieAhs1zJfqLVWED8738aJfG3YrW/aJjQIf23frHDvv/V9K/8KL9sBCbUPMHp6JBeyDkTPCJcJqkl",
+	"f309GLwKSCpZamcgLS4LEX59/CogE6XHPIpA4henrwISc2O4nOLH168CYiwT0I9STy70ueylBvDXN6+I",
+	"0jjtnHHBxgLIX/82OH1FlwH9APaL0rc5iXvcerYy0V6WRMOfEOJ2q6RSHJlNh6udp3Z2mdpQIR4eaKJV",
+	"AtpyL8YkHQsejm5hgZ+q6/3r0+WHngHNmeBfISL/DWOcS5JQg9siLpwTo9woc0YgmUEMmgnCZEQ0MBH3",
+	"xiqVEW2ACiEVqjnoxShUEZgmCZcSepbHQEBqJUQM0pIchkRJsaAB5RZiN7Qxe/YF05ot8LOxzKamDPUK",
+	"bGhAE2bMLSxGKyUJaLFy8W2LfpQV6zpfqXhOjVFWSMS71XwXCGGHmijiuGEmrkrCmTBhIKjLixnzRekI",
+	"/4/Z/W8gp3ZGh8eDk9cBjblcfbGJwtVEbTT++l+frNIOLkyIywkdXq9HbTbgHxxEZOgyqMOMO4InSsfM",
+	"0iFNU94KB+kRPvK266H7ASPSabvIQTJpR1uuNwdtuJKVZ7m0pyfUMZPHaVxmJZcWpqAbvPSTr1au7aNG",
+	"dbFqk/M3Be8zVjYUNuR2URP+yWDQsjfUqNqDP23CSEBBJ2X9EFzej8Z82oL43MM0SdmwRIsWhpbPkVFc",
+	"Zv+2LYd24KuSj1kyndQHbVIPx71si4FnupumRIZnVrBO1zNZFor+JMq0C8Zr2yqGrgXf5yRi9gnV/4n0",
+	"bIPiABMo2/riTbyp22+y4BcRugy7aC411SwL1FZOaR3b8on+icPaHJbznmXKE8EscnBlb1o1xaAwRjyq",
+	"UrLRGtZX382Wpgb0ozCZD8y3W6Y/yFm6Tg6efQ1haCXanYgBIUCPcgPZyb7dt+KWbCP1NzXl8jH+HmLG",
+	"Rc14nZ5stnhPFid4AoL18UIWmbZ4K5n82crjKUjQzG40CoOmUQi2jSYETJnojiUSweS24HbPds+k1YQL",
+	"2KTuRebgnvYD5xxN2qhppO5SSH1MqiFhbimnIRF6ognjojUOzSP/UYfJ/en1Ru52xlZNGi3mBjQoHLhJ",
+	"TQIycnSHTIYg2slsC6Cy6KgktcDjpxBVWRArelrY2OBCBXBrEPwYFc0xnjBrQUs6pP97fd77Y9B7c/Nw",
+	"fLK8dv+cLP+yGaI7RjU7AfgxEPXcKEGivEXW+zrovRndPJwGrwdtu6s71M3iXSOYq4L+HUQTMcseueWt",
+	"QpbBxpDFUbAu5A9oGwG7bXPMheByOgpTY1W8csObU4TtcwlpWWhHbd5o/YguaDcGRDBhqbCjdVF+cxA3",
+	"iWCL7VfRMOXGgoZo+zG7Jw8VspqLVvOJCqfqrG7hS9Aq7jZgXTGO5L0Hy3JFqAUX9wnXYEbMVmCOsb+r",
+	"urQZki3tTdNXoF/wTiw14KO9ubp1/3k6IpcAuuqeq8asi2x3D83cI6vhJedRYkI7E11F6DFqmReqmmWt",
+	"T+1FNRfPMkGw8Ia1NSYJ3GNBkVuCdUsBrj6ZF80IRrBnRMIcNGHk98vfr2hQBurPx29Odov2ViS3skIw",
+	"uX1OiE/n1vSR5aCnLM8UkQByrSOFRJq7Ci9ZjFMERmOlBDCJhM44ImsxipW0M7MzvU5oIwfObQdfr0YH",
+	"VKZC0JtsFsymvm0SFaUCqqljrsOh0pDlaZl9gPtEaUsDmqTCdNRtymllQFPJ71K48FNbnUJ7Jel4myRH",
+	"8xBGYX44smMWYRYyHOFnPWdiZCBUMjLfirXMipcpK4fHrUs28FPBQ1mshXS69HPHUlMJ8MugbqUuY26d",
+	"jSFWEWYMn0o0STyOU+vORAzoOeheFlpDRLizYBMO+oi8yy2XUF9Ah8yAm8sQja5NEpMmCB2I8JiGIG3M",
+	"8jEX3C6OaCPGznL1ZgB6k/0d9W4eBsFPpx2RaIey71roqvHrGapcpXOnrjJXE+qW245aiP/iYVPZEH/N",
+	"p1lT8XTFlTDV3C4+Icc8ZVdZ0ertjAkBcgqrw8pQqVsOxWHlaPSrMrYX6ngyyktdo3A1rLAlCf9PWGSY",
+	"d099ApPzfuuZ2+b73dW8dqM0q5OtpdPPuwuVftbmXMhkLieqGVW8H5CZq4ESPHoE4w7g3h8T9UWS0kEX",
+	"V/KInFc+k0zYphRvoBxRZeWET1OfOZ8RqYg/MSQ+qNWrc8B3H6/IXQqagzlaQWXojqjJeXEqSs6vLkre",
+	"eEgHR4OjAXJIJSBZwumQnh4dHw1cySlzpn2/ra/4/xSceUPkuwkvIjrMSr9fae2M+mQwWHM+u9u5rF+i",
+	"7Vj2SqsQjCHcECbQzi/dQ31Xq+mm+aP/+VlIfquk1UoQTAvGzEBAmGRiYXloVt859Pwi1JhgbZ9NgTCN",
+	"sScLZ/6UOaB/G5zu8/z7PIdpRCJwZSYZLpDt1cNvx/z5cR8h3xdYeHXGUvkmieqUH4vj6ZqKnBH0cvif",
+	"yZcldgaECfRnEbnUfMqlY1K1xYL4DgxUgqrAXQ3491yry50cHU6neKRf7vRY3njjDMb+oqLFk8GlVKNe",
+	"Vh1AFqV9N6CWOxTa5F63VSYV9oyohN2lGJvcgjQOnNgQQDTYVEuICDO5EfvV2uQSf/P21pTqDfvE78eW",
+	"vo0q6JptHJk3pcPrmzquVWoPBtgqtU+G7ArIXje39tYLkYQCGNoCpDTRYEAiT413sf2VNyZ5neFHFPpD",
+	"PXC4vlkGD8sqFrKmlcMAQ1YvOWA7V6novFi6wwV9KQq/vikwP7s7TNd+VaQVL879BfKPc+6zu0P1708I",
+	"7xcPXzZ2jRJGzcfP7g7XzR+0zXtx9D8M9rtdPdLDJAfTf8BugWVnPeU3pW7T5K17fNHEo6u3YUWpqLZl",
+	"3QfdFyJ27+hY3nxHTLV2KrTUo3yBzjNuQUw6nYLxuo9owiKeJRNuQibIHDSfZNTUINRGyWpr/dotiK2M",
+	"WlmsMZQE+Xxm7D2ULNh3E9yqYfTFEuzkBauAOSwH6K9xHLT/q980eXGBPyLwsTnOdHs9bjAyl6bD4+GR",
+	"zKJweWxi3Wl/seva9ZCn9me1vo+8oWCr9njcV1tfuoR7OwpTbfzNww19P26llqPKhiA/J3jOfTwYEMdy",
+	"gmfU/pzbnYErHYE+y4+t8dgBD3h6iM6dPGfl4uSWaAhWBq8q/bcamAXHp4MMwIsWoG1Mz/GTLtwaGgkm",
+	"SQLacGOzvJKlEbcQnZHVeTOLYi7JXuRa0/L+A4+W3q0JsNCU99/d988q710ao/HsWMerLv+qLN7ds9A6",
+	"VSPZZavv1f9Vbv0qUdRuEzaBtKVc8VmadIxfjCHyG/LyqwBsHzZiY8aT3bLpync2dVTeBDTrLqrC0nfR",
+	"HLQZ8iTuOwRaa4dSR1LNCrkr6SRDrHcyWVjxhdsZeT14s0ejVHQkdsYe2c2/R4cfG5t42ycqX7bdCb/P",
+	"FsxkjMqaPbP2x+PBYGN4s2Ob89bhzi+YJkFU7fAhoQeM6/SxICAGi43GgvHYPHOYk3PwEE1M5aLvnoOd",
+	"FbKaMnY/YGqFjZrehHBJhApvISLYq+Td1V2qLNurs6rbmFXk02po/gm2U/jfxct9v5asblm9nYETi2NI",
+	"1klrF04qFRXdhxZ2O/k9yiE4JM1+nvhhHVwqZjuPJVyQEGZI0uBvRZ4VaAqZlMqSWM2BZG+leB5d7yf+",
+	"ctJ6nc9uMP0IWl9LfVKtQXYytDihqt7QaulUb0r+N2bBZI35cTbSpatBdhUIC5vuV6VJxLH4f0TexYld",
+	"ED8piQHrG1IRbkzqQoAIjp7Nu18gEXuV9f4sSxUVCWqkSk12ga1brJ8/X/wdpQdOap5ud01CKglHxB1y",
+	"aegxGfXMF5YgY5RFLY8TZbEr9ogO8UJP5w26J8qsq5MFlQ0+Lr0+/hala7kkct779V+9D1e9P07wzO7n",
+	"9lvY36CtZW7k03ReMWuz4hEQM8MOfSVDCIh/udl/nJCZSrU5IxMM0pyaGixcEa86SvdjLlPrm7SVBPeb",
+	"k0b2wxH5oMj7U6IBQeF8BMgoUVxawuNEcIiOntfy9x+yf0Ybil4fXXfHvg1Ey6QFvXu3PptLUHip1huP",
+	"rBumEs97A8FIBHMe+kfCrC6HdmJ/QPCJ+/qaQna2/OiawiGl/R+KIGu3tP+p0/ws2iMJ3uTwYaIvhmLN",
+	"Mn9/BrqZ7HLX928GWJ/t54w7xGy/8rKQrdzayVOv3X4SmeX5uazRAkSpdmdYf6px4EIKV3aHe24sSlvn",
+	"rNpj70dmAzJvULzYY03aWXsLyP+b7LO27z2nn22r1+OXOAYd4ksLVqmIYfNvOPp4UnBprF6W+0XqkYXV",
+	"i05D8yNjaodTum3fxLU5G1j7iqWDsZLnRMIXwqzFuNglVZgvGxavKiLB6pUa/oY+8ZjaH4wPpjludYvn",
+	"pTXuoK6AlZByiF1xB3z566Un7odFvHtIz3MwpVrQIZ1Zmwz7faFCJmbK2OHPg58HdHmz/L8BAA==",
 }
 
 // decodeSpec returns the embedded OpenAPI spec as raw JSON bytes,

@@ -250,6 +250,7 @@ export function StoreScreens(props: StoreScreenProps) {
     state = "unavailable",
     variant = "",
     preview = false,
+    connected = false,
   } = props;
   const path = route.split("?")[0];
   const isNew = path === "/stores/new";
@@ -290,12 +291,20 @@ export function StoreScreens(props: StoreScreenProps) {
                 : "Rede e integração não confirmadas"
             }
             action={
-              canWrite && (
-                <PlannedAction icon="refresh">
-                  {record?.agent
-                    ? "Reinstalar agente"
-                    : "Gerar código de pareamento"}
-                </PlannedAction>
+              connected && record ? (
+                <button
+                  onClick={() => navigate("/stores/" + record.id + "/pairing")}
+                >
+                  Códigos de pareamento
+                </button>
+              ) : (
+                canWrite && (
+                  <PlannedAction icon="refresh">
+                    {record?.agent
+                      ? "Reinstalar agente"
+                      : "Gerar código de pareamento"}
+                  </PlannedAction>
+                )
               )
             }
           />

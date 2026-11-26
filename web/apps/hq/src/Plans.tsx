@@ -24,6 +24,7 @@ import {
 } from "./PlanPresentation";
 import { Networks } from "./Networks";
 import { Stores } from "./Stores";
+import type { PairingClient } from "./pairing-client";
 import { type StoreClient } from "./stores-client";
 import type { NetworkClient } from "./networks-client";
 import { Shell, type WorkspaceActions } from "./Shell";
@@ -60,6 +61,7 @@ export function parsePrice(value: string): number {
 export function CatalogHost(props: {
   networks?: NetworkClient;
   stores?: StoreClient;
+  pairing?: PairingClient;
   client: PlanClient;
   onExpired: () => void;
   theme: string;
@@ -111,9 +113,12 @@ export function CatalogHost(props: {
             theme={props.theme}
             toggleTheme={props.toggleTheme}
           />
-        ) : /^\/stores(?:\/new|\/[^/?]+(?:\/edit)?)?(?:\?.*)?$/.test(path) ? (
+        ) : /^\/stores(?:\/new|\/[^/?]+(?:\/(?:edit|pairing))?)?(?:\?.*)?$/.test(
+            path,
+          ) ? (
           <Stores
             client={props.stores}
+            pairing={props.pairing}
             route={path}
             navigate={navigate}
             networks={props.networks}
