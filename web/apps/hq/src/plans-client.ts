@@ -1,6 +1,12 @@
 import { createAppClient, type AppComponents } from "@crmf/api-client";
 import { createAuthClient } from "@crmf/auth";
 
+// Escape '-' for HTML pattern's Unicode-sets (v) mode as well as JS regexes.
+export const PLAN_CODE_PATTERN = "[a-z0-9][a-z0-9_\\-]{0,63}";
+const codeExpression = new RegExp("^(?:" + PLAN_CODE_PATTERN + ")$", "u");
+export function isPlanCode(value: unknown): value is string {
+  return typeof value === "string" && codeExpression.exec(value)?.[0] === value;
+}
 export type Plan = AppComponents["schemas"]["Plan"];
 export type PlanInput = AppComponents["schemas"]["PlanInput"];
 export type PlanUpdate = AppComponents["schemas"]["PlanUpdate"];
@@ -21,6 +27,8 @@ export class PlanFailure extends Error {
 }
 export function planMessage(error: unknown): string {
   if (error instanceof PlanFailure) {
+    if (error.kind === "invalid_plan_code")
+      return "Código inválido. Use letras minúsculas, números, _ ou -, começando por letra ou número. Ex.: p01.";
     if (error.status === 401) return "Sua sessão expirou. Entre novamente.";
     if (error.status === 403) return "Seu papel não permite esta operação.";
     if (error.kind === "plan_in_use")
@@ -42,8 +50,7 @@ function checked(plan: Plan | undefined): Plan {
     !/^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/i.test(
       plan.id,
     ) ||
-    typeof plan.code !== "string" ||
-    !/^[a-z0-9][a-z0-9_-]{0,63}$/.test(plan.code) ||
+    !isPlanCode(plan.code) ||
     typeof plan.name !== "string" ||
     !plan.name ||
     typeof plan.active !== "boolean" ||
@@ -114,6 +121,8 @@ export function createPlanClient(
       }),
     create: (body, signal) =>
       guarded(async () => {
+        if (!isPlanCode(body.code))
+          throw new PlanFailure(400, "invalid_plan_code");
         const result = await api.POST("/v1/hq/plans", {
           ...mutation(signal),
           body,

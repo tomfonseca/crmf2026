@@ -139,6 +139,23 @@ for (const support of [false, true]) {
         .getByLabel("Máximo de usuários (vazio = ilimitado)")
         .fill("10");
       await page.getByLabel("core", { exact: true }).check();
+      const code = page.getByLabel(/^Código/);
+      await code.fill("P01");
+      expect(
+        await code.evaluate((input: HTMLInputElement) => input.checkValidity()),
+      ).toBe(false);
+      await page
+        .getByRole("button", { name: "Salvar plano", exact: true })
+        .click();
+      await expect(code).toHaveAttribute("aria-invalid", "true");
+      await expect(
+        page.getByText(
+          "Use letras minúsculas, números, _ ou -, começando por letra ou número. Ex.: p01.",
+        ),
+      ).toBeVisible();
+      expect(mutations).toEqual([]);
+      await code.fill("synthetic");
+      await expect(code).not.toHaveAttribute("aria-invalid", "true");
       await page
         .getByRole("button", { name: "Salvar plano", exact: true })
         .click();

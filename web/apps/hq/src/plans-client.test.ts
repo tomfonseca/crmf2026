@@ -1,5 +1,11 @@
 import { afterEach, expect, test, vi } from "vitest";
-import { createPlanClient, planMessage, PlanFailure } from "./plans-client";
+import {
+  createPlanClient,
+  planMessage,
+  PlanFailure,
+  PLAN_CODE_PATTERN,
+  isPlanCode,
+} from "./plans-client";
 import { parsePrice } from "./Plans";
 afterEach(() => vi.unstubAllGlobals());
 test.each([
@@ -16,6 +22,80 @@ test.each(["-1", "1.25", "1e3", "1,234", "21474836,48", "NaN"])(
     expect(() => parsePrice(input)).toThrow();
   },
 );
+test("plan codes match the API contract and compile in native HTML Unicode-sets mode", () => {
+  const native = new RegExp("^(?:" + PLAN_CODE_PATTERN + ")$", "v");
+  for (const code of ["p01", "0", "p-01", "p_01", "p".repeat(64)]) {
+    expect(isPlanCode(code)).toBe(true);
+    expect(native.test(code)).toBe(true);
+  }
+  for (const code of [
+    "P01",
+    "",
+    "_p01",
+    "-p01",
+    "p 01",
+    "p.01",
+    "p/01",
+    "p\\n",
+    "p".repeat(65),
+    null,
+    1,
+  ])
+    expect(isPlanCode(code)).toBe(false);
+});
+test("invalid create codes fail before fetch without silently lowercasing", async () => {
+  const fetch = vi.fn();
+  vi.stubGlobal("fetch", fetch);
+  const body = {
+    name: "Essencial",
+    price_cents: 9990,
+    active: true,
+    sync_interval_seconds: 10800,
+    history_months: 6,
+    max_stores: 3,
+    max_users: 15,
+    modules: ["core", "export"] as ("core" | "export")[],
+    code: "P01",
+  };
+  await expect(
+    createPlanClient("https://api.example.invalid").create(body),
+  ).rejects.toMatchObject({ status: 400, kind: "invalid_plan_code" });
+  expect(fetch).not.toHaveBeenCalled();
+  expect(body.code).toBe("P01");
+  expect(planMessage(new PlanFailure(400, "invalid_plan_code"))).toContain(
+    "p01",
+  );
+});
+test("accepts the reported Essencial payload with the explicit lowercase code p01", async () => {
+  const body = {
+    name: "Essencial",
+    price_cents: 9990,
+    active: true,
+    sync_interval_seconds: 10800,
+    history_months: 6,
+    max_stores: 3,
+    max_users: 15,
+    modules: ["core", "export"] as ("core" | "export")[],
+    code: "p01",
+  };
+  const fetch = vi.fn().mockResolvedValue(
+    new Response(
+      JSON.stringify({
+        ...body,
+        id: "00000000-0000-7000-8000-000000000001",
+        version: 1,
+      }),
+      { status: 201, headers: { "Content-Type": "application/json" } },
+    ),
+  );
+  vi.stubGlobal("fetch", fetch);
+  const created = await createPlanClient("https://api.example.invalid").create(
+    body,
+  );
+  expect(created.code).toBe("p01");
+  expect(fetch).toHaveBeenCalledOnce();
+  expect(await (fetch.mock.calls[0][0] as Request).json()).toEqual(body);
+});
 test("only sends versioned credentialed mutations to QG routes", async () => {
   const fetch = vi.fn().mockResolvedValue(new Response(null, { status: 204 }));
   vi.stubGlobal("fetch", fetch);

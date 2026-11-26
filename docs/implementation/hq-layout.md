@@ -106,6 +106,26 @@ Example plans exist only in intercepted browser tests, never as seeded records
 or an API-to-mock fallback. Missing subscription counts remain unavailable;
 no fictional author/counts/plan prices are inserted to match a screenshot.
 
+## Plan code validation correction
+
+Plan codes retain the approved lowercase `[a-z0-9][a-z0-9_-]{0,63}` API
+contract. For example, `P01` is invalid and `p01` is valid; no silent case
+conversion, identifier migration or backend policy change is performed.
+
+The original HTML pattern contained an unescaped hyphen. Modern browsers compile
+`pattern` in Unicode-sets (`v`) mode and ignored that invalid expression, letting
+uppercase values reach the API. The shared frontend pattern now escapes the
+hyphen, shows an associated inline field error/focus before submission, and the
+client independently rejects invalid creation codes before fetch. The server
+remains authoritative and still rejects uppercase manual HTTP requests.
+
+Regression evidence: the original browser considered `P01` valid; the same test
+now rejects it with no POST, clears the field error on correction and completes
+the existing CRUD flow. Unit checks cover native `v` compilation, accepted and
+rejected codes, no silent normalization/no network for invalid creation and the
+reported Essencial payload with explicit `p01`. Full frontend suite: **70 unit /
+16 browser tests**, plus typecheck/lint/build.
+
 ## Routes and boundaries
 
 - `/` retains the existing plan-catalog entry; `/overview` opens the planned panel.

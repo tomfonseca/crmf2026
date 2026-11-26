@@ -273,6 +273,9 @@
   font-weight: 400;
   color: var(--ds-muted);
 }
+.qg-shell .plans-form-card .plans-code-error {
+  color: var(--ds-danger, #b02a2a);
+}
 .qg-shell .plans-card-body {
   padding: 16px;
 }
